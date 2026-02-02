@@ -22,8 +22,9 @@ export interface SKU {
 
 export interface ProductionTask extends SKU {
   recommendedQtyKg: number;
-  priority: 'critical' | 'high' | 'normal';
+  priority: 'critical' | 'high' | 'reserve' | 'normal';
   priorityReason: string;
+  storeName?: string;
   status: 'pending' | 'in-progress' | 'completed';
   timeStarted?: number;
 }
@@ -116,8 +117,8 @@ export function getProductionQueue(skus: SKU[]): ProductionTask[] {
       };
     })
     .sort((a, b) => {
-      const priorityMap = { critical: 0, high: 1, normal: 2 };
-      return priorityMap[a.priority] - priorityMap[b.priority];
+      const priorityMap = { critical: 0, high: 1, reserve: 2, normal: 3 };
+      return priorityMap[a.priority as keyof typeof priorityMap] - priorityMap[b.priority as keyof typeof priorityMap];
     });
 }
 
@@ -172,7 +173,7 @@ export function transformSupabaseData(rows: SupabaseRow[]): ProductionTask[] {
   });
 
   return Array.from(productMap.values()).sort((a, b) => {
-    const pMap = { critical: 0, high: 1, normal: 2 };
-    return pMap[a.priority] - pMap[b.priority];
+    const pMap = { critical: 0, high: 1, reserve: 2, normal: 3 };
+    return pMap[a.priority as keyof typeof pMap] - pMap[b.priority as keyof typeof pMap];
   });
 }

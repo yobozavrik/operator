@@ -1,0 +1,3748 @@
+Microsoft Windows [Version 10.0.26200.6584]
+(c) Корпорация Майкрософт (Microsoft Corporation). Все права защищены.
+
+D:\Начальник виробництва>npm run dev
+
+> app@0.1.0 dev
+> next dev
+
+⚠ Port 3000 is in use by process 19976, using available port 3002 instead.
+▲ Next.js 16.1.6 (Turbopack)
+- Local:         http://localhost:3002
+- Network:       http://172.18.176.1:3002
+
+✓ Starting...
+⨯ Unable to acquire lock at D:\Начальник виробництва\.next\dev\lock, is another instance of next dev running?
+  Suggestion: If you intended to restart next dev, terminate the other process, and then try again.
+
+
+D:\Начальник виробництва>rmdir .next /S /Q
+
+D:\Начальник виробництва>npm run dev
+
+> app@0.1.0 dev
+> next dev
+
+⚠ Port 3000 is in use by process 19976, using available port 3001 instead.
+▲ Next.js 16.1.6 (Turbopack)
+- Local:         http://localhost:3001
+- Network:       http://172.18.176.1:3001
+
+✓ Starting...
+✓ Ready in 573ms
+ GET / 200 in 2.3s (compile: 2.2s, render: 132ms)
+ GET / 200 in 80ms (compile: 3ms, render: 78ms)
+ GET / 200 in 96ms (compile: 3ms, render: 93ms)
+ GET / 200 in 77ms (compile: 2ms, render: 75ms)
+ GET / 200 in 72ms (compile: 2ms, render: 70ms)
+✓ Compiled in 16ms
+⚠ Fast Refresh had to perform a full reload due to a runtime error.
+✓ Compiled in 104ms
+ GET / 200 in 163ms (compile: 55ms, render: 109ms)
+ GET / 200 in 63ms (compile: 3ms, render: 59ms)
+ GET / 200 in 64ms (compile: 2ms, render: 62ms)
+✓ Compiled in 16ms
+✓ Compiled in 37ms
+ GET / 200 in 108ms (compile: 53ms, render: 56ms)
+ GET / 200 in 36ms (compile: 3ms, render: 33ms)
+ GET / 200 in 33ms (compile: 1586µs, render: 31ms)
+ GET / 200 in 34ms (compile: 3ms, render: 32ms)
+ GET / 200 in 34ms (compile: 1815µs, render: 32ms)
+ GET / 200 in 35ms (compile: 1832µs, render: 33ms)
+ GET / 200 in 23ms (compile: 2ms, render: 21ms)
+ GET / 200 in 13ms (compile: 2ms, render: 11ms)
+✓ Compiled in 167ms
+ GET / 200 in 173ms (compile: 46ms, render: 127ms)
+ GET /analytics 200 in 366ms (compile: 352ms, render: 14ms)
+ GET /analytics 200 in 15ms (compile: 3ms, render: 13ms)
+ GET / 200 in 9ms (compile: 1982µs, render: 7ms)
+ GET /analytics 200 in 10ms (compile: 1891µs, render: 9ms)
+✓ Compiled in 12ms
+✓ Compiled in 106ms
+ GET /analytics 200 in 141ms (compile: 46ms, render: 95ms)
+ GET /production 404 in 197ms (compile: 186ms, render: 11ms)
+ GET /production 404 in 29ms (compile: 3ms, render: 26ms)
+✓ Compiled in 29ms
+✓ Compiled in 146ms
+ GET /production 200 in 381ms (compile: 318ms, render: 63ms)
+ GET /production 200 in 70ms (compile: 3ms, render: 67ms)
+ GET /production 200 in 129ms (compile: 2ms, render: 127ms)
+ GET /production 200 in 95ms (compile: 62ms, render: 33ms)
+ GET /production 200 in 130ms (compile: 14ms, render: 116ms)
+ GET /production 200 in 152ms (compile: 1881µs, render: 150ms)
+ GET /production 200 in 24ms (compile: 4ms, render: 20ms)
+ GET /production 200 in 116ms (compile: 2ms, render: 114ms)
+✓ Compiled in 121ms
+ GET / 200 in 51ms (compile: 34ms, render: 17ms)
+ GET /analytics 200 in 57ms (compile: 44ms, render: 13ms)
+ GET /production 200 in 11ms (compile: 1968µs, render: 9ms)
+ GET /analytics 200 in 12ms (compile: 2ms, render: 10ms)
+ GET /production 200 in 9ms (compile: 1690µs, render: 7ms)
+ GET / 200 in 8ms (compile: 1620µs, render: 6ms)
+ GET /production 200 in 11ms (compile: 1886µs, render: 9ms)
+✓ Compiled in 49ms
+ GET / 200 in 11ms (compile: 2ms, render: 8ms)
+✓ Compiled in 25ms
+✓ Compiled in 27ms
+✓ Compiled in 27ms
+✓ Compiled in 27ms
+ GET / 200 in 110ms (compile: 45ms, render: 64ms)
+ GET / 200 in 55ms (compile: 3ms, render: 53ms)
+ GET / 200 in 54ms (compile: 2ms, render: 51ms)
+ GET / 200 in 41ms (compile: 2ms, render: 39ms)
+ GET / 200 in 41ms (compile: 1700µs, render: 39ms)
+ GET / 200 in 35ms (compile: 2ms, render: 33ms)
+ GET / 200 in 37ms (compile: 2ms, render: 35ms)
+ GET / 200 in 41ms (compile: 2ms, render: 38ms)
+ GET / 200 in 44ms (compile: 2ms, render: 42ms)
+ GET / 200 in 41ms (compile: 3ms, render: 39ms)
+ GET / 200 in 26ms (compile: 1956µs, render: 24ms)
+ GET / 200 in 13ms (compile: 3ms, render: 10ms)
+✓ Compiled in 35ms
+✓ Compiled in 172ms
+⚠ Fast Refresh had to perform a full reload due to a runtime error.
+✓ Compiled in 120ms
+⚠ Fast Refresh had to perform a full reload due to a runtime error.
+ GET / 200 in 157ms (compile: 40ms, render: 117ms)
+ GET /analytics 200 in 50ms (compile: 36ms, render: 14ms)
+ GET /bi 200 in 324ms (compile: 312ms, render: 12ms)
+✓ Compiled in 136ms
+✓ Compiled in 45ms
+✓ Compiled in 109ms
+✓ Compiled in 53ms
+✓ Compiled in 44ms
+✓ Compiled in 58ms
+✓ Compiled in 43ms
+ GET /bi 200 in 109ms (compile: 42ms, render: 66ms)
+✓ Compiled in 20ms
+✓ Compiled in 5ms
+ GET /bi 200 in 99ms (compile: 52ms, render: 48ms)
+ GET /bi 200 in 39ms (compile: 3ms, render: 36ms)
+ GET /bi 200 in 37ms (compile: 1967µs, render: 35ms)
+ GET /bi 200 in 25ms (compile: 3ms, render: 22ms)
+ GET /bi 200 in 14ms (compile: 3ms, render: 11ms)
+✓ Compiled in 183ms
+✓ Compiled in 39ms
+✓ Compiled in 39ms
+✓ Compiled in 174ms
+ GET /bi 200 in 64ms (compile: 3ms, render: 61ms)
+✓ Compiled in 58ms
+ GET /bi 200 in 37ms (compile: 2ms, render: 35ms)
+ GET /bi 200 in 17ms (compile: 1929µs, render: 15ms)
+✓ Compiled in 86ms
+✓ Compiled in 23ms
+ GET /bi 200 in 82ms (compile: 50ms, render: 33ms)
+ GET /bi 200 in 15ms (compile: 1854µs, render: 13ms)
+ GET /bi 200 in 12ms (compile: 1993µs, render: 10ms)
+✓ Compiled in 18ms
+ GET /bi 200 in 18ms (compile: 3ms, render: 15ms)
+✓ Compiled in 80ms
+ GET /bi 200 in 16ms (compile: 1814µs, render: 14ms)
+✓ Compiled in 39ms
+ GET /bi 200 in 63ms (compile: 2ms, render: 61ms)
+ GET /bi 200 in 53ms (compile: 5ms, render: 48ms)
+ GET /sw.js 404 in 71ms (compile: 35ms, render: 37ms)
+ GET /sw.js 404 in 22ms (compile: 3ms, render: 19ms)
+ GET /bi 200 in 145ms (compile: 69ms, render: 76ms)
+ GET /bi 200 in 66ms (compile: 1927µs, render: 64ms)
+ GET /bi 200 in 73ms (compile: 2ms, render: 71ms)
+ GET /bi 200 in 42ms (compile: 3ms, render: 40ms)
+ GET /bi 200 in 44ms (compile: 1667µs, render: 42ms)
+ GET /bi 200 in 42ms (compile: 2ms, render: 40ms)
+ GET /bi 200 in 40ms (compile: 3ms, render: 37ms)
+ GET /bi 200 in 42ms (compile: 3ms, render: 40ms)
+ GET /bi 200 in 42ms (compile: 3ms, render: 40ms)
+ GET /bi 200 in 58ms (compile: 2ms, render: 56ms)
+ GET /bi 200 in 57ms (compile: 3ms, render: 54ms)
+ GET /bi 200 in 48ms (compile: 2ms, render: 46ms)
+ GET /bi 200 in 33ms (compile: 1857µs, render: 32ms)
+ GET /bi 200 in 19ms (compile: 2ms, render: 17ms)
+ GET /sw.js 404 in 69ms (compile: 31ms, render: 38ms)
+  Reload env: .env.local
+ GET /sw.js 404 in 64ms (compile: 31ms, render: 34ms)
+✓ Compiled in 158ms
+✓ Compiled in 89ms
+✓ Compiled in 65ms
+ GET /api/graviton/metrics 200 in 310ms (compile: 255ms, render: 55ms)
+ GET /api/graviton/deficit 500 in 325ms (compile: 298ms, render: 26ms)
+✓ Compiled in 86ms
+✓ Compiled in 18ms
+ GET /sw.js 404 in 24ms (compile: 4ms, render: 20ms)
+✓ Compiled in 63ms
+ GET /api/graviton/deficit 500 in 9ms (compile: 1922µs, render: 7ms)
+  Reload env: .env.local
+Завершить выполнение пакетного файла [Y(да)/N(нет)]?
+y
+
+D:\Начальник виробництва># В Windows PowerShell или CMD:
+"#" не является внутренней или внешней
+командой, исполняемой программой или пакетным файлом.
+
+D:\Начальник виробництва>curl http://localhost:54321/rest/v1/
+curl: (7) Failed to connect to localhost port 54321 after 2230 ms: Could not connect to server
+
+D:\Начальник виробництва>curl http://localhost:8000/rest/v1/
+{
+  "message":"No API key found in request"
+}
+D:\Начальник виробництва>cd D:\Начальник виробництва\operator
+Системе не удается найти указанный путь.
+
+D:\Начальник виробництва>type .env.local
+NEXT_PUBLIC_SUPABASE_URL=http://localhost:8000
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eeyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyAgCiAgICAicm9sZSI6ICJzZXJ2aWNlX3JvbGUiLAogICAgImlzcyI6ICJzdXBhYmFzZS1kZW1vIiwKICAgICJpYXQiOiAxNjQxNzY5MjAwLAogICAgImV4cCI6IDE3OTk1MzU2MDAKfQ.DaYlNEoUrrEn2Ig7tqibS-PHK5vgusbcbo7X36XVt4Q
+
+D:\Начальник виробництва>npm run dev
+
+> app@0.1.0 dev
+> next dev
+
+⚠ Port 3000 is in use by process 19976, using available port 3001 instead.
+▲ Next.js 16.1.6 (Turbopack)
+- Local:         http://localhost:3001
+- Network:       http://172.18.176.1:3001
+- Environments: .env.local
+
+✓ Starting...
+✓ Ready in 563ms
+ GET / 200 in 1039ms (compile: 948ms, render: 91ms)
+Deficit error: { message: 'Invalid authentication credentials' }
+Supabase error: { message: 'Invalid authentication credentials' }
+ GET /api/graviton/deficit 500 in 170ms (compile: 101ms, render: 69ms)
+Count error: { message: '' }
+ GET /api/graviton/metrics 200 in 189ms (compile: 128ms, render: 60ms)
+Deficit error: { message: 'Invalid authentication credentials' }
+Count error: { message: '' }
+ GET /api/graviton/metrics 200 in 37ms (compile: 2ms, render: 35ms)
+Supabase error: { message: 'Invalid authentication credentials' }
+ GET /api/graviton/deficit 500 in 26ms (compile: 2ms, render: 23ms)
+Deficit error: { message: 'Invalid authentication credentials' }
+Count error: { message: '' }
+ GET /api/graviton/metrics 200 in 28ms (compile: 1712µs, render: 27ms)
+ GET /bi 200 in 148ms (compile: 117ms, render: 31ms)
+Deficit error: { message: 'Invalid authentication credentials' }
+Count error: { message: '' }
+ GET /api/graviton/metrics 200 in 33ms (compile: 2ms, render: 30ms)
+ GET /sw.js 404 in 67ms (compile: 35ms, render: 32ms)
+ GET /bi 200 in 26ms (compile: 3ms, render: 22ms)
+Deficit error: { message: 'Invalid authentication credentials' }
+Count error: { message: '' }
+ GET /api/graviton/metrics 200 in 25ms (compile: 6ms, render: 18ms)
+Supabase error: { message: 'Invalid authentication credentials' }
+ GET /api/graviton/deficit 500 in 36ms (compile: 2ms, render: 33ms)
+Supabase error: { message: 'Invalid authentication credentials' }
+ GET /api/graviton/deficit 500 in 11ms (compile: 1832µs, render: 9ms)
+Deficit error: { message: 'Invalid authentication credentials' }
+Count error: { message: '' }
+ GET /api/graviton/metrics 200 in 26ms (compile: 2ms, render: 24ms)
+Supabase error: { message: 'Invalid authentication credentials' }
+ GET /api/graviton/deficit 500 in 12ms (compile: 1857µs, render: 10ms)
+Deficit error: { message: 'Invalid authentication credentials' }
+Count error: { message: '' }
+ GET /api/graviton/metrics 200 in 22ms (compile: 4ms, render: 17ms)
+Deficit error: { message: 'Invalid authentication credentials' }
+Count error: { message: '' }
+ GET /api/graviton/metrics 200 in 13ms (compile: 1615µs, render: 11ms)
+ GET /sw.js 404 in 22ms (compile: 3ms, render: 19ms)
+Deficit error: { message: 'Invalid authentication credentials' }
+Supabase error: { message: 'Invalid authentication credentials' }
+ GET /api/graviton/deficit 500 in 13ms (compile: 4ms, render: 9ms)
+Count error: { message: '' }
+ GET /api/graviton/metrics 200 in 15ms (compile: 1752µs, render: 13ms)
+ GET /bi 200 in 20ms (compile: 1651µs, render: 19ms)
+Supabase error: { message: 'Invalid authentication credentials' }
+ GET /api/graviton/deficit 500 in 19ms (compile: 1454µs, render: 18ms)
+Deficit error: { message: 'Invalid authentication credentials' }
+Count error: { message: '' }
+ GET /api/graviton/metrics 200 in 30ms (compile: 4ms, render: 26ms)
+Deficit error: { message: 'Invalid authentication credentials' }
+Supabase error: { message: 'Invalid authentication credentials' }
+ GET /api/graviton/deficit 500 in 16ms (compile: 1841µs, render: 14ms)
+Count error: { message: '' }
+ GET /api/graviton/metrics 200 in 20ms (compile: 5ms, render: 15ms)
+ GET / 200 in 29ms (compile: 2ms, render: 27ms)
+Supabase error: { message: 'Invalid authentication credentials' }
+ GET /api/graviton/deficit 500 in 7ms (compile: 1249µs, render: 6ms)
+Deficit error: { message: 'Invalid authentication credentials' }
+Count error: { message: '' }
+ GET /api/graviton/metrics 200 in 11ms (compile: 4ms, render: 7ms)
+Deficit error: { message: 'Invalid authentication credentials' }
+Count error: { message: '' }
+ GET /api/graviton/metrics 200 in 26ms (compile: 1234µs, render: 25ms)
+Supabase error: { message: 'Invalid authentication credentials' }
+ GET /api/graviton/deficit 500 in 9ms (compile: 1601µs, render: 7ms)
+Deficit error: { message: 'Invalid authentication credentials' }
+Count error: { message: '' }
+ GET /api/graviton/metrics 200 in 11ms (compile: 1258µs, render: 10ms)
+Deficit error: { message: 'Invalid authentication credentials' }
+Count error: { message: '' }
+ GET /api/graviton/metrics 200 in 26ms (compile: 1478µs, render: 25ms)
+Deficit error: { message: 'Invalid authentication credentials' }
+Supabase error: { message: 'Invalid authentication credentials' }
+ GET /api/graviton/deficit 500 in 15ms (compile: 2ms, render: 13ms)
+Count error: { message: '' }
+ GET /api/graviton/metrics 200 in 26ms (compile: 5ms, render: 22ms)
+Supabase error: { message: 'Invalid authentication credentials' }
+ GET /api/graviton/deficit 500 in 9ms (compile: 1648µs, render: 8ms)
+Deficit error: { message: 'Invalid authentication credentials' }
+Count error: { message: '' }
+ GET /api/graviton/metrics 200 in 14ms (compile: 1481µs, render: 13ms)
+ GET /bi 200 in 21ms (compile: 2ms, render: 19ms)
+Supabase error: { message: 'Invalid authentication credentials' }
+ GET /api/graviton/deficit 500 in 8ms (compile: 1398µs, render: 7ms)
+Deficit error: { message: 'Invalid authentication credentials' }
+Count error: { message: '' }
+ GET /api/graviton/metrics 200 in 15ms (compile: 3ms, render: 12ms)
+Supabase error: { message: 'Invalid authentication credentials' }
+ GET /api/graviton/deficit 500 in 12ms (compile: 1613µs, render: 10ms)
+Deficit error: { message: 'Invalid authentication credentials' }
+Count error: { message: '' }
+ GET /api/graviton/metrics 200 in 17ms (compile: 4ms, render: 13ms)
+ GET /bi 200 in 31ms (compile: 3ms, render: 28ms)
+ GET /sw.js 404 in 25ms (compile: 4ms, render: 21ms)
+ GET /sw.js 404 in 18ms (compile: 3ms, render: 15ms)
+ GET / 200 in 28ms (compile: 1886µs, render: 26ms)
+Supabase error: { message: 'Invalid authentication credentials' }
+ GET /api/graviton/deficit 500 in 12ms (compile: 1466µs, render: 10ms)
+ GET /sw.js 404 in 18ms (compile: 3ms, render: 15ms)
+Supabase error: { message: 'Invalid authentication credentials' }
+ GET /api/graviton/deficit 500 in 11ms (compile: 1572µs, render: 10ms)
+Supabase error: { message: 'Invalid authentication credentials' }
+ GET /api/graviton/deficit 500 in 28ms (compile: 1674µs, render: 27ms)
+Завершить выполнение пакетного файла [Y(да)/N(нет)]?
+y
+
+D:\Начальник виробництва>cd D:\Начальник виробництва
+
+D:\Начальник виробництва>dir lib
+ Том в устройстве D имеет метку Новый том
+ Серийный номер тома: FADE-A539
+
+ Содержимое папки D:\Начальник виробництва
+
+Файл не найден
+
+D:\Начальник виробництва>dir /s package.json
+ Том в устройстве D имеет метку Новый том
+ Серийный номер тома: FADE-A539
+
+ Содержимое папки D:\Начальник виробництва
+
+02.02.2026  18:19               749 package.json
+               1 файлов            749 байт
+
+ Содержимое папки D:\Начальник виробництва\.next\dev
+
+02.02.2026  18:37                24 package.json
+               1 файлов             24 байт
+
+ Содержимое папки D:\Начальник виробництва\.next\dev\build
+
+02.02.2026  16:15                20 package.json
+               1 файлов             20 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@alloc\quick-lru
+
+02.02.2026  16:09               747 package.json
+               1 файлов            747 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@babel\code-frame
+
+02.02.2026  16:09               907 package.json
+               1 файлов            907 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@babel\compat-data
+
+02.02.2026  16:09             1 192 package.json
+               1 файлов          1 192 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@babel\core
+
+02.02.2026  16:09             2 504 package.json
+               1 файлов          2 504 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@babel\generator
+
+02.02.2026  16:09             1 083 package.json
+               1 файлов          1 083 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@babel\helper-compilation-targets
+
+02.02.2026  16:09             1 040 package.json
+               1 файлов          1 040 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@babel\helper-globals
+
+02.02.2026  16:09               814 package.json
+               1 файлов            814 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@babel\helper-module-imports
+
+02.02.2026  16:09               722 package.json
+               1 файлов            722 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@babel\helper-module-transforms
+
+02.02.2026  16:09               874 package.json
+               1 файлов            874 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@babel\helper-string-parser
+
+02.02.2026  16:09               758 package.json
+               1 файлов            758 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@babel\helper-validator-identifier
+
+02.02.2026  16:09               738 package.json
+               1 файлов            738 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@babel\helper-validator-option
+
+02.02.2026  16:09               631 package.json
+               1 файлов            631 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@babel\helpers
+
+02.02.2026  16:09               813 package.json
+               1 файлов            813 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@babel\parser
+
+02.02.2026  16:09             1 382 package.json
+               1 файлов          1 382 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@babel\template
+
+02.02.2026  16:09               771 package.json
+               1 файлов            771 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@babel\traverse
+
+02.02.2026  16:09             1 092 package.json
+               1 файлов          1 092 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@babel\types
+
+02.02.2026  16:09             1 065 package.json
+               1 файлов          1 065 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@emnapi\core
+
+02.02.2026  16:09             1 282 package.json
+               1 файлов          1 282 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@emnapi\runtime
+
+02.02.2026  16:09             1 186 package.json
+               1 файлов          1 186 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@emnapi\wasi-threads
+
+02.02.2026  16:09             1 383 package.json
+               1 файлов          1 383 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@eslint\config-array
+
+02.02.2026  16:09             1 919 package.json
+               1 файлов          1 919 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@eslint\config-helpers
+
+02.02.2026  16:09             1 706 package.json
+               1 файлов          1 706 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@eslint\core
+
+02.02.2026  16:09             1 190 package.json
+               1 файлов          1 190 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@eslint\eslintrc
+
+02.02.2026  16:09             2 062 package.json
+               1 файлов          2 062 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@eslint\js
+
+02.02.2026  16:09               783 package.json
+               1 файлов            783 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@eslint\object-schema
+
+02.02.2026  16:09             1 617 package.json
+               1 файлов          1 617 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@eslint\plugin-kit
+
+02.02.2026  16:09             1 703 package.json
+               1 файлов          1 703 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@eslint-community\eslint-utils
+
+02.02.2026  16:09             3 064 package.json
+               1 файлов          3 064 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@eslint-community\eslint-utils\node_modules\eslint-visitor-keys
+
+02.02.2026  16:09             2 410 package.json
+               1 файлов          2 410 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@eslint-community\regexpp
+
+02.02.2026  16:09             2 783 package.json
+               1 файлов          2 783 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@humanfs\core
+
+02.02.2026  16:09             1 072 package.json
+               1 файлов          1 072 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@humanfs\node
+
+02.02.2026  16:09             1 254 package.json
+               1 файлов          1 254 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@humanwhocodes\module-importer
+
+02.02.2026  16:09             1 490 package.json
+               1 файлов          1 490 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@humanwhocodes\retry
+
+02.02.2026  16:09             1 917 package.json
+               1 файлов          1 917 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@img\colour
+
+02.02.2026  16:09             1 016 package.json
+               1 файлов          1 016 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@img\sharp-win32-x64
+
+02.02.2026  16:09               908 package.json
+               1 файлов            908 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@jridgewell\gen-mapping
+
+02.02.2026  16:09             2 201 package.json
+               1 файлов          2 201 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@jridgewell\remapping
+
+02.02.2026  16:09             2 307 package.json
+               1 файлов          2 307 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@jridgewell\resolve-uri
+
+02.02.2026  16:09             2 063 package.json
+               1 файлов          2 063 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@jridgewell\sourcemap-codec
+
+02.02.2026  16:09             2 150 package.json
+               1 файлов          2 150 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@jridgewell\trace-mapping
+
+02.02.2026  16:09             2 252 package.json
+               1 файлов          2 252 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@napi-rs\wasm-runtime
+
+02.02.2026  16:09             1 519 package.json
+               1 файлов          1 519 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@next\env
+
+02.02.2026  16:09               967 package.json
+               1 файлов            967 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@next\eslint-plugin-next
+
+02.02.2026  16:09               715 package.json
+               1 файлов            715 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@next\swc-win32-x64-msvc
+
+02.02.2026  16:09               411 package.json
+               1 файлов            411 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@nodelib\fs.scandir
+
+02.02.2026  16:09             1 163 package.json
+               1 файлов          1 163 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@nodelib\fs.stat
+
+02.02.2026  16:09               987 package.json
+               1 файлов            987 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@nodelib\fs.walk
+
+02.02.2026  16:09             1 138 package.json
+               1 файлов          1 138 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@nolyfill\is-core-module
+
+02.02.2026  16:09               815 package.json
+               1 файлов            815 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@rtsao\scc
+
+02.02.2026  16:09               120 package.json
+               1 файлов            120 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@supabase\auth-js
+
+02.02.2026  18:19             1 211 package.json
+               1 файлов          1 211 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@supabase\functions-js
+
+02.02.2026  18:19             1 344 package.json
+               1 файлов          1 344 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@supabase\postgrest-js
+
+02.02.2026  18:19             2 000 package.json
+               1 файлов          2 000 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@supabase\realtime-js
+
+02.02.2026  18:19             1 667 package.json
+               1 файлов          1 667 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@supabase\storage-js
+
+02.02.2026  18:19             1 665 package.json
+               1 файлов          1 665 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@supabase\supabase-js
+
+02.02.2026  18:19             4 056 package.json
+               1 файлов          4 056 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@swc\helpers
+
+02.02.2026  16:09            18 130 package.json
+               1 файлов         18 130 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@swc\helpers\_\index
+
+02.02.2026  16:09                74 package.json
+               1 файлов             74 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@swc\helpers\_\_apply_decorated_descriptor
+
+02.02.2026  16:09               118 package.json
+               1 файлов            118 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@swc\helpers\_\_apply_decs_2203_r
+
+02.02.2026  16:09               100 package.json
+               1 файлов            100 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@swc\helpers\_\_array_like_to_array
+
+02.02.2026  16:09               104 package.json
+               1 файлов            104 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@swc\helpers\_\_array_without_holes
+
+02.02.2026  16:09               104 package.json
+               1 файлов            104 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@swc\helpers\_\_array_with_holes
+
+02.02.2026  16:09                98 package.json
+               1 файлов             98 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@swc\helpers\_\_assert_this_initialized
+
+02.02.2026  16:09               112 package.json
+               1 файлов            112 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@swc\helpers\_\_async_generator
+
+02.02.2026  16:09                96 package.json
+               1 файлов             96 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@swc\helpers\_\_async_generator_delegate
+
+02.02.2026  16:09               114 package.json
+               1 файлов            114 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@swc\helpers\_\_async_iterator
+
+02.02.2026  16:09                94 package.json
+               1 файлов             94 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@swc\helpers\_\_async_to_generator
+
+02.02.2026  16:09               102 package.json
+               1 файлов            102 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@swc\helpers\_\_await_async_generator
+
+02.02.2026  16:09               108 package.json
+               1 файлов            108 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@swc\helpers\_\_await_value
+
+02.02.2026  16:09                88 package.json
+               1 файлов             88 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@swc\helpers\_\_call_super
+
+02.02.2026  16:09                86 package.json
+               1 файлов             86 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@swc\helpers\_\_check_private_redeclaration
+
+02.02.2026  16:09               120 package.json
+               1 файлов            120 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@swc\helpers\_\_class_apply_descriptor_destructure
+
+02.02.2026  16:09               134 package.json
+               1 файлов            134 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@swc\helpers\_\_class_apply_descriptor_get
+
+02.02.2026  16:09               118 package.json
+               1 файлов            118 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@swc\helpers\_\_class_apply_descriptor_set
+
+02.02.2026  16:09               118 package.json
+               1 файлов            118 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@swc\helpers\_\_class_apply_descriptor_update
+
+02.02.2026  16:09               124 package.json
+               1 файлов            124 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@swc\helpers\_\_class_call_check
+
+02.02.2026  16:09                98 package.json
+               1 файлов             98 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@swc\helpers\_\_class_check_private_static_access
+
+02.02.2026  16:09               132 package.json
+               1 файлов            132 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@swc\helpers\_\_class_check_private_static_field_descriptor
+
+02.02.2026  16:09               152 package.json
+               1 файлов            152 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@swc\helpers\_\_class_extract_field_descriptor
+
+02.02.2026  16:09               126 package.json
+               1 файлов            126 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@swc\helpers\_\_class_name_tdz_error
+
+02.02.2026  16:09               106 package.json
+               1 файлов            106 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@swc\helpers\_\_class_private_field_destructure
+
+02.02.2026  16:09               128 package.json
+               1 файлов            128 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@swc\helpers\_\_class_private_field_get
+
+02.02.2026  16:09               112 package.json
+               1 файлов            112 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@swc\helpers\_\_class_private_field_init
+
+02.02.2026  16:09               114 package.json
+               1 файлов            114 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@swc\helpers\_\_class_private_field_loose_base
+
+02.02.2026  16:09               126 package.json
+               1 файлов            126 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@swc\helpers\_\_class_private_field_loose_key
+
+02.02.2026  16:09               124 package.json
+               1 файлов            124 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@swc\helpers\_\_class_private_field_set
+
+02.02.2026  16:09               112 package.json
+               1 файлов            112 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@swc\helpers\_\_class_private_field_update
+
+02.02.2026  16:09               118 package.json
+               1 файлов            118 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@swc\helpers\_\_class_private_method_get
+
+02.02.2026  16:09               114 package.json
+               1 файлов            114 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@swc\helpers\_\_class_private_method_init
+
+02.02.2026  16:09               116 package.json
+               1 файлов            116 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@swc\helpers\_\_class_private_method_set
+
+02.02.2026  16:09               114 package.json
+               1 файлов            114 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@swc\helpers\_\_class_static_private_field_destructure
+
+02.02.2026  16:09               142 package.json
+               1 файлов            142 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@swc\helpers\_\_class_static_private_field_spec_get
+
+02.02.2026  16:09               136 package.json
+               1 файлов            136 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@swc\helpers\_\_class_static_private_field_spec_set
+
+02.02.2026  16:09               136 package.json
+               1 файлов            136 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@swc\helpers\_\_class_static_private_field_update
+
+02.02.2026  16:09               132 package.json
+               1 файлов            132 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@swc\helpers\_\_class_static_private_method_get
+
+02.02.2026  16:09               128 package.json
+               1 файлов            128 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@swc\helpers\_\_construct
+
+02.02.2026  16:09                84 package.json
+               1 файлов             84 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@swc\helpers\_\_create_class
+
+02.02.2026  16:09                90 package.json
+               1 файлов             90 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@swc\helpers\_\_create_for_of_iterator_helper_loose
+
+02.02.2026  16:09               136 package.json
+               1 файлов            136 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@swc\helpers\_\_create_super
+
+02.02.2026  16:09                90 package.json
+               1 файлов             90 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@swc\helpers\_\_decorate
+
+02.02.2026  16:09                82 package.json
+               1 файлов             82 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@swc\helpers\_\_defaults
+
+02.02.2026  16:09                82 package.json
+               1 файлов             82 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@swc\helpers\_\_define_enumerable_properties
+
+02.02.2026  16:09               122 package.json
+               1 файлов            122 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@swc\helpers\_\_define_property
+
+02.02.2026  16:09                96 package.json
+               1 файлов             96 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@swc\helpers\_\_dispose
+
+02.02.2026  16:09                80 package.json
+               1 файлов             80 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@swc\helpers\_\_export_star
+
+02.02.2026  16:09                88 package.json
+               1 файлов             88 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@swc\helpers\_\_extends
+
+02.02.2026  16:09                80 package.json
+               1 файлов             80 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@swc\helpers\_\_get
+
+02.02.2026  16:09                72 package.json
+               1 файлов             72 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@swc\helpers\_\_get_prototype_of
+
+02.02.2026  16:09                98 package.json
+               1 файлов             98 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@swc\helpers\_\_identity
+
+02.02.2026  16:09                82 package.json
+               1 файлов             82 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@swc\helpers\_\_inherits
+
+02.02.2026  16:09                82 package.json
+               1 файлов             82 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@swc\helpers\_\_inherits_loose
+
+02.02.2026  16:09                94 package.json
+               1 файлов             94 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@swc\helpers\_\_initializer_define_property
+
+02.02.2026  16:09               120 package.json
+               1 файлов            120 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@swc\helpers\_\_initializer_warning_helper
+
+02.02.2026  16:09               118 package.json
+               1 файлов            118 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@swc\helpers\_\_instanceof
+
+02.02.2026  16:09                86 package.json
+               1 файлов             86 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@swc\helpers\_\_interop_require_default
+
+02.02.2026  16:09               112 package.json
+               1 файлов            112 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@swc\helpers\_\_interop_require_wildcard
+
+02.02.2026  16:09               114 package.json
+               1 файлов            114 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@swc\helpers\_\_is_native_function
+
+02.02.2026  16:09               102 package.json
+               1 файлов            102 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@swc\helpers\_\_is_native_reflect_construct
+
+02.02.2026  16:09               120 package.json
+               1 файлов            120 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@swc\helpers\_\_iterable_to_array
+
+02.02.2026  16:09               100 package.json
+               1 файлов            100 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@swc\helpers\_\_iterable_to_array_limit
+
+02.02.2026  16:09               112 package.json
+               1 файлов            112 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@swc\helpers\_\_iterable_to_array_limit_loose
+
+02.02.2026  16:09               124 package.json
+               1 файлов            124 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@swc\helpers\_\_jsx
+
+02.02.2026  16:09                72 package.json
+               1 файлов             72 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@swc\helpers\_\_new_arrow_check
+
+02.02.2026  16:09                96 package.json
+               1 файлов             96 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@swc\helpers\_\_non_iterable_rest
+
+02.02.2026  16:09               100 package.json
+               1 файлов            100 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@swc\helpers\_\_non_iterable_spread
+
+02.02.2026  16:09               104 package.json
+               1 файлов            104 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@swc\helpers\_\_object_destructuring_empty
+
+02.02.2026  16:09               118 package.json
+               1 файлов            118 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@swc\helpers\_\_object_spread
+
+02.02.2026  16:09                92 package.json
+               1 файлов             92 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@swc\helpers\_\_object_spread_props
+
+02.02.2026  16:09               104 package.json
+               1 файлов            104 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@swc\helpers\_\_object_without_properties
+
+02.02.2026  16:09               116 package.json
+               1 файлов            116 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@swc\helpers\_\_object_without_properties_loose
+
+02.02.2026  16:09               128 package.json
+               1 файлов            128 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@swc\helpers\_\_possible_constructor_return
+
+02.02.2026  16:09               120 package.json
+               1 файлов            120 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@swc\helpers\_\_read_only_error
+
+02.02.2026  16:09                96 package.json
+               1 файлов             96 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@swc\helpers\_\_set
+
+02.02.2026  16:09                72 package.json
+               1 файлов             72 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@swc\helpers\_\_set_prototype_of
+
+02.02.2026  16:09                98 package.json
+               1 файлов             98 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@swc\helpers\_\_skip_first_generator_next
+
+02.02.2026  16:09               116 package.json
+               1 файлов            116 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@swc\helpers\_\_sliced_to_array
+
+02.02.2026  16:09                96 package.json
+               1 файлов             96 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@swc\helpers\_\_sliced_to_array_loose
+
+02.02.2026  16:09               108 package.json
+               1 файлов            108 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@swc\helpers\_\_super_prop_base
+
+02.02.2026  16:09                96 package.json
+               1 файлов             96 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@swc\helpers\_\_tagged_template_literal
+
+02.02.2026  16:09               112 package.json
+               1 файлов            112 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@swc\helpers\_\_tagged_template_literal_loose
+
+02.02.2026  16:09               124 package.json
+               1 файлов            124 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@swc\helpers\_\_throw
+
+02.02.2026  16:09                76 package.json
+               1 файлов             76 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@swc\helpers\_\_to_array
+
+02.02.2026  16:09                82 package.json
+               1 файлов             82 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@swc\helpers\_\_to_consumable_array
+
+02.02.2026  16:09               104 package.json
+               1 файлов            104 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@swc\helpers\_\_to_primitive
+
+02.02.2026  16:09                90 package.json
+               1 файлов             90 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@swc\helpers\_\_to_property_key
+
+02.02.2026  16:09                96 package.json
+               1 файлов             96 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@swc\helpers\_\_ts_add_disposable_resource
+
+02.02.2026  16:09               118 package.json
+               1 файлов            118 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@swc\helpers\_\_ts_decorate
+
+02.02.2026  16:09                88 package.json
+               1 файлов             88 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@swc\helpers\_\_ts_dispose_resources
+
+02.02.2026  16:09               106 package.json
+               1 файлов            106 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@swc\helpers\_\_ts_generator
+
+02.02.2026  16:09                90 package.json
+               1 файлов             90 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@swc\helpers\_\_ts_metadata
+
+02.02.2026  16:09                88 package.json
+               1 файлов             88 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@swc\helpers\_\_ts_param
+
+02.02.2026  16:09                82 package.json
+               1 файлов             82 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@swc\helpers\_\_ts_values
+
+02.02.2026  16:09                84 package.json
+               1 файлов             84 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@swc\helpers\_\_type_of
+
+02.02.2026  16:09                80 package.json
+               1 файлов             80 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@swc\helpers\_\_unsupported_iterable_to_array
+
+02.02.2026  16:09               124 package.json
+               1 файлов            124 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@swc\helpers\_\_update
+
+02.02.2026  16:09                78 package.json
+               1 файлов             78 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@swc\helpers\_\_using
+
+02.02.2026  16:09                76 package.json
+               1 файлов             76 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@swc\helpers\_\_using_ctx
+
+02.02.2026  16:09                84 package.json
+               1 файлов             84 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@swc\helpers\_\_wrap_async_generator
+
+02.02.2026  16:09               106 package.json
+               1 файлов            106 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@swc\helpers\_\_wrap_native_super
+
+02.02.2026  16:09               100 package.json
+               1 файлов            100 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@swc\helpers\_\_write_only_error
+
+02.02.2026  16:09                98 package.json
+               1 файлов             98 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@tailwindcss\node
+
+02.02.2026  16:09             1 249 package.json
+               1 файлов          1 249 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@tailwindcss\oxide
+
+02.02.2026  16:09             2 234 package.json
+               1 файлов          2 234 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@tailwindcss\oxide-win32-x64-msvc
+
+02.02.2026  16:09               529 package.json
+               1 файлов            529 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@tailwindcss\postcss
+
+02.02.2026  16:09             1 201 package.json
+               1 файлов          1 201 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@tybys\wasm-util
+
+02.02.2026  16:09             1 527 package.json
+               1 файлов          1 527 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@types\estree
+
+02.02.2026  16:09               829 package.json
+               1 файлов            829 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@types\json-schema
+
+02.02.2026  16:09             1 253 package.json
+               1 файлов          1 253 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@types\json5
+
+02.02.2026  16:09               517 package.json
+               1 файлов            517 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@types\node
+
+02.02.2026  16:09             4 128 package.json
+               1 файлов          4 128 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@types\phoenix
+
+02.02.2026  18:19             1 115 package.json
+               1 файлов          1 115 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@types\react
+
+02.02.2026  16:09             6 109 package.json
+               1 файлов          6 109 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@types\react-dom
+
+02.02.2026  16:09             3 383 package.json
+               1 файлов          3 383 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@types\ws
+
+02.02.2026  18:19             2 072 package.json
+               1 файлов          2 072 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@typescript-eslint\eslint-plugin
+
+02.02.2026  16:09             3 231 package.json
+               1 файлов          3 231 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@typescript-eslint\eslint-plugin\node_modules\ignore
+
+02.02.2026  16:09             3 036 package.json
+               1 файлов          3 036 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@typescript-eslint\parser
+
+02.02.2026  16:09             1 936 package.json
+               1 файлов          1 936 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@typescript-eslint\project-service
+
+02.02.2026  16:09             1 858 package.json
+               1 файлов          1 858 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@typescript-eslint\scope-manager
+
+02.02.2026  16:09             1 952 package.json
+               1 файлов          1 952 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@typescript-eslint\tsconfig-utils
+
+02.02.2026  16:09             1 680 package.json
+               1 файлов          1 680 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@typescript-eslint\type-utils
+
+02.02.2026  16:09             1 915 package.json
+               1 файлов          1 915 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@typescript-eslint\types
+
+02.02.2026  16:09             2 231 package.json
+               1 файлов          2 231 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@typescript-eslint\typescript-estree
+
+02.02.2026  16:09             2 245 package.json
+               1 файлов          2 245 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@typescript-eslint\typescript-estree\node_modules\brace-expansion
+
+02.02.2026  16:09             1 135 package.json
+               1 файлов          1 135 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@typescript-eslint\typescript-estree\node_modules\minimatch
+
+02.02.2026  16:09             2 003 package.json
+               1 файлов          2 003 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@typescript-eslint\typescript-estree\node_modules\minimatch\dist\commonjs
+
+02.02.2026  16:09                25 package.json
+               1 файлов             25 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@typescript-eslint\typescript-estree\node_modules\minimatch\dist\esm
+
+02.02.2026  16:09                23 package.json
+               1 файлов             23 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@typescript-eslint\typescript-estree\node_modules\semver
+
+02.02.2026  16:09             1 663 package.json
+               1 файлов          1 663 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@typescript-eslint\utils
+
+02.02.2026  16:09             2 585 package.json
+               1 файлов          2 585 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@typescript-eslint\visitor-keys
+
+02.02.2026  16:09             1 677 package.json
+               1 файлов          1 677 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\@unrs\resolver-binding-win32-x64-msvc
+
+02.02.2026  16:09               587 package.json
+               1 файлов            587 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\acorn
+
+02.02.2026  16:09             1 061 package.json
+               1 файлов          1 061 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\acorn-jsx
+
+02.02.2026  16:09               581 package.json
+               1 файлов            581 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\ajv
+
+02.02.2026  16:09             3 120 package.json
+               1 файлов          3 120 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\ansi-styles
+
+02.02.2026  16:09             1 054 package.json
+               1 файлов          1 054 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\argparse
+
+02.02.2026  16:09               682 package.json
+               1 файлов            682 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\aria-query
+
+02.02.2026  16:09             2 076 package.json
+               1 файлов          2 076 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\array-buffer-byte-length
+
+02.02.2026  16:09             2 530 package.json
+               1 файлов          2 530 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\array-includes
+
+02.02.2026  16:09             2 852 package.json
+               1 файлов          2 852 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\array.prototype.findlast
+
+02.02.2026  16:09             2 830 package.json
+               1 файлов          2 830 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\array.prototype.findlastindex
+
+02.02.2026  16:09             2 982 package.json
+               1 файлов          2 982 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\array.prototype.flat
+
+02.02.2026  16:09             2 777 package.json
+               1 файлов          2 777 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\array.prototype.flatmap
+
+02.02.2026  16:09             2 724 package.json
+               1 файлов          2 724 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\array.prototype.tosorted
+
+02.02.2026  16:09             2 389 package.json
+               1 файлов          2 389 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\arraybuffer.prototype.slice
+
+02.02.2026  16:09             2 807 package.json
+               1 файлов          2 807 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\ast-types-flow
+
+02.02.2026  16:09               749 package.json
+               1 файлов            749 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\async-function
+
+02.02.2026  16:09             2 246 package.json
+               1 файлов          2 246 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\available-typed-arrays
+
+02.02.2026  16:09             2 519 package.json
+               1 файлов          2 519 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\axe-core
+
+02.02.2026  16:09             6 691 package.json
+               1 файлов          6 691 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\axobject-query
+
+02.02.2026  16:09             2 048 package.json
+               1 файлов          2 048 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\babel-plugin-react-compiler
+
+02.02.2026  16:09             2 316 package.json
+               1 файлов          2 316 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\balanced-match
+
+02.02.2026  16:09             1 069 package.json
+               1 файлов          1 069 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\baseline-browser-mapping
+
+02.02.2026  16:09             2 704 package.json
+               1 файлов          2 704 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\brace-expansion
+
+02.02.2026  16:09             1 156 package.json
+               1 файлов          1 156 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\braces
+
+02.02.2026  16:09             1 647 package.json
+               1 файлов          1 647 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\browserslist
+
+02.02.2026  16:09             1 110 package.json
+               1 файлов          1 110 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\call-bind
+
+02.02.2026  16:09             2 294 package.json
+               1 файлов          2 294 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\call-bind-apply-helpers
+
+02.02.2026  16:09             2 480 package.json
+               1 файлов          2 480 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\call-bound
+
+02.02.2026  16:09             2 507 package.json
+               1 файлов          2 507 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\callsites
+
+02.02.2026  16:09               622 package.json
+               1 файлов            622 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\caniuse-lite
+
+02.02.2026  16:09               742 package.json
+               1 файлов            742 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\chalk
+
+02.02.2026  16:09             1 197 package.json
+               1 файлов          1 197 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\client-only
+
+02.02.2026  16:09               467 package.json
+               1 файлов            467 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\clsx
+
+02.02.2026  16:10             1 192 package.json
+               1 файлов          1 192 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\color-convert
+
+02.02.2026  16:09               827 package.json
+               1 файлов            827 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\color-name
+
+02.02.2026  16:09               607 package.json
+               1 файлов            607 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\concat-map
+
+02.02.2026  16:09               989 package.json
+               1 файлов            989 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\convert-source-map
+
+02.02.2026  16:09               804 package.json
+               1 файлов            804 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\cross-spawn
+
+02.02.2026  16:09             1 655 package.json
+               1 файлов          1 655 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\csstype
+
+02.02.2026  16:09             1 985 package.json
+               1 файлов          1 985 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\damerau-levenshtein
+
+02.02.2026  16:09               955 package.json
+               1 файлов            955 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\data-view-buffer
+
+02.02.2026  16:09             2 352 package.json
+               1 файлов          2 352 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\data-view-byte-length
+
+02.02.2026  16:09             2 445 package.json
+               1 файлов          2 445 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\data-view-byte-offset
+
+02.02.2026  16:09             2 498 package.json
+               1 файлов          2 498 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\debug
+
+02.02.2026  16:09             1 479 package.json
+               1 файлов          1 479 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\deep-is
+
+02.02.2026  16:09               953 package.json
+               1 файлов            953 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\define-data-property
+
+02.02.2026  16:09             2 856 package.json
+               1 файлов          2 856 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\define-properties
+
+02.02.2026  16:09             2 281 package.json
+               1 файлов          2 281 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\dequal
+
+02.02.2026  18:19             1 205 package.json
+               1 файлов          1 205 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\detect-libc
+
+02.02.2026  16:09             1 278 package.json
+               1 файлов          1 278 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\doctrine
+
+02.02.2026  16:09             1 356 package.json
+               1 файлов          1 356 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\dunder-proto
+
+02.02.2026  16:09             2 108 package.json
+               1 файлов          2 108 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\electron-to-chromium
+
+02.02.2026  16:09             1 054 package.json
+               1 файлов          1 054 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\emoji-regex
+
+02.02.2026  16:09             1 331 package.json
+               1 файлов          1 331 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\enhanced-resolve
+
+02.02.2026  16:09             3 000 package.json
+               1 файлов          3 000 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\es-abstract
+
+02.02.2026  16:09             5 169 package.json
+               1 файлов          5 169 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\es-define-property
+
+02.02.2026  16:09             2 129 package.json
+               1 файлов          2 129 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\es-errors
+
+02.02.2026  16:09             2 174 package.json
+               1 файлов          2 174 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\es-iterator-helpers
+
+02.02.2026  16:09             9 729 package.json
+               1 файлов          9 729 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\es-object-atoms
+
+02.02.2026  16:09             2 273 package.json
+               1 файлов          2 273 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\es-set-tostringtag
+
+02.02.2026  16:09             2 193 package.json
+               1 файлов          2 193 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\es-shim-unscopables
+
+02.02.2026  16:09             1 942 package.json
+               1 файлов          1 942 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\es-to-primitive
+
+02.02.2026  16:09             2 465 package.json
+               1 файлов          2 465 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\escalade
+
+02.02.2026  16:09             1 461 package.json
+               1 файлов          1 461 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\escape-string-regexp
+
+02.02.2026  16:09               686 package.json
+               1 файлов            686 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\eslint
+
+02.02.2026  16:09             7 225 package.json
+               1 файлов          7 225 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\eslint-config-next
+
+02.02.2026  16:09             1 726 package.json
+               1 файлов          1 726 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\eslint-config-next\node_modules\globals
+
+02.02.2026  16:09             2 659 package.json
+               1 файлов          2 659 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\eslint-import-resolver-node
+
+02.02.2026  16:09               987 package.json
+               1 файлов            987 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\eslint-import-resolver-node\node_modules\debug
+
+02.02.2026  16:09             1 153 package.json
+               1 файлов          1 153 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\eslint-import-resolver-typescript
+
+02.02.2026  16:09             1 646 package.json
+               1 файлов          1 646 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\eslint-module-utils
+
+02.02.2026  16:09             2 340 package.json
+               1 файлов          2 340 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\eslint-module-utils\node_modules\debug
+
+02.02.2026  16:09             1 153 package.json
+               1 файлов          1 153 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\eslint-plugin-import
+
+02.02.2026  16:09             4 969 package.json
+               1 файлов          4 969 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\eslint-plugin-import\node_modules\debug
+
+02.02.2026  16:09             1 153 package.json
+               1 файлов          1 153 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\eslint-plugin-jsx-a11y
+
+02.02.2026  16:09             4 198 package.json
+               1 файлов          4 198 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\eslint-plugin-react
+
+02.02.2026  16:09             3 970 package.json
+               1 файлов          3 970 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\eslint-plugin-react\node_modules\resolve
+
+02.02.2026  16:09             2 145 package.json
+               1 файлов          2 145 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\eslint-plugin-react\node_modules\resolve\test\module_dir\zmodules\bbb
+
+02.02.2026  16:09                24 package.json
+               1 файлов             24 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\eslint-plugin-react\node_modules\resolve\test\resolver\baz
+
+02.02.2026  16:09                45 package.json
+               1 файлов             45 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\eslint-plugin-react\node_modules\resolve\test\resolver\browser_field
+
+02.02.2026  16:09                63 package.json
+               1 файлов             63 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\eslint-plugin-react\node_modules\resolve\test\resolver\dot_main
+
+02.02.2026  16:09                20 package.json
+               1 файлов             20 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\eslint-plugin-react\node_modules\resolve\test\resolver\dot_slash_main
+
+02.02.2026  16:09                21 package.json
+               1 файлов             21 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\eslint-plugin-react\node_modules\resolve\test\resolver\empty_main
+
+02.02.2026  16:09                16 package.json
+               1 файлов             16 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\eslint-plugin-react\node_modules\resolve\test\resolver\false_main
+
+02.02.2026  16:09                42 package.json
+               1 файлов             42 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\eslint-plugin-react\node_modules\resolve\test\resolver\incorrect_main
+
+02.02.2026  16:09                27 package.json
+               1 файлов             27 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\eslint-plugin-react\node_modules\resolve\test\resolver\invalid_main
+
+02.02.2026  16:09                93 package.json
+               1 файлов             93 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\eslint-plugin-react\node_modules\resolve\test\resolver\missing_index
+
+02.02.2026  16:09                24 package.json
+               1 файлов             24 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\eslint-plugin-react\node_modules\resolve\test\resolver\missing_main
+
+02.02.2026  16:09                27 package.json
+               1 файлов             27 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\eslint-plugin-react\node_modules\resolve\test\resolver\multirepo
+
+02.02.2026  16:09               387 package.json
+               1 файлов            387 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\eslint-plugin-react\node_modules\resolve\test\resolver\multirepo\packages\package-a
+
+02.02.2026  16:09               281 package.json
+               1 файлов            281 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\eslint-plugin-react\node_modules\resolve\test\resolver\multirepo\packages\package-b
+
+02.02.2026  16:09               281 package.json
+               1 файлов            281 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\eslint-plugin-react\node_modules\resolve\test\resolver\nested_symlinks\mylib
+
+02.02.2026  16:09               259 package.json
+               1 файлов            259 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\eslint-plugin-react\node_modules\resolve\test\resolver\null_main
+
+02.02.2026  16:09                18 package.json
+               1 файлов             18 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\eslint-plugin-react\node_modules\resolve\test\resolver\symlinked\package
+
+02.02.2026  16:09                24 package.json
+               1 файлов             24 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\eslint-plugin-react-hooks
+
+02.02.2026  16:09             1 970 package.json
+               1 файлов          1 970 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\eslint-scope
+
+02.02.2026  16:09             1 785 package.json
+               1 файлов          1 785 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\eslint-visitor-keys
+
+02.02.2026  16:09             2 222 package.json
+               1 файлов          2 222 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\espree
+
+02.02.2026  16:09             2 314 package.json
+               1 файлов          2 314 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\esquery
+
+02.02.2026  16:09             2 030 package.json
+               1 файлов          2 030 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\esrecurse
+
+02.02.2026  16:09             1 165 package.json
+               1 файлов          1 165 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\estraverse
+
+02.02.2026  16:09             1 009 package.json
+               1 файлов          1 009 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\esutils
+
+02.02.2026  16:09             1 042 package.json
+               1 файлов          1 042 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\fast-deep-equal
+
+02.02.2026  16:09             1 496 package.json
+               1 файлов          1 496 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\fast-glob
+
+02.02.2026  16:09             2 798 package.json
+               1 файлов          2 798 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\fast-glob\node_modules\glob-parent
+
+02.02.2026  16:09             1 105 package.json
+               1 файлов          1 105 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\fast-json-stable-stringify
+
+02.02.2026  16:09             1 257 package.json
+               1 файлов          1 257 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\fast-levenshtein
+
+02.02.2026  16:09               998 package.json
+               1 файлов            998 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\fastq
+
+02.02.2026  16:09             1 318 package.json
+               1 файлов          1 318 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\file-entry-cache
+
+02.02.2026  16:09             1 549 package.json
+               1 файлов          1 549 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\fill-range
+
+02.02.2026  16:09             1 760 package.json
+               1 файлов          1 760 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\find-up
+
+02.02.2026  16:09               917 package.json
+               1 файлов            917 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\flat-cache
+
+02.02.2026  16:09             1 593 package.json
+               1 файлов          1 593 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\flatted
+
+02.02.2026  16:09             2 377 package.json
+               1 файлов          2 377 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\flatted\cjs
+
+02.02.2026  16:09                19 package.json
+               1 файлов             19 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\for-each
+
+02.02.2026  16:09             1 975 package.json
+               1 файлов          1 975 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\framer-motion
+
+02.02.2026  16:10             4 716 package.json
+               1 файлов          4 716 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\framer-motion\client
+
+02.02.2026  16:10               142 package.json
+               1 файлов            142 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\framer-motion\dom
+
+02.02.2026  16:10               127 package.json
+               1 файлов            127 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\framer-motion\dom\mini
+
+02.02.2026  16:10               151 package.json
+               1 файлов            151 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\framer-motion\m
+
+02.02.2026  16:10               121 package.json
+               1 файлов            121 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\framer-motion\mini
+
+02.02.2026  16:10               130 package.json
+               1 файлов            130 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\function-bind
+
+02.02.2026  16:09             2 262 package.json
+               1 файлов          2 262 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\function.prototype.name
+
+02.02.2026  16:09             2 664 package.json
+               1 файлов          2 664 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\functions-have-names
+
+02.02.2026  16:09             1 554 package.json
+               1 файлов          1 554 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\generator-function
+
+02.02.2026  16:09             2 350 package.json
+               1 файлов          2 350 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\gensync
+
+02.02.2026  16:09               906 package.json
+               1 файлов            906 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\get-intrinsic
+
+02.02.2026  16:09             2 576 package.json
+               1 файлов          2 576 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\get-proto
+
+02.02.2026  16:09             2 176 package.json
+               1 файлов          2 176 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\get-symbol-description
+
+02.02.2026  16:09             2 489 package.json
+               1 файлов          2 489 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\get-tsconfig
+
+02.02.2026  16:09             1 031 package.json
+               1 файлов          1 031 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\glob-parent
+
+02.02.2026  16:09             1 050 package.json
+               1 файлов          1 050 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\globals
+
+02.02.2026  16:09             1 165 package.json
+               1 файлов          1 165 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\globalthis
+
+02.02.2026  16:09             2 463 package.json
+               1 файлов          2 463 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\gopd
+
+02.02.2026  16:09             2 070 package.json
+               1 файлов          2 070 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\graceful-fs
+
+02.02.2026  16:09             1 031 package.json
+               1 файлов          1 031 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\has-bigints
+
+02.02.2026  16:09             1 867 package.json
+               1 файлов          1 867 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\has-flag
+
+02.02.2026  16:09               696 package.json
+               1 файлов            696 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\has-property-descriptors
+
+02.02.2026  16:09             2 090 package.json
+               1 файлов          2 090 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\has-proto
+
+02.02.2026  16:09             2 377 package.json
+               1 файлов          2 377 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\has-symbols
+
+02.02.2026  16:09             2 974 package.json
+               1 файлов          2 974 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\has-tostringtag
+
+02.02.2026  16:09             2 838 package.json
+               1 файлов          2 838 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\hasown
+
+02.02.2026  16:09             2 283 package.json
+               1 файлов          2 283 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\hermes-estree
+
+02.02.2026  16:09               337 package.json
+               1 файлов            337 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\hermes-parser
+
+02.02.2026  16:09               517 package.json
+               1 файлов            517 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\iceberg-js
+
+02.02.2026  18:19             1 979 package.json
+               1 файлов          1 979 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\ignore
+
+02.02.2026  16:09             2 072 package.json
+               1 файлов          2 072 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\import-fresh
+
+02.02.2026  16:09               890 package.json
+               1 файлов            890 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\imurmurhash
+
+02.02.2026  16:09               818 package.json
+               1 файлов            818 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\internal-slot
+
+02.02.2026  16:09             2 036 package.json
+               1 файлов          2 036 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\is-array-buffer
+
+02.02.2026  16:09             2 431 package.json
+               1 файлов          2 431 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\is-async-function
+
+02.02.2026  16:09             2 863 package.json
+               1 файлов          2 863 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\is-bigint
+
+02.02.2026  16:09             2 067 package.json
+               1 файлов          2 067 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\is-boolean-object
+
+02.02.2026  16:09             2 723 package.json
+               1 файлов          2 723 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\is-bun-module
+
+02.02.2026  16:09             1 917 package.json
+               1 файлов          1 917 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\is-bun-module\node_modules\semver
+
+02.02.2026  16:09             1 663 package.json
+               1 файлов          1 663 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\is-callable
+
+02.02.2026  16:09             2 698 package.json
+               1 файлов          2 698 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\is-core-module
+
+02.02.2026  16:09             1 914 package.json
+               1 файлов          1 914 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\is-data-view
+
+02.02.2026  16:09             2 797 package.json
+               1 файлов          2 797 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\is-date-object
+
+02.02.2026  16:09             2 543 package.json
+               1 файлов          2 543 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\is-extglob
+
+02.02.2026  16:09             1 220 package.json
+               1 файлов          1 220 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\is-finalizationregistry
+
+02.02.2026  16:09             2 320 package.json
+               1 файлов          2 320 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\is-generator-function
+
+02.02.2026  16:09             2 976 package.json
+               1 файлов          2 976 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\is-glob
+
+02.02.2026  16:09             1 748 package.json
+               1 файлов          1 748 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\is-map
+
+02.02.2026  16:09             2 278 package.json
+               1 файлов          2 278 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\is-negative-zero
+
+02.02.2026  16:09             2 271 package.json
+               1 файлов          2 271 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\is-number
+
+02.02.2026  16:09             1 599 package.json
+               1 файлов          1 599 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\is-number-object
+
+02.02.2026  16:09             2 409 package.json
+               1 файлов          2 409 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\is-regex
+
+02.02.2026  16:09             2 806 package.json
+               1 файлов          2 806 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\is-set
+
+02.02.2026  16:09             2 117 package.json
+               1 файлов          2 117 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\is-shared-array-buffer
+
+02.02.2026  16:09             2 439 package.json
+               1 файлов          2 439 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\is-string
+
+02.02.2026  16:09             2 554 package.json
+               1 файлов          2 554 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\is-symbol
+
+02.02.2026  16:09             2 474 package.json
+               1 файлов          2 474 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\is-typed-array
+
+02.02.2026  16:09             3 332 package.json
+               1 файлов          3 332 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\is-weakmap
+
+02.02.2026  16:09             2 308 package.json
+               1 файлов          2 308 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\is-weakref
+
+02.02.2026  16:09             2 218 package.json
+               1 файлов          2 218 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\is-weakset
+
+02.02.2026  16:09             2 480 package.json
+               1 файлов          2 480 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\isarray
+
+02.02.2026  16:09               991 package.json
+               1 файлов            991 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\isexe
+
+02.02.2026  16:09               786 package.json
+               1 файлов            786 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\iterator.prototype
+
+02.02.2026  16:09             2 043 package.json
+               1 файлов          2 043 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\jiti
+
+02.02.2026  16:09             4 333 package.json
+               1 файлов          4 333 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\js-tokens
+
+02.02.2026  16:09               649 package.json
+               1 файлов            649 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\js-yaml
+
+02.02.2026  16:09             1 768 package.json
+               1 файлов          1 768 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\jsesc
+
+02.02.2026  16:09             1 359 package.json
+               1 файлов          1 359 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\json-buffer
+
+02.02.2026  16:09               878 package.json
+               1 файлов            878 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\json-schema-traverse
+
+02.02.2026  16:09             1 008 package.json
+               1 файлов          1 008 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\json-stable-stringify-without-jsonify
+
+02.02.2026  16:09               991 package.json
+               1 файлов            991 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\json5
+
+02.02.2026  16:09             1 916 package.json
+               1 файлов          1 916 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\jsx-ast-utils
+
+02.02.2026  16:09             2 502 package.json
+               1 файлов          2 502 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\keyv
+
+02.02.2026  16:09             1 297 package.json
+               1 файлов          1 297 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\language-subtag-registry
+
+02.02.2026  16:09               811 package.json
+               1 файлов            811 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\language-tags
+
+02.02.2026  16:09             1 475 package.json
+               1 файлов          1 475 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\levn
+
+02.02.2026  16:09               901 package.json
+               1 файлов            901 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\lightningcss
+
+02.02.2026  16:09             3 835 package.json
+               1 файлов          3 835 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\lightningcss-win32-x64-msvc
+
+02.02.2026  16:09               719 package.json
+               1 файлов            719 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\locate-path
+
+02.02.2026  16:09               786 package.json
+               1 файлов            786 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\lodash.merge
+
+02.02.2026  16:09               579 package.json
+               1 файлов            579 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\loose-envify
+
+02.02.2026  16:09               809 package.json
+               1 файлов            809 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\lru-cache
+
+02.02.2026  16:09               776 package.json
+               1 файлов            776 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\lucide-react
+
+02.02.2026  16:10             2 481 package.json
+               1 файлов          2 481 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\magic-string
+
+02.02.2026  16:09             1 840 package.json
+               1 файлов          1 840 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\math-intrinsics
+
+02.02.2026  16:09             2 670 package.json
+               1 файлов          2 670 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\merge2
+
+02.02.2026  16:09               830 package.json
+               1 файлов            830 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\micromatch
+
+02.02.2026  16:09             2 648 package.json
+               1 файлов          2 648 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\minimatch
+
+02.02.2026  16:09               700 package.json
+               1 файлов            700 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\minimist
+
+02.02.2026  16:09             1 788 package.json
+               1 файлов          1 788 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\motion-dom
+
+02.02.2026  16:10             1 340 package.json
+               1 файлов          1 340 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\motion-utils
+
+02.02.2026  16:10               939 package.json
+               1 файлов            939 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\ms
+
+02.02.2026  16:09               732 package.json
+               1 файлов            732 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\nanoid
+
+02.02.2026  16:09             2 283 package.json
+               1 файлов          2 283 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\nanoid\async
+
+02.02.2026  16:09               233 package.json
+               1 файлов            233 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\nanoid\non-secure
+
+02.02.2026  16:09                99 package.json
+               1 файлов             99 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\nanoid\url-alphabet
+
+02.02.2026  16:09                99 package.json
+               1 файлов             99 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\napi-postinstall
+
+02.02.2026  16:09               844 package.json
+               1 файлов            844 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\natural-compare
+
+02.02.2026  16:09               992 package.json
+               1 файлов            992 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\next
+
+02.02.2026  16:09            11 304 package.json
+               1 файлов         11 304 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\next\dist\compiled\@babel\runtime
+
+02.02.2026  16:09            31 561 package.json
+               1 файлов         31 561 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\next\dist\compiled\@babel\runtime\helpers\esm
+
+02.02.2026  16:09                35 package.json
+               1 файлов             35 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\next\dist\compiled\@edge-runtime\cookies
+
+02.02.2026  16:09                87 package.json
+               1 файлов             87 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\next\dist\compiled\@edge-runtime\ponyfill
+
+02.02.2026  16:09               111 package.json
+               1 файлов            111 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\next\dist\compiled\@edge-runtime\primitives
+
+02.02.2026  16:09                90 package.json
+               1 файлов             90 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\next\dist\compiled\@hapi\accept
+
+02.02.2026  16:09                67 package.json
+               1 файлов             67 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\next\dist\compiled\@mswjs\interceptors\ClientRequest
+
+02.02.2026  16:09                95 package.json
+               1 файлов             95 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\next\dist\compiled\@napi-rs\triples
+
+02.02.2026  16:09               104 package.json
+               1 файлов            104 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\next\dist\compiled\@next\font
+
+02.02.2026  16:09                64 package.json
+               1 файлов             64 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\next\dist\compiled\@opentelemetry\api
+
+02.02.2026  16:09               104 package.json
+               1 файлов            104 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\next\dist\compiled\@vercel\nft
+
+02.02.2026  16:09                57 package.json
+               1 файлов             57 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\next\dist\compiled\@vercel\og
+
+02.02.2026  16:09               340 package.json
+               1 файлов            340 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\next\dist\compiled\@vercel\routing-utils
+
+02.02.2026  16:09                80 package.json
+               1 файлов             80 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\next\dist\compiled\acorn
+
+02.02.2026  16:09                51 package.json
+               1 файлов             51 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\next\dist\compiled\anser
+
+02.02.2026  16:09               127 package.json
+               1 файлов            127 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\next\dist\compiled\assert
+
+02.02.2026  16:09                53 package.json
+               1 файлов             53 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\next\dist\compiled\async-retry
+
+02.02.2026  16:09                57 package.json
+               1 файлов             57 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\next\dist\compiled\async-sema
+
+02.02.2026  16:09                80 package.json
+               1 файлов             80 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\next\dist\compiled\babel
+
+02.02.2026  16:09               109 package.json
+               1 файлов            109 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\next\dist\compiled\babel-code-frame
+
+02.02.2026  16:09               114 package.json
+               1 файлов            114 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\next\dist\compiled\babel-packages
+
+02.02.2026  16:09                56 package.json
+               1 файлов             56 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\next\dist\compiled\browserify-zlib
+
+02.02.2026  16:09               109 package.json
+               1 файлов            109 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\next\dist\compiled\browserslist
+
+02.02.2026  16:09               102 package.json
+               1 файлов            102 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\next\dist\compiled\buffer
+
+02.02.2026  16:09               146 package.json
+               1 файлов            146 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\next\dist\compiled\busboy
+
+02.02.2026  16:09                79 package.json
+               1 файлов             79 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\next\dist\compiled\bytes
+
+02.02.2026  16:09               125 package.json
+               1 файлов            125 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\next\dist\compiled\ci-info
+
+02.02.2026  16:09               125 package.json
+               1 файлов            125 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\next\dist\compiled\cli-select
+
+02.02.2026  16:09                94 package.json
+               1 файлов             94 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\next\dist\compiled\client-only
+
+02.02.2026  16:09               467 package.json
+               1 файлов            467 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\next\dist\compiled\commander
+
+02.02.2026  16:09               102 package.json
+               1 файлов            102 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\next\dist\compiled\comment-json
+
+02.02.2026  16:09                79 package.json
+               1 файлов             79 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\next\dist\compiled\compression
+
+02.02.2026  16:09                57 package.json
+               1 файлов             57 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\next\dist\compiled\conf
+
+02.02.2026  16:09               142 package.json
+               1 файлов            142 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\next\dist\compiled\constants-browserify
+
+02.02.2026  16:09                58 package.json
+               1 файлов             58 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\next\dist\compiled\content-disposition
+
+02.02.2026  16:09               128 package.json
+               1 файлов            128 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\next\dist\compiled\content-type
+
+02.02.2026  16:09               121 package.json
+               1 файлов            121 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\next\dist\compiled\cookie
+
+02.02.2026  16:09                99 package.json
+               1 файлов             99 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\next\dist\compiled\cross-spawn
+
+02.02.2026  16:09               100 package.json
+               1 файлов            100 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\next\dist\compiled\crypto-browserify
+
+02.02.2026  16:09               130 package.json
+               1 файлов            130 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\next\dist\compiled\css.escape
+
+02.02.2026  16:09               130 package.json
+               1 файлов            130 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\next\dist\compiled\data-uri-to-buffer
+
+02.02.2026  16:09               131 package.json
+               1 файлов            131 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\next\dist\compiled\debug
+
+02.02.2026  16:09                98 package.json
+               1 файлов             98 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\next\dist\compiled\devalue
+
+02.02.2026  16:09                59 package.json
+               1 файлов             59 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\next\dist\compiled\domain-browser
+
+02.02.2026  16:09               123 package.json
+               1 файлов            123 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\next\dist\compiled\edge-runtime
+
+02.02.2026  16:09                58 package.json
+               1 файлов             58 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\next\dist\compiled\events
+
+02.02.2026  16:09               128 package.json
+               1 файлов            128 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\next\dist\compiled\find-up
+
+02.02.2026  16:09               145 package.json
+               1 файлов            145 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\next\dist\compiled\fresh
+
+02.02.2026  16:09               125 package.json
+               1 файлов            125 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\next\dist\compiled\glob
+
+02.02.2026  16:09               112 package.json
+               1 файлов            112 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\next\dist\compiled\gzip-size
+
+02.02.2026  16:09               147 package.json
+               1 файлов            147 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\next\dist\compiled\http-proxy
+
+02.02.2026  16:09               111 package.json
+               1 файлов            111 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\next\dist\compiled\http-proxy-agent
+
+02.02.2026  16:09               129 package.json
+               1 файлов            129 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\next\dist\compiled\https-browserify
+
+02.02.2026  16:09               153 package.json
+               1 файлов            153 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\next\dist\compiled\https-proxy-agent
+
+02.02.2026  16:09               130 package.json
+               1 файлов            130 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\next\dist\compiled\icss-utils
+
+02.02.2026  16:09                80 package.json
+               1 файлов             80 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\next\dist\compiled\ignore-loader
+
+02.02.2026  16:09                43 package.json
+               1 файлов             43 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\next\dist\compiled\image-size
+
+02.02.2026  16:09               113 package.json
+               1 файлов            113 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\next\dist\compiled\ipaddr.js
+
+02.02.2026  16:09               106 package.json
+               1 файлов            106 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\next\dist\compiled\is-animated
+
+02.02.2026  16:09               114 package.json
+               1 файлов            114 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\next\dist\compiled\is-docker
+
+02.02.2026  16:09               147 package.json
+               1 файлов            147 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\next\dist\compiled\is-wsl
+
+02.02.2026  16:09               144 package.json
+               1 файлов            144 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\next\dist\compiled\jest-worker
+
+02.02.2026  16:09                57 package.json
+               1 файлов             57 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\next\dist\compiled\json5
+
+02.02.2026  16:09               102 package.json
+               1 файлов            102 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\next\dist\compiled\jsonwebtoken
+
+02.02.2026  16:09                75 package.json
+               1 файлов             75 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\next\dist\compiled\loader-runner
+
+02.02.2026  16:09                99 package.json
+               1 файлов             99 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\next\dist\compiled\loader-utils2
+
+02.02.2026  16:09                91 package.json
+               1 файлов             91 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\next\dist\compiled\loader-utils3
+
+02.02.2026  16:09                91 package.json
+               1 файлов             91 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\next\dist\compiled\lodash.curry
+
+02.02.2026  16:09               145 package.json
+               1 файлов            145 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\next\dist\compiled\lru-cache
+
+02.02.2026  16:09                96 package.json
+               1 файлов             96 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\next\dist\compiled\mini-css-extract-plugin
+
+02.02.2026  16:09               100 package.json
+               1 файлов            100 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\next\dist\compiled\nanoid
+
+02.02.2026  16:09                97 package.json
+               1 файлов             97 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\next\dist\compiled\native-url
+
+02.02.2026  16:09                90 package.json
+               1 файлов             90 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\next\dist\compiled\neo-async
+
+02.02.2026  16:09                55 package.json
+               1 файлов             55 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\next\dist\compiled\node-html-parser
+
+02.02.2026  16:09               104 package.json
+               1 файлов            104 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\next\dist\compiled\ora
+
+02.02.2026  16:09               149 package.json
+               1 файлов            149 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\next\dist\compiled\os-browserify
+
+02.02.2026  16:09               104 package.json
+               1 файлов            104 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\next\dist\compiled\p-limit
+
+02.02.2026  16:09               153 package.json
+               1 файлов            153 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\next\dist\compiled\p-queue
+
+02.02.2026  16:09                53 package.json
+               1 файлов             53 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\next\dist\compiled\path-browserify
+
+02.02.2026  16:09               152 package.json
+               1 файлов            152 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\next\dist\compiled\path-to-regexp
+
+02.02.2026  16:09                60 package.json
+               1 файлов             60 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\next\dist\compiled\picomatch
+
+02.02.2026  16:09               116 package.json
+               1 файлов            116 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\next\dist\compiled\postcss-flexbugs-fixes
+
+02.02.2026  16:09               111 package.json
+               1 файлов            111 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\next\dist\compiled\postcss-modules-extract-imports
+
+02.02.2026  16:09               101 package.json
+               1 файлов            101 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\next\dist\compiled\postcss-modules-local-by-default
+
+02.02.2026  16:09               104 package.json
+               1 файлов            104 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\next\dist\compiled\postcss-modules-scope
+
+02.02.2026  16:09                91 package.json
+               1 файлов             91 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\next\dist\compiled\postcss-modules-values
+
+02.02.2026  16:09                92 package.json
+               1 файлов             92 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\next\dist\compiled\postcss-preset-env
+
+02.02.2026  16:09               122 package.json
+               1 файлов            122 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\next\dist\compiled\postcss-safe-parser
+
+02.02.2026  16:09               114 package.json
+               1 файлов            114 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\next\dist\compiled\postcss-scss
+
+02.02.2026  16:09               108 package.json
+               1 файлов            108 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\next\dist\compiled\postcss-value-parser
+
+02.02.2026  16:09               113 package.json
+               1 файлов            113 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\next\dist\compiled\process
+
+02.02.2026  16:09               102 package.json
+               1 файлов            102 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\next\dist\compiled\punycode
+
+02.02.2026  16:09               126 package.json
+               1 файлов            126 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\next\dist\compiled\querystring-es3
+
+02.02.2026  16:09                95 package.json
+               1 файлов             95 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\next\dist\compiled\raw-body
+
+02.02.2026  16:09               124 package.json
+               1 файлов            124 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\next\dist\compiled\react
+
+02.02.2026  16:09               584 package.json
+               1 файлов            584 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\next\dist\compiled\react-dom
+
+02.02.2026  16:09             2 257 package.json
+               1 файлов          2 257 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\next\dist\compiled\react-dom-experimental
+
+02.02.2026  16:09             2 499 package.json
+               1 файлов          2 499 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\next\dist\compiled\react-experimental
+
+02.02.2026  16:09               597 package.json
+               1 файлов            597 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\next\dist\compiled\react-is
+
+02.02.2026  16:09               540 package.json
+               1 файлов            540 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\next\dist\compiled\react-refresh
+
+02.02.2026  16:09               882 package.json
+               1 файлов            882 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\next\dist\compiled\react-server-dom-turbopack
+
+02.02.2026  16:09             1 606 package.json
+               1 файлов          1 606 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\next\dist\compiled\react-server-dom-turbopack-experimental
+
+02.02.2026  16:09             1 629 package.json
+               1 файлов          1 629 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\next\dist\compiled\react-server-dom-webpack
+
+02.02.2026  16:09             1 820 package.json
+               1 файлов          1 820 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\next\dist\compiled\react-server-dom-webpack-experimental
+
+02.02.2026  16:09             1 843 package.json
+               1 файлов          1 843 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\next\dist\compiled\regenerator-runtime
+
+02.02.2026  16:09               477 package.json
+               1 файлов            477 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\next\dist\compiled\safe-stable-stringify
+
+02.02.2026  16:09                96 package.json
+               1 файлов             96 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\next\dist\compiled\sass-loader
+
+02.02.2026  16:09                79 package.json
+               1 файлов             79 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\next\dist\compiled\scheduler
+
+02.02.2026  16:09                33 package.json
+               1 файлов             33 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\next\dist\compiled\scheduler-experimental
+
+02.02.2026  16:09                46 package.json
+               1 файлов             46 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\next\dist\compiled\schema-utils2
+
+02.02.2026  16:09               122 package.json
+               1 файлов            122 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\next\dist\compiled\schema-utils3
+
+02.02.2026  16:09               122 package.json
+               1 файлов            122 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\next\dist\compiled\semver
+
+02.02.2026  16:09                52 package.json
+               1 файлов             52 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\next\dist\compiled\send
+
+02.02.2026  16:09                97 package.json
+               1 файлов             97 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\next\dist\compiled\serve-handler
+
+02.02.2026  16:09                74 package.json
+               1 файлов             74 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\next\dist\compiled\server-only
+
+02.02.2026  16:09               467 package.json
+               1 файлов            467 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\next\dist\compiled\setimmediate
+
+02.02.2026  16:09                83 package.json
+               1 файлов             83 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\next\dist\compiled\shell-quote
+
+02.02.2026  16:09               148 package.json
+               1 файлов            148 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\next\dist\compiled\source-map
+
+02.02.2026  16:09               123 package.json
+               1 файлов            123 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\next\dist\compiled\source-map08
+
+02.02.2026  16:09               125 package.json
+               1 файлов            125 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\next\dist\compiled\stacktrace-parser
+
+02.02.2026  16:09               153 package.json
+               1 файлов            153 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\next\dist\compiled\stream-browserify
+
+02.02.2026  16:09               154 package.json
+               1 файлов            154 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\next\dist\compiled\stream-http
+
+02.02.2026  16:09                80 package.json
+               1 файлов             80 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\next\dist\compiled\string-hash
+
+02.02.2026  16:09               134 package.json
+               1 файлов            134 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\next\dist\compiled\string_decoder
+
+02.02.2026  16:09                69 package.json
+               1 файлов             69 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\next\dist\compiled\strip-ansi
+
+02.02.2026  16:09               148 package.json
+               1 файлов            148 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\next\dist\compiled\superstruct
+
+02.02.2026  16:09                58 package.json
+               1 файлов             58 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\next\dist\compiled\tar
+
+02.02.2026  16:09                72 package.json
+               1 файлов             72 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\next\dist\compiled\terser
+
+02.02.2026  16:09               138 package.json
+               1 файлов            138 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\next\dist\compiled\text-table
+
+02.02.2026  16:09               147 package.json
+               1 файлов            147 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\next\dist\compiled\timers-browserify
+
+02.02.2026  16:09               131 package.json
+               1 файлов            131 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\next\dist\compiled\tty-browserify
+
+02.02.2026  16:09               151 package.json
+               1 файлов            151 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\next\dist\compiled\ua-parser-js
+
+02.02.2026  16:09               128 package.json
+               1 файлов            128 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\next\dist\compiled\unistore
+
+02.02.2026  16:09               102 package.json
+               1 файлов            102 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\next\dist\compiled\util
+
+02.02.2026  16:09               106 package.json
+               1 файлов            106 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\next\dist\compiled\vm-browserify
+
+02.02.2026  16:09               150 package.json
+               1 файлов            150 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\next\dist\compiled\watchpack
+
+02.02.2026  16:09                92 package.json
+               1 файлов             92 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\next\dist\compiled\web-vitals
+
+02.02.2026  16:09               168 package.json
+               1 файлов            168 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\next\dist\compiled\web-vitals-attribution
+
+02.02.2026  16:09               180 package.json
+               1 файлов            180 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\next\dist\compiled\webpack
+
+02.02.2026  16:09                88 package.json
+               1 файлов             88 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\next\dist\compiled\webpack-sources1
+
+02.02.2026  16:09                94 package.json
+               1 файлов             94 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\next\dist\compiled\webpack-sources3
+
+02.02.2026  16:09                94 package.json
+               1 файлов             94 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\next\dist\compiled\ws
+
+02.02.2026  16:09               114 package.json
+               1 файлов            114 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\next\dist\compiled\zod
+
+02.02.2026  16:09                98 package.json
+               1 файлов             98 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\next\dist\compiled\zod-validation-error
+
+02.02.2026  16:09               171 package.json
+               1 файлов            171 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\next\node_modules\postcss
+
+02.02.2026  16:09             2 496 package.json
+               1 файлов          2 496 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\node-releases
+
+02.02.2026  16:09               449 package.json
+               1 файлов            449 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\object-assign
+
+02.02.2026  16:09               764 package.json
+               1 файлов            764 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\object-inspect
+
+02.02.2026  16:09             2 841 package.json
+               1 файлов          2 841 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\object-keys
+
+02.02.2026  16:09             1 903 package.json
+               1 файлов          1 903 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\object.assign
+
+02.02.2026  16:09             2 345 package.json
+               1 файлов          2 345 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\object.entries
+
+02.02.2026  16:09             2 308 package.json
+               1 файлов          2 308 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\object.fromentries
+
+02.02.2026  16:09             2 204 package.json
+               1 файлов          2 204 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\object.groupby
+
+02.02.2026  16:09             2 314 package.json
+               1 файлов          2 314 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\object.values
+
+02.02.2026  16:09             2 404 package.json
+               1 файлов          2 404 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\optionator
+
+02.02.2026  16:09               889 package.json
+               1 файлов            889 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\own-keys
+
+02.02.2026  16:09             2 398 package.json
+               1 файлов          2 398 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\p-limit
+
+02.02.2026  16:09               928 package.json
+               1 файлов            928 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\p-locate
+
+02.02.2026  16:09               942 package.json
+               1 файлов            942 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\parent-module
+
+02.02.2026  16:09               712 package.json
+               1 файлов            712 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\path-exists
+
+02.02.2026  16:09               607 package.json
+               1 файлов            607 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\path-key
+
+02.02.2026  16:09               650 package.json
+               1 файлов            650 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\path-parse
+
+02.02.2026  16:09               667 package.json
+               1 файлов            667 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\picocolors
+
+02.02.2026  16:09               552 package.json
+               1 файлов            552 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\picomatch
+
+02.02.2026  16:09             1 912 package.json
+               1 файлов          1 912 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\possible-typed-array-names
+
+02.02.2026  16:09             2 325 package.json
+               1 файлов          2 325 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\postcss
+
+02.02.2026  16:09             2 496 package.json
+               1 файлов          2 496 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\prelude-ls
+
+02.02.2026  16:09             1 047 package.json
+               1 файлов          1 047 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\prop-types
+
+02.02.2026  16:09             1 656 package.json
+               1 файлов          1 656 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\punycode
+
+02.02.2026  16:09             1 227 package.json
+               1 файлов          1 227 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\queue-microtask
+
+02.02.2026  16:09             1 177 package.json
+               1 файлов          1 177 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\react
+
+02.02.2026  16:09             1 248 package.json
+               1 файлов          1 248 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\react-dom
+
+02.02.2026  16:09             3 063 package.json
+               1 файлов          3 063 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\react-is
+
+02.02.2026  16:09               530 package.json
+               1 файлов            530 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\reflect.getprototypeof
+
+02.02.2026  16:09             2 654 package.json
+               1 файлов          2 654 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\regexp.prototype.flags
+
+02.02.2026  16:09             2 718 package.json
+               1 файлов          2 718 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\resolve
+
+02.02.2026  16:09             2 065 package.json
+               1 файлов          2 065 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\resolve\test\module_dir\zmodules\bbb
+
+02.02.2026  16:09                24 package.json
+               1 файлов             24 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\resolve\test\resolver\baz
+
+02.02.2026  16:09                45 package.json
+               1 файлов             45 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\resolve\test\resolver\browser_field
+
+02.02.2026  16:09                63 package.json
+               1 файлов             63 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\resolve\test\resolver\dot_main
+
+02.02.2026  16:09                20 package.json
+               1 файлов             20 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\resolve\test\resolver\dot_slash_main
+
+02.02.2026  16:09                21 package.json
+               1 файлов             21 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\resolve\test\resolver\false_main
+
+02.02.2026  16:09                42 package.json
+               1 файлов             42 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\resolve\test\resolver\incorrect_main
+
+02.02.2026  16:09                27 package.json
+               1 файлов             27 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\resolve\test\resolver\invalid_main
+
+02.02.2026  16:09                93 package.json
+               1 файлов             93 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\resolve\test\resolver\multirepo
+
+02.02.2026  16:09               387 package.json
+               1 файлов            387 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\resolve\test\resolver\multirepo\packages\package-a
+
+02.02.2026  16:09               281 package.json
+               1 файлов            281 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\resolve\test\resolver\multirepo\packages\package-b
+
+02.02.2026  16:09               281 package.json
+               1 файлов            281 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\resolve\test\resolver\nested_symlinks\mylib
+
+02.02.2026  16:09               259 package.json
+               1 файлов            259 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\resolve\test\resolver\symlinked\package
+
+02.02.2026  16:09                24 package.json
+               1 файлов             24 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\resolve-from
+
+02.02.2026  16:09               569 package.json
+               1 файлов            569 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\resolve-pkg-maps
+
+02.02.2026  16:09               951 package.json
+               1 файлов            951 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\reusify
+
+02.02.2026  16:09             1 074 package.json
+               1 файлов          1 074 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\run-parallel
+
+02.02.2026  16:09             1 291 package.json
+               1 файлов          1 291 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\safe-array-concat
+
+02.02.2026  16:09             2 427 package.json
+               1 файлов          2 427 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\safe-push-apply
+
+02.02.2026  16:09             2 172 package.json
+               1 файлов          2 172 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\safe-regex-test
+
+02.02.2026  16:09             2 280 package.json
+               1 файлов          2 280 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\scheduler
+
+02.02.2026  16:09               564 package.json
+               1 файлов            564 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\semver
+
+02.02.2026  16:09               981 package.json
+               1 файлов            981 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\set-function-length
+
+02.02.2026  16:09             2 704 package.json
+               1 файлов          2 704 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\set-function-name
+
+02.02.2026  16:09             2 797 package.json
+               1 файлов          2 797 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\set-proto
+
+02.02.2026  16:09             2 201 package.json
+               1 файлов          2 201 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\sharp
+
+02.02.2026  16:09             7 478 package.json
+               1 файлов          7 478 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\sharp\node_modules\semver
+
+02.02.2026  16:09             1 663 package.json
+               1 файлов          1 663 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\shebang-command
+
+02.02.2026  16:09               558 package.json
+               1 файлов            558 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\shebang-regex
+
+02.02.2026  16:09               582 package.json
+               1 файлов            582 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\side-channel
+
+02.02.2026  16:09             2 361 package.json
+               1 файлов          2 361 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\side-channel-list
+
+02.02.2026  16:09             2 257 package.json
+               1 файлов          2 257 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\side-channel-map
+
+02.02.2026  16:09             2 336 package.json
+               1 файлов          2 336 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\side-channel-weakmap
+
+02.02.2026  16:09             2 447 package.json
+               1 файлов          2 447 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\source-map-js
+
+02.02.2026  16:09             2 548 package.json
+               1 файлов          2 548 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\stable-hash
+
+02.02.2026  16:09             1 238 package.json
+               1 файлов          1 238 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\stop-iteration-iterator
+
+02.02.2026  16:09             2 112 package.json
+               1 файлов          2 112 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\string.prototype.includes
+
+02.02.2026  16:09             1 555 package.json
+               1 файлов          1 555 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\string.prototype.matchall
+
+02.02.2026  16:09             2 628 package.json
+               1 файлов          2 628 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\string.prototype.repeat
+
+02.02.2026  16:09             1 269 package.json
+               1 файлов          1 269 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\string.prototype.trim
+
+02.02.2026  16:09             2 603 package.json
+               1 файлов          2 603 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\string.prototype.trimend
+
+02.02.2026  16:09             2 098 package.json
+               1 файлов          2 098 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\string.prototype.trimstart
+
+02.02.2026  16:09             2 052 package.json
+               1 файлов          2 052 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\strip-bom
+
+02.02.2026  16:09               655 package.json
+               1 файлов            655 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\strip-json-comments
+
+02.02.2026  16:09               855 package.json
+               1 файлов            855 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\styled-jsx
+
+02.02.2026  16:09             3 271 package.json
+               1 файлов          3 271 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\supports-color
+
+02.02.2026  16:09               817 package.json
+               1 файлов            817 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\supports-preserve-symlinks-flag
+
+02.02.2026  16:09             1 895 package.json
+               1 файлов          1 895 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\swr
+
+02.02.2026  18:19             5 188 package.json
+               1 файлов          5 188 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\swr\immutable
+
+02.02.2026  18:19               148 package.json
+               1 файлов            148 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\swr\infinite
+
+02.02.2026  18:19               145 package.json
+               1 файлов            145 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\swr\mutation
+
+02.02.2026  18:19               145 package.json
+               1 файлов            145 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\swr\subscription
+
+02.02.2026  18:19               157 package.json
+               1 файлов            157 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\swr\_internal
+
+02.02.2026  18:19               148 package.json
+               1 файлов            148 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\tailwind-merge
+
+02.02.2026  16:10             3 319 package.json
+               1 файлов          3 319 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\tailwindcss
+
+02.02.2026  16:09             2 495 package.json
+               1 файлов          2 495 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\tapable
+
+02.02.2026  16:09             1 716 package.json
+               1 файлов          1 716 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\tinyglobby
+
+02.02.2026  16:09             1 818 package.json
+               1 файлов          1 818 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\tinyglobby\node_modules\fdir
+
+02.02.2026  16:09             2 694 package.json
+               1 файлов          2 694 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\tinyglobby\node_modules\picomatch
+
+02.02.2026  16:09             1 953 package.json
+               1 файлов          1 953 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\to-regex-range
+
+02.02.2026  16:09             1 782 package.json
+               1 файлов          1 782 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\ts-api-utils
+
+02.02.2026  16:09             2 952 package.json
+               1 файлов          2 952 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\tsconfig-paths
+
+02.02.2026  16:09             2 007 package.json
+               1 файлов          2 007 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\tsconfig-paths\node_modules\json5
+
+02.02.2026  16:09             2 207 package.json
+               1 файлов          2 207 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\tslib
+
+02.02.2026  16:09             1 219 package.json
+               1 файлов          1 219 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\tslib\modules
+
+02.02.2026  16:09                26 package.json
+               1 файлов             26 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\type-check
+
+02.02.2026  16:09               847 package.json
+               1 файлов            847 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\typed-array-buffer
+
+02.02.2026  16:09             2 277 package.json
+               1 файлов          2 277 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\typed-array-byte-length
+
+02.02.2026  16:09             2 946 package.json
+               1 файлов          2 946 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\typed-array-byte-offset
+
+02.02.2026  16:09             3 047 package.json
+               1 файлов          3 047 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\typed-array-length
+
+02.02.2026  16:09             2 941 package.json
+               1 файлов          2 941 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\typescript
+
+02.02.2026  16:09             3 620 package.json
+               1 файлов          3 620 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\typescript-eslint
+
+02.02.2026  16:09             2 212 package.json
+               1 файлов          2 212 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\unbox-primitive
+
+02.02.2026  16:09             2 250 package.json
+               1 файлов          2 250 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\undici-types
+
+02.02.2026  16:09             1 193 package.json
+               1 файлов          1 193 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\unrs-resolver
+
+02.02.2026  16:09             2 674 package.json
+               1 файлов          2 674 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\update-browserslist-db
+
+02.02.2026  16:09               916 package.json
+               1 файлов            916 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\uri-js
+
+02.02.2026  16:09             2 172 package.json
+               1 файлов          2 172 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\use-sync-external-store
+
+02.02.2026  18:19             1 248 package.json
+               1 файлов          1 248 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\which
+
+02.02.2026  16:09             1 043 package.json
+               1 файлов          1 043 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\which-boxed-primitive
+
+02.02.2026  16:09             2 264 package.json
+               1 файлов          2 264 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\which-builtin-type
+
+02.02.2026  16:09             3 223 package.json
+               1 файлов          3 223 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\which-collection
+
+02.02.2026  16:09             2 318 package.json
+               1 файлов          2 318 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\which-typed-array
+
+02.02.2026  16:09             3 295 package.json
+               1 файлов          3 295 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\word-wrap
+
+02.02.2026  16:09             1 724 package.json
+               1 файлов          1 724 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\ws
+
+02.02.2026  18:19             1 723 package.json
+               1 файлов          1 723 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\yallist
+
+02.02.2026  16:09               652 package.json
+               1 файлов            652 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\yocto-queue
+
+02.02.2026  16:09               725 package.json
+               1 файлов            725 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\zod
+
+02.02.2026  16:09             3 796 package.json
+               1 файлов          3 796 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\zod\locales
+
+02.02.2026  16:09               104 package.json
+               1 файлов            104 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\zod\mini
+
+02.02.2026  16:09               104 package.json
+               1 файлов            104 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\zod\v3
+
+02.02.2026  16:09               104 package.json
+               1 файлов            104 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\zod\v4
+
+02.02.2026  16:09               104 package.json
+               1 файлов            104 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\zod\v4\classic
+
+02.02.2026  16:09               104 package.json
+               1 файлов            104 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\zod\v4\core
+
+02.02.2026  16:09               104 package.json
+               1 файлов            104 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\zod\v4\locales
+
+02.02.2026  16:09               104 package.json
+               1 файлов            104 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\zod\v4\mini
+
+02.02.2026  16:09               104 package.json
+               1 файлов            104 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\zod\v4-mini
+
+02.02.2026  16:09               104 package.json
+               1 файлов            104 байт
+
+ Содержимое папки D:\Начальник виробництва\node_modules\zod-validation-error
+
+02.02.2026  16:09             2 706 package.json
+               1 файлов          2 706 байт
+
+     Всего файлов:
+             683 файлов        808 882 байт
+               0 папок  414 443 663 360 байт свободно
+
+D:\Начальник виробництва>

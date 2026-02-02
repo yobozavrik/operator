@@ -47,8 +47,7 @@ export const BIProductionMatrix = ({ queue }: { queue: ProductionTask[] }) => {
                     <tbody className="divide-y divide-surface-700/50">
                         {queue.slice(0, 15).map((item, i) => {
                             const deficit = Math.max(0, item.dailyForecastKg * 1.5 - item.totalStockKg);
-                            const deficitPercent = (deficit / (item.dailyForecastKg * 1.5)) * 100;
-                            const isCritical = deficitPercent > 60;
+                            const deficitPercent = (item as any).deficitPercent !== undefined ? (item as any).deficitPercent : (deficit / (item.dailyForecastKg * 1.5)) * 100;
 
                             return (
                                 <tr key={item.id} className={cn(
