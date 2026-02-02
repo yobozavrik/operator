@@ -1,26 +1,70 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #0D1117;
+  --foreground: #F0F2F5;
+  --surface-900: #0D1117;
+  --surface-800: #161B22;
+  --surface-700: #21262D;
+  --brand-primary: #58A6FF;
+  --brand-secondary: #238636;
+  --brand-accent: #F59E0B;
+  --status-high: #F85149;
+  --status-medium: #D29922;
+  --status-low: #3FB950;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+@layer base {
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+    @apply antialiased;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+.font-mono-bi {
+  font-family: 'Roboto Mono', monospace;
+  letter-spacing: -0.02em;
+}
+
+.bi-panel {
+  @apply bg-[#161B22]/60 backdrop-blur-xl border border-[#30363D] shadow-2xl;
+}
+
+.bi-glow-red {
+  box-shadow: 0 0 15px rgba(248, 81, 73, 0.2);
+  @apply border-[#F85149]/50;
+}
+
+.dot-neon {
+  @apply w-2.5 h-2.5 rounded-full;
+  box-shadow: 0 0 8px currentColor;
+}
+
+.progress-bi-bg {
+  @apply h-1.5 w-full bg-[#30363D] rounded-full overflow-hidden;
+}
+
+.progress-bi-fill {
+  @apply h-full transition-all duration-1000 ease-in-out;
+  box-shadow: 0 0 10px currentColor;
+}
+
+/* Scrollbar styling for high-density sidebars */
+::-webkit-scrollbar {
+  width: 4px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #30363D;
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #58A6FF;
 }
