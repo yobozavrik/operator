@@ -1,79 +1,115 @@
 'use client';
 
-import React from 'react';
-import { ProductionTask } from '@/lib/data';
+import React, { useMemo, useState } from 'react';
+import { ProductionTask } from '@/types/bi';
+import { AlertCircle, TrendingUp, MapPin, ChevronDown, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { AlertTriangle } from 'lucide-react';
-import { BIPieChart, BILineChart } from './BICharts';
+import { UI_TOKENS } from '@/lib/design-tokens';
+import { useStore } from '@/context/StoreContext';
 
-interface InsightsProps {
-    queue: ProductionTask[];
-}
+export const BIInsights = ({ queue }: { queue: ProductionTask[] }) => {
+    const { selectedStore } = useStore();
+    const [expandedStore, setExpandedStore] = useState<string | null>(null);
 
-export const BIInsights = ({ queue }: InsightsProps) => {
-    // Top 5 Critical
-    const topCritical = [...queue]
-        .filter(i => (i as any).deficitPercent > 0)
-        .sort((a, b) => (b as any).deficitPercent - (a as any).deficitPercent)
-        .slice(0, 5);
+    const insights = useMemo(() => {
+        const criticalCount = queue.filter(t => t.priority === 'critical').length;
+        const totalKg = queue.reduce((sum, t) => sum + t.recommendedQtyKg, 0);
 
-    // Category Breakdown (for Pie Chart)
-    const categories = Array.from(new Set(queue.map(i => i.category)));
-    const categoryData = categories.map(cat => {
-        const items = queue.filter(i => i.category === cat);
-        const totalDeficit = items.reduce((acc, i) => acc + i.recommendedQtyKg, 0);
-        return { name: cat, value: totalDeficit };
-    }).filter(v => v.value > 0).sort((a, b) => b.value - a.value).slice(0, 5);
+        const riskStoresMap = queue.reduce((acc: Record<string, { count: number, items: string[] }>, t) => {
+            t.stores.forEach(s => {
+                // Якщо обрано конкретний магазин, фільтруємо тільки по ньому
+                if (selectedStore !== 'Усі' && s.storeName !== selectedStore) return;
 
-    // Mock Trend Data for 7 days
-    const trendData = [
-        { name: 'Mon', value: 240 },
-        { name: 'Tue', value: 210 },
-        { name: 'Wed', value: 290 },
-        { name: 'Thu', value: 250 },
-        { name: 'Fri', value: 320 },
-        { name: 'Sat', value: 280 },
-        { name: 'Sun', value: 260 },
-    ];
+                if (s.currentStock === 0) {
+                    if (!acc[s.storeName]) acc[s.storeName] = { count: 0, items: [] };
+                    acc[s.storeName].count++;
+                    acc[s.storeName].items.push(t.name);
+                }
+            });
+            return acc;
+        }, {});
+
+        const topRiskStores = Object.entries(riskStoresMap)
+            .map(([store, data]) => ({ store, ...data }))
+            .sort((a, b) => b.count - a.count)
+            .slice(0, 3);
+
+        return { criticalCount, totalKg, topRiskStores };
+    }, [queue, selectedStore]);
+
+    const toggleStore = (store: string) => {
+        setExpandedStore(expandedStore === store ? null : store);
+    };
 
     return (
-        <div className="flex flex-col gap-4 h-full overflow-hidden">
-            <h2 className="text-[12px] font-bold uppercase tracking-[0.2em] text-slate-500 mb-2">Operational Insights</h2>
-
-            {/* Top 5 Critical */}
-            <div className="bg-[#252526] p-4 rounded border border-[#3e3e42] flex flex-col gap-3">
-                <div className="flex items-center gap-2 mb-1">
-                    <AlertTriangle size={14} className="text-[#e74856]" />
-                    <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest">Top 5 Critical SKU</span>
+        <div className="flex flex-col gap-6 h-full font-sans">
+            {/* Top risk stores */}
+            <div className="bg-[#222325] border border-[#33343A] p-6 rounded-xl shadow-sm">
+                <div className="flex items-center gap-3 mb-5">
+                    <MapPin className="text-[#58A6FF]" size={16} />
+                    <h4 className="text-[12px] font-bold text-[#E6EDF3] tracking-tight">
+                        {selectedStore === 'Усі' ? 'Магазини з ризиком OOS' : `Ризики: ${selectedStore}`}
+                    </h4>
                 </div>
-                <div className="flex flex-col gap-2">
-                    {topCritical.map((item, i) => (
-                        <div key={item.id} className="flex flex-col gap-1">
-                            <div className="flex justify-between items-center">
-                                <span className="text-[10px] font-bold text-white truncate max-w-[150px]">{item.name}</span>
-                                <span className="text-[10px] font-mono font-bold text-[#e74856]">
-                                    {(item as any).deficitPercent.toFixed(0)}%
+                <div className="space-y-3">
+                    {insights.topRiskStores.map(({ store, count, items }) => (
+                        <div key={store} className="flex flex-col bg-[#1A1A1A] rounded-lg border border-[#2B2B2B] overflow-hidden">
+                            <button
+                                onClick={() => toggleStore(store)}
+                                className="flex justify-between items-center p-3 hover:bg-white/[0.02] transition-colors w-full text-left"
+                            >
+                                <div className="flex items-center gap-2">
+                                    {expandedStore === store ? <ChevronDown size={14} className="text-[#8B949E]" /> : <ChevronRight size={14} className="text-[#8B949E]" />}
+                                    <span className="text-[12px] text-[#8B949E] font-medium">{store}</span>
+                                </div>
+                                <span className="text-[11px] font-extrabold" style={{ color: UI_TOKENS.colors.priority.critical }}>
+                                    {count} OOS
                                 </span>
-                            </div>
-                            <div className="h-1 w-full bg-surface-800 rounded-full overflow-hidden">
-                                <div
-                                    className="h-full bg-[#e74856]"
-                                    style={{ width: `${(item as any).deficitPercent}%` }}
-                                />
-                            </div>
+                            </button>
+
+                            {expandedStore === store && (
+                                <div className="px-8 pb-3 pt-1 space-y-1 bg-black/10 border-t border-[#2B2B2B]/30 max-h-[150px] overflow-y-auto custom-scrollbar">
+                                    {items.map((item, idx) => (
+                                        <div key={idx} className="text-[10px] text-[#E6EDF3]/70 py-1 border-b border-[#2B2B2B]/20 last:border-b-0 flex items-center gap-2">
+                                            <div className="w-1 h-1 rounded-full opacity-50" style={{ backgroundColor: UI_TOKENS.colors.priority.critical }} />
+                                            {item}
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
                         </div>
                     ))}
                 </div>
             </div>
 
-            {/* Category Breakdown */}
-            <div className="flex-1 min-h-[180px]">
-                <BIPieChart label="Deficit by Category (KG)" data={categoryData} />
+            {/* Forecast sparkline */}
+            <div className="bg-[#222325] border border-[#33343A] p-6 rounded-xl shadow-sm">
+                <div className="flex items-center gap-3 mb-5">
+                    <TrendingUp className="text-[#3FB950]" size={16} />
+                    <h4 className="text-[12px] font-bold text-[#E6EDF3] tracking-tight">Прогноз Системи</h4>
+                </div>
+                <div className="h-24 bg-[#1A1A1A] rounded-lg border border-[#2B2B2B] flex items-center justify-center relative overflow-hidden">
+                    <div className="absolute inset-0 flex items-center justify-center opacity-20">
+                        <svg className="w-full h-full" overflow="visible" viewBox="0 0 100 100" preserveAspectRatio="none">
+                            <path d="M0,80 Q10,20 20,40 T40,60 T60,30 T80,50 100,20" fill="none" stroke="#58A6FF" strokeWidth="2" />
+                        </svg>
+                    </div>
+                    <span className="text-[10px] text-[#8B949E] font-bold uppercase tracking-widest relative z-10">Аналіз в реальному часі...</span>
+                </div>
             </div>
 
-            {/* Deficit Trend */}
-            <div className="flex-1 min-h-[180px]">
-                <BILineChart label="Network Deficit Trend (7D)" data={trendData} />
+            {/* Actions */}
+            <div className="bg-[#222325] border border-[#33343A] p-5 rounded-xl flex items-center justify-between gap-4 shadow-sm hover:border-[#1F2630] transition-colors">
+                <div className="flex items-center gap-3">
+                    <AlertCircle className="text-[#F6C343]" size={16} />
+                    <span className="text-[12px] font-bold text-[#E6EDF3] uppercase tracking-widest">Швидкі Дії</span>
+                </div>
+                <button
+                    className="px-5 py-2.5 text-white text-[10px] font-black uppercase rounded-lg shadow-lg hover:brightness-110 active:scale-[0.98] transition-all"
+                    style={{ backgroundColor: UI_TOKENS.colors.priority.critical, boxShadow: `0 4px 12px ${UI_TOKENS.colors.priority.critical}20` }}
+                >
+                    Згенерувати
+                </button>
             </div>
         </div>
     );

@@ -6,10 +6,9 @@ export async function GET() {
     const { data, error } = await supabase
         .from('dashboard_deficit')
         .select('*')
-        .in('priority', [1, 2, 3])
-        .order('priority', { ascending: true })
-        .order('deficit_percent', { ascending: false })
-        .limit(100);
+        .order('назва_магазину', { ascending: true })
+        .order('category_name', { ascending: true })
+        .order('назва_продукту', { ascending: true });
 
     if (error) {
         console.error('Supabase error:', error);

@@ -1,7 +1,15 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
-import { ChevronDown, ChevronRight } from 'lucide-react';
+import { ChevronDown, ChevronRight, CheckCircle2, Package } from 'lucide-react';
+import { ProductionTask, PriorityKey, SKUCategory, PriorityHierarchy, CategoryGroup } from '@/types/bi';
+import { cn } from '@/lib/utils';
+import { UI_TOKENS } from '@/lib/design-tokens';
+import { useStore } from '@/lib/store';
+import { StoreSpecificView } from './StoreSpecificView';
+import { OrderConfirmationModal } from './OrderConfirmationModal';
+import { ShareOptionsModal } from './ShareOptionsModal';
+import { OrderItem, SharePlatform } from '@/types/order';
 
 const CATEGORY_EMOJI: Record<string, string> = {
   'ВАРЕНИКИ': '🥟',
@@ -19,27 +27,81 @@ const CATEGORY_EMOJI: Record<string, string> = {
   'БЕНДЕРИКИ': '🌮'
 };
 
-const getEmoji = (category: string) => CATEGORY_EMOJI[category] || '📦';
+const getEmoji = (category: string) => CATEGORY_EMOJI[category.toUpperCase()] || '📦';
 
 interface Props {
-  queue: any[];
+  deficitQueue: ProductionTask[];
+  allProductsQueue: ProductionTask[];
 }
 
-export const BIPowerMatrix = ({ queue }: Props) => {
-  const [expandedPriorities, setExpandedPriorities] = useState<Set<string>>(
-    new Set(['critical', 'high'])
+export const BIPowerMatrix = ({ deficitQueue, allProductsQueue }: Props) => {
+  const { selectedStore } = useStore();
+  const [expandedPriorities, setExpandedPriorities] = useState<Set<PriorityKey>>(
+    new Set(['critical', 'high'] as PriorityKey[])
   );
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
+  const [expandedProducts, setExpandedProducts] = useState<Set<string>>(new Set());
+  const [selectedStores, setSelectedStores] = useState<Map<string, boolean>>(new Map());
 
-  // Построение иерархии: приоритет → категория
-  const hierarchy = useMemo(() => {
-    // Map: priority_label → category_name → items[]
-    const priorityMap = new Map<string, Map<string, any[]>>();
+  // Modal states
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [showShareModal, setShowShareModal] = useState(false);
+  const [orderItems, setOrderItems] = useState<OrderItem[]>([]);
 
-    queue.forEach(item => {
-      // Используем актуальные поля из ProductionTask
-      const priorityLabel = item['priority'] || 'reserve';
-      const categoryName = item['category'] || 'Інше';
+  // Вибираємо правильний датасет залежно від режиму
+  const queue = selectedStore === 'Усі' ? deficitQueue : allProductsQueue;
+
+  // Фільтруємо чергу залежно від обраного магазину
+  const filteredQueue = useMemo((): ProductionTask[] => {
+    if (selectedStore === 'Усі') return queue;
+
+    return queue
+      .map(item => {
+        const storeData = item.stores.find(s => s.storeName === selectedStore);
+        if (!storeData) return null;
+
+        return {
+          ...item,
+          stores: [storeData],
+          recommendedQtyKg: storeData.recommendedKg,
+          totalDeficitKg: storeData.deficitKg
+        } as ProductionTask;
+      })
+      .filter((item): item is ProductionTask => item !== null);
+  }, [queue, selectedStore]);
+
+  // ============================================================================
+  // РЕЖИМ: Конкретний магазин → показуємо StoreSpecificView
+  // ============================================================================
+  if (selectedStore !== 'Усі') {
+    return <StoreSpecificView queue={filteredQueue} storeName={selectedStore} />;
+  }
+
+  // ============================================================================
+  // РЕЖИМ: Усі магазини → показуємо AllStoresView (поточна логіка)
+  // ============================================================================
+
+  // Підрахунок обраної ваги
+  const selectedWeight = useMemo(() => {
+    let total = 0;
+    filteredQueue.forEach(item => {
+      item.stores.forEach(store => {
+        const key = `${item.productCode}_${store.storeName}`;
+        if (selectedStores.has(key)) {
+          total += store.recommendedKg;
+        }
+      });
+    });
+    return Math.round(total);
+  }, [filteredQueue, selectedStores]);
+
+  const hierarchy = useMemo((): PriorityHierarchy[] => {
+    const priorityMap = new Map<PriorityKey, Map<SKUCategory, Map<string, ProductionTask[]>>>();
+
+    filteredQueue.forEach(item => {
+      const priorityLabel = item.priority || 'reserve';
+      const categoryName = item.category || 'Інше';
+      const productId = item.productCode.toString();
 
       if (!priorityMap.has(priorityLabel)) {
         priorityMap.set(priorityLabel, new Map());
@@ -48,35 +110,56 @@ export const BIPowerMatrix = ({ queue }: Props) => {
       const categoryMap = priorityMap.get(priorityLabel)!;
 
       if (!categoryMap.has(categoryName)) {
-        categoryMap.set(categoryName, []);
+        categoryMap.set(categoryName, new Map());
       }
 
-      categoryMap.get(categoryName)!.push(item);
+      const productMap = categoryMap.get(categoryName)!;
+
+      if (!productMap.has(productId)) {
+        productMap.set(productId, []);
+      }
+      productMap.get(productId)!.push(item);
     });
 
-    // Преобразование в структуру
-    const priorityConfigs = [
-      { key: 'critical', label: 'КРИТИЧНО (товару немає)', emoji: '🔴', color: '#e74856' },
-      { key: 'high', label: 'ВАЖЛИВО (ходовий товар)', emoji: '🟠', color: '#ffc000' },
-      { key: 'reserve', label: 'РЕКОМЕНДОВАНО (зробити наперед)', emoji: '🔵', color: '#00bcf2' }
+    const priorityConfigs: { key: PriorityKey; label: string }[] = [
+      { key: 'critical', label: 'Критично (товару немає)' },
+      { key: 'high', label: 'Важливо (ходовий товар)' },
+      { key: 'reserve', label: 'Рекомендовано (зробити наперед)' }
     ];
 
     return priorityConfigs.map(config => {
       const categoryMap = priorityMap.get(config.key);
       if (!categoryMap || categoryMap.size === 0) return null;
 
-      const categories: any[] = [];
+      const categories: CategoryGroup[] = [];
       let totalKg = 0;
 
-      categoryMap.forEach((items, categoryName) => {
-        const categoryKg = items.reduce((sum, item) => sum + Number(item['recommendedQtyKg'] || 0), 0);
+      categoryMap.forEach((productMap, categoryName) => {
+        let categoryKg = 0;
+        const products: ProductionTask[] = [];
+
+        productMap.forEach((occurrences) => {
+          const base = occurrences[0];
+          const combinedStores = occurrences.flatMap(curr => curr.stores);
+          const combinedRecommended = combinedStores.reduce((sum, s) => sum + s.recommendedKg, 0);
+          const totalFactDeficit = combinedStores.reduce((sum, s) => sum + s.deficitKg, 0);
+
+          products.push({
+            ...base,
+            stores: combinedStores,
+            recommendedQtyKg: Math.round(combinedRecommended),
+            totalDeficitKg: Math.round(totalFactDeficit)
+          } as ProductionTask);
+
+          categoryKg += combinedRecommended;
+        });
 
         categories.push({
           categoryName,
           emoji: getEmoji(categoryName),
           totalKg: Math.round(categoryKg),
-          itemsCount: items.length,
-          items
+          itemsCount: products.length,
+          items: products.sort((a, b) => b.recommendedQtyKg - a.recommendedQtyKg)
         });
 
         totalKg += categoryKg;
@@ -85,17 +168,17 @@ export const BIPowerMatrix = ({ queue }: Props) => {
       return {
         key: config.key,
         label: config.label,
-        emoji: config.emoji,
-        color: config.color,
+        emoji: '',
+        color: String(UI_TOKENS.colors.priority[config.key] || '#8B949E'),
         totalKg: Math.round(totalKg),
         categoriesCount: categories.length,
-        categories: categories.sort((a, b) => b.totalKg - a.totalKg) // Сортируем категории по весу
-      };
-    }).filter(Boolean);
-  }, [queue]);
+        categories: categories.sort((a, b) => b.totalKg - a.totalKg)
+      } as PriorityHierarchy;
+    }).filter((p): p is PriorityHierarchy => p !== null);
+  }, [filteredQueue]);
 
-  const togglePriority = (key: string) => {
-    setExpandedPriorities(prev => {
+  const togglePriority = (key: PriorityKey) => {
+    setExpandedPriorities((prev: Set<PriorityKey>) => {
       const next = new Set(prev);
       if (next.has(key)) next.delete(key);
       else next.add(key);
@@ -103,93 +186,331 @@ export const BIPowerMatrix = ({ queue }: Props) => {
     });
   };
 
-  const toggleCategory = (priorityKey: string, categoryName: string) => {
+  const toggleCategory = (priorityKey: PriorityKey, categoryName: SKUCategory) => {
     const key = `${priorityKey}_${categoryName}`;
-    setExpandedCategories(prev => {
+    setExpandedCategories((prev: Set<string>) => {
       const next = new Set(prev);
       if (next.has(key)) next.delete(key);
       else next.add(key);
       return next;
     });
   };
+
+  const toggleProduct = (productCode: number) => {
+    const key = productCode.toString();
+    setExpandedProducts((prev: Set<string>) => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
+  };
+
+  const toggleStoreSelection = (productCode: number, storeName: string) => {
+    const key = `${productCode}_${storeName}`;
+    setSelectedStores(prev => {
+      const next = new Map(prev);
+      if (next.has(key)) {
+        next.delete(key);
+      } else {
+        next.set(key, true);
+      }
+      return next;
+    });
+  };
+
+  const toggleAllStoresForProduct = (item: ProductionTask) => {
+    const allSelected = item.stores.every(store => {
+      const key = `${item.productCode}_${store.storeName}`;
+      return selectedStores.has(key);
+    });
+
+    setSelectedStores(prev => {
+      const next = new Map(prev);
+      item.stores.forEach(store => {
+        const key = `${item.productCode}_${store.storeName}`;
+        if (allSelected) {
+          next.delete(key);
+        } else {
+          next.set(key, true);
+        }
+      });
+      return next;
+    });
+  };
+
+  const selectRecommended = () => {
+    const selection = new Map<string, boolean>();
+
+    hierarchy.forEach((priority: PriorityHierarchy) => {
+      if (priority.key === 'critical') {
+        priority.categories.forEach((category: CategoryGroup) => {
+          category.items.forEach((item: ProductionTask) => {
+            item.stores.forEach(store => {
+              const key = `${item.productCode}_${store.storeName}`;
+              selection.set(key, true);
+            });
+          });
+        });
+      }
+    });
+
+    setSelectedStores(selection);
+  };
+
+  const clearSelection = () => {
+    setSelectedStores(new Map());
+  };
+
+  // 5. Функція відправки
+  const submitOrder = () => {
+    const items: OrderItem[] = [];
+
+    hierarchy.forEach((priority: PriorityHierarchy) => {
+      priority.categories.forEach((category: CategoryGroup) => {
+        category.items.forEach((item: ProductionTask) => {
+          item.stores.forEach((store) => {
+            const key = `${item.productCode}_${store.storeName}`;
+            if (selectedStores.has(key)) {
+              items.push({
+                id: key,
+                productCode: item.productCode,
+                productName: item.name,
+                category: item.category,
+                storeName: store.storeName,
+                quantity: store.recommendedKg,
+                priority: item.priority
+              });
+            }
+          });
+        });
+      });
+    });
+
+    if (items.length === 0) {
+      alert('Оберіть товари для замовлення');
+      return;
+    }
+
+    setOrderItems(items);
+    setShowConfirmModal(true);
+  };
+
+  const handleConfirmOrder = (confirmedItems: OrderItem[]) => {
+    setOrderItems(confirmedItems);
+    setShowConfirmModal(false);
+    setShowShareModal(true);
+  };
+
+  const handleShare = async (platform: SharePlatform['id']) => {
+    try {
+      const response = await fetch('/api/send-order', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ items: orderItems, platform })
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        alert(`✅ Замовлення успішно відправлено через ${platform}!`);
+        setShowShareModal(false);
+        clearSelection();
+      } else {
+        alert(`❌ Помилка: ${data.error || 'Не вдалося відправити'}`);
+      }
+    } catch (error) {
+      console.error('Share error:', error);
+      alert('❌ Помилка мережі');
+    }
+  };
+
+  const recommendedWeight = useMemo(() => {
+    let total = 0;
+    hierarchy.forEach((priority: PriorityHierarchy) => {
+      if (priority.key === 'critical') {
+        total += priority.totalKg;
+      }
+    });
+    return Math.round(total);
+  }, [hierarchy]);
 
   return (
-    <div className="bg-[#252526] rounded border border-[#3e3e42] flex flex-col h-full overflow-hidden">
-      {/* Header */}
-      <div className="px-4 py-3 border-b border-[#3e3e42] bg-[#1e1e1e]">
-        <h3 className="text-[13px] font-bold uppercase tracking-wide text-white">
-          📋 Формування замовлення
-        </h3>
+    <div className="flex flex-col h-full bg-[#1A1A1A] rounded-xl border border-[#3A3A3A] overflow-hidden font-sans">
+      {/* Header with weight counter */}
+      <div className="px-6 py-5 border-b border-[#3A3A3A] bg-[#111823]">
+        <div className="flex items-center justify-between">
+          <h3 className="text-[14px] font-black uppercase tracking-tighter text-[#E6EDF3] flex items-center gap-2">
+            📋 {selectedWeight > 0 ? `Замовлення на ${selectedWeight} кг` : 'Формування замовлення'}
+          </h3>
+          <div className="flex flex-col items-end">
+            <span className="text-[10px] text-[#8B949E] uppercase font-bold tracking-widest leading-none mb-1">Вибрано до виробництва</span>
+            <div className="flex items-baseline gap-1">
+              <span className={cn(
+                "text-lg font-black leading-none",
+                selectedWeight > 0 ? "text-[#58A6FF]" : "text-[#8B949E]"
+              )}>
+                {selectedWeight}
+              </span>
+              <span className="text-[10px] text-[#8B949E] font-bold">кг</span>
+            </div>
+          </div>
+        </div>
       </div>
 
-      {/* List */}
-      <div className="flex-1 overflow-auto custom-scrollbar bg-[#1e1e1e]">
-        {hierarchy.map(priority => {
-          if (!priority) return null;
+      {/* Content */}
+      <div className="flex-1 overflow-y-auto custom-scrollbar bg-[#0D1117]">
+        {hierarchy.map((priority: PriorityHierarchy) => {
           const isPriorityExpanded = expandedPriorities.has(priority.key);
 
           return (
-            <div key={priority.key} className="border-b border-[#3e3e42]/50">
-              {/* УРОВЕНЬ 1: Приоритет */}
+            <div key={priority.key} className="border-b border-[#3A3A3A]/50 last:border-0">
+              {/* Priority Header */}
               <div
-                className="px-4 py-3 bg-[#2d1f1f] hover:bg-[#352323] cursor-pointer flex items-center justify-between transition-colors"
+                className="px-6 py-4 bg-[#161B22] hover:bg-[#1C2128] cursor-pointer flex items-center justify-between transition-colors border-b border-[#3A3A3A]/30"
                 onClick={() => togglePriority(priority.key)}
               >
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-3">
                   {isPriorityExpanded ?
-                    <ChevronDown size={14} className="text-white" /> :
-                    <ChevronRight size={14} className="text-white" />
+                    <ChevronDown size={16} className="text-[#8B949E]" /> :
+                    <ChevronRight size={16} className="text-[#8B949E]" />
                   }
                   <span
-                    className="text-[11px] font-bold uppercase tracking-wider"
+                    className="text-[12px] font-black uppercase tracking-wider"
                     style={{ color: priority.color }}
                   >
-                    {priority.emoji} {priority.label}
+                    {priority.label}
                   </span>
-                  <span className="text-[9px] text-slate-600">
+                  <span className="text-[10px] text-[#8B949E] font-semibold">
                     ({priority.categoriesCount} кат.)
                   </span>
                 </div>
-                <span className="text-[11px] font-bold text-white">
+                <span className="text-[14px] font-black text-[#E6EDF3]">
                   {priority.totalKg} кг
                 </span>
               </div>
 
-              {/* УРОВЕНЬ 2: Категории */}
-              {isPriorityExpanded && priority.categories.map(category => {
+              {/* Categories */}
+              {isPriorityExpanded && priority.categories.map((category: CategoryGroup) => {
                 const categoryKey = `${priority.key}_${category.categoryName}`;
                 const isCategoryExpanded = expandedCategories.has(categoryKey);
 
                 return (
-                  <div key={categoryKey} className="border-b border-[#3e3e42]/10 last:border-0">
+                  <div key={categoryKey} className="border-b border-[#3A3A3A]/10 last:border-0">
                     {/* Category Row */}
                     <div
-                      className="pl-8 pr-4 py-2.5 hover:bg-[#2d2d30] cursor-pointer flex items-center justify-between transition-colors"
+                      className="pl-10 pr-6 py-3 hover:bg-[#161B22] cursor-pointer flex items-center justify-between transition-colors"
                       onClick={() => toggleCategory(priority.key, category.categoryName)}
                     >
                       <div className="flex items-center gap-2">
                         {isCategoryExpanded ?
-                          <ChevronDown size={12} className="text-white" /> :
-                          <ChevronRight size={12} className="text-white" />
+                          <ChevronDown size={14} className="text-[#8B949E]" /> :
+                          <ChevronRight size={14} className="text-[#8B949E]" />
                         }
-                        <span className="text-[12px] font-semibold text-white">
-                          {category.emoji} {category.categoryName}
+                        <span className="text-[14px]">{category.emoji}</span>
+                        <span className="text-[12px] font-bold text-[#E6EDF3]">
+                          {category.categoryName}
                         </span>
-                        <span className="text-[9px] text-slate-600">
+                        <span className="text-[10px] text-[#8B949E]">
                           ({category.itemsCount} поз.)
                         </span>
                       </div>
-                      <span className="text-[11px] font-bold text-[#00bcf2]">
+                      <span className="text-[13px] font-black text-[#58A6FF]">
                         {category.totalKg} кг
                       </span>
                     </div>
 
-                    {/* Placeholder для товаров */}
-                    {isCategoryExpanded && (
-                      <div className="pl-12 py-4 text-center text-slate-500 text-[10px]">
-                        (Тут будуть товари)
-                      </div>
-                    )}
+                    {/* Products */}
+                    {isCategoryExpanded && category.items.map((item: ProductionTask) => {
+                      const isProductExpanded = expandedProducts.has(item.productCode.toString());
+                      const allStoresSelected = item.stores.every(store => {
+                        const key = `${item.productCode}_${store.storeName}`;
+                        return selectedStores.has(key);
+                      });
+
+                      return (
+                        <div key={item.productCode} className="border-b border-[#3A3A3A]/5 last:border-0">
+                          {/* Product Row */}
+                          <div className="pl-16 pr-6 py-2.5 hover:bg-white/[0.02] transition-colors">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-2 flex-1">
+                                <button
+                                  onClick={() => toggleProduct(item.productCode)}
+                                  className="p-0.5 hover:bg-white/5 rounded transition-colors"
+                                >
+                                  {isProductExpanded ?
+                                    <ChevronDown size={12} className="text-[#8B949E]" /> :
+                                    <ChevronRight size={12} className="text-[#8B949E]" />
+                                  }
+                                </button>
+                                <button
+                                  onClick={() => toggleAllStoresForProduct(item)}
+                                  className={cn(
+                                    "w-4 h-4 rounded border flex items-center justify-center transition-all",
+                                    allStoresSelected
+                                      ? "bg-[#58A6FF] border-[#58A6FF]"
+                                      : "border-[#3A3A3A] hover:border-[#58A6FF]"
+                                  )}
+                                >
+                                  {allStoresSelected && <CheckCircle2 size={10} className="text-white" />}
+                                </button>
+                                <span className="text-[11px] font-semibold text-[#E6EDF3]">
+                                  {item.name}
+                                </span>
+                                <span className="text-[9px] text-[#8B949E]">
+                                  ({item.stores.length} маг.)
+                                </span>
+                              </div>
+                              <span className="text-[12px] font-black text-[#58A6FF]">
+                                {item.recommendedQtyKg} кг
+                              </span>
+                            </div>
+                          </div>
+
+                          {/* Stores */}
+                          {isProductExpanded && (
+                            <div className="bg-[#0D1117] border-t border-[#3A3A3A]/10">
+                              {item.stores.map(store => {
+                                const storeKey = `${item.productCode}_${store.storeName}`;
+                                const isSelected = selectedStores.has(storeKey);
+
+                                return (
+                                  <div
+                                    key={storeKey}
+                                    className="pl-24 pr-6 py-2 hover:bg-white/[0.02] transition-colors flex items-center justify-between"
+                                  >
+                                    <div className="flex items-center gap-2">
+                                      <button
+                                        onClick={() => toggleStoreSelection(item.productCode, store.storeName)}
+                                        className={cn(
+                                          "w-3.5 h-3.5 rounded border flex items-center justify-center transition-all",
+                                          isSelected
+                                            ? "bg-[#58A6FF] border-[#58A6FF]"
+                                            : "border-[#3A3A3A] hover:border-[#58A6FF]"
+                                        )}
+                                      >
+                                        {isSelected && <CheckCircle2 size={8} className="text-white" />}
+                                      </button>
+                                      <span className="text-[10px] text-[#8B949E]">
+                                        {store.storeName}
+                                      </span>
+                                    </div>
+                                    <div className="flex items-center gap-3">
+                                      <span className="text-[9px] text-[#F85149]">
+                                        -{store.deficitKg.toFixed(1)} кг
+                                      </span>
+                                      <span className="text-[11px] font-bold text-[#58A6FF]">
+                                        {store.recommendedKg.toFixed(1)} кг
+                                      </span>
+                                    </div>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
                 );
               })}
@@ -197,6 +518,56 @@ export const BIPowerMatrix = ({ queue }: Props) => {
           );
         })}
       </div>
+
+      {/* Footer */}
+      <div className="px-6 py-4 border-t border-[#3A3A3A] bg-[#111823]">
+        <div className="flex gap-2">
+          <button
+            onClick={selectRecommended}
+            className="flex-1 px-4 py-2.5 bg-[#238636] hover:bg-[#2EA043] text-white text-[10px] font-black uppercase tracking-wider rounded-lg transition-all flex items-center justify-center gap-2 shadow-lg shadow-green-500/10"
+          >
+            <CheckCircle2 size={14} />
+            Вибрати КРИТИЧНІ
+            <span className="text-white font-bold ml-1">{recommendedWeight} кг</span>
+          </button>
+          <button
+            onClick={clearSelection}
+            className="px-4 py-2.5 bg-black/20 border border-[#3A3A3A] hover:bg-black/30 text-[#8B949E] hover:text-white text-[10px] font-black uppercase tracking-wider rounded-lg transition-all"
+          >
+            Очистити
+          </button>
+        </div>
+        <div className="flex items-center gap-2 mt-2">
+          <button
+            onClick={submitOrder}
+            disabled={selectedStores.size === 0}
+            className={cn(
+              "flex-1 px-4 py-2.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all flex items-center justify-center gap-2",
+              selectedStores.size > 0
+                ? "bg-[#58A6FF] hover:bg-[#3d8bfd] text-white shadow-lg shadow-blue-500/20"
+                : "bg-[#252526] text-[#8B949E] cursor-not-allowed"
+            )}
+          >
+            <Package size={14} />
+            Сформувати
+          </button>
+        </div>
+      </div>
+
+      {/* Modals */}
+      <OrderConfirmationModal
+        isOpen={showConfirmModal}
+        items={orderItems}
+        onClose={() => setShowConfirmModal(false)}
+        onConfirm={handleConfirmOrder}
+      />
+
+      <ShareOptionsModal
+        isOpen={showShareModal}
+        items={orderItems}
+        onClose={() => setShowShareModal(false)}
+        onShare={handleShare}
+      />
     </div>
   );
 };

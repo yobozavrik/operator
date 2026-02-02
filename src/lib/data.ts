@@ -1,179 +1,112 @@
-export type SKUCategory =
-  | 'ВАРЕНИКИ' | 'ПЕЛЬМЕНІ' | 'ХІНКАЛІ' | 'ЧЕБУРЕКИ'
-  | 'КОВБАСКИ' | 'ГОЛУБЦІ' | 'КОТЛЕТИ' | 'СИРНИКИ'
-  | 'ФРИКАДЕЛЬКИ' | 'ЗРАЗИ' | 'ПЕРЕЦЬ' | 'МЛИНЦІ' | 'БЕНДЕРИКИ';
+import { ProductionTask, SKUCategory, PriorityKey, SupabaseDeficitRow } from '@/types/bi';
 
 export const STORES = [
-  'Кварц', 'Садгора', 'Хотинська',
-  'Білоруська', 'Руська', 'Компас'
+  'Магазин "Садгора"',
+  'Магазин "Компас"',
+  'Магазин "Руська"',
+  'Магазин "Хотинська"',
+  'Магазин "Білоруська"',
+  'Магазин "Кварц"'
 ];
 
 export interface SKU {
   id: string;
   name: string;
   category: SKUCategory;
-  totalStockKg: number;
-  dailyForecastKg: number;
-  minStockThresholdKg: number;
-  outOfStockStores: number;
-  salesTrendKg: number[];
-  storeStocks: Record<string, number>;
+  currentStockKg: number;
+  avgSalesKg: number;
+  minStockKg: number;
 }
 
-export interface ProductionTask extends SKU {
-  recommendedQtyKg: number;
-  priority: 'critical' | 'high' | 'reserve' | 'normal';
-  priorityReason: string;
-  storeName?: string;
-  status: 'pending' | 'in-progress' | 'completed';
-  timeStarted?: number;
-}
-
-const CATEGORIES: SKUCategory[] = [
-  'ВАРЕНИКИ', 'ПЕЛЬМЕНІ', 'ХІНКАЛІ', 'ЧЕБУРЕКИ',
-  'КОВБАСКИ', 'ГОЛУБЦІ', 'КОТЛЕТИ', 'СИРНИКИ',
-  'ФРИКАДЕЛЬКИ', 'ЗРАЗИ', 'ПЕРЕЦЬ', 'МЛИНЦІ', 'БЕНДЕРИКИ'
+export const mockSKUs: SKU[] = [
+  { id: '1', name: 'Вареники з картоплею', category: 'ВАРЕНИКИ', currentStockKg: 12.5, avgSalesKg: 8.2, minStockKg: 25 },
+  { id: '2', name: 'Пельмені "Домашні"', category: 'ПЕЛЬМЕНІ', currentStockKg: 5.0, avgSalesKg: 12.0, minStockKg: 40 },
+  { id: '3', name: 'Хінкалі з яловичиною', category: 'ХІНКАЛІ', currentStockKg: 18.2, avgSalesKg: 5.5, minStockKg: 15 },
+  { id: '4', name: 'Чебуреки з м\'ясом', category: 'ЧЕБУРЕКИ', currentStockKg: 2.1, avgSalesKg: 15.0, minStockKg: 30 },
 ];
 
-const CATEGORY_NAMES: Record<SKUCategory, string[]> = {
-  'ВАРЕНИКИ': ['Вареники з картоплею', 'Вареники з сиром', 'Вареники з вишнею', 'Вареники з капустою'],
-  'ПЕЛЬМЕНІ': ['Пельмені Свино-яловичі', 'Пельмені Курячі', 'Пельмені Сибірські'],
-  'ХІНКАЛІ': ['Хінкалі Класичні', 'Хінкалі з бараниною'],
-  'ЧЕБУРЕКИ': ['Чебуреки з м’ясом', 'Чебуреки з сиром'],
-  'КОВБАСКИ': ['Ковбаски Мисливські', 'Ковбаски Гриль'],
-  'ГОЛУБЦІ': ['Голубці Домашні', 'Голубці з грибами'],
-  'КОТЛЕТИ': ['Котлети По-київськи', 'Котлети Свинячі'],
-  'СИРНИКИ': ['Сирники Класичні', 'Сирники з изюмом'],
-  'ФРИКАДЕЛЬКИ': ['Фрикадельки Курячі', 'Фрикадельки Яловичі'],
-  'ЗРАЗИ': ['Зрази з грибами', 'Зрази з м’ясом'],
-  'ПЕРЕЦЬ': ['Перець Фарширований'],
-  'МЛИНЦІ': ['Млинці з сиром', 'Млинці з м’ясом', 'Млинці з маком'],
-  'БЕНДЕРИКИ': ['Бендерики з м’ясом', 'Бендерики з грибами']
-};
-
-// Простая детерминированная функция для предотвращения Hydration Mismatch
-let seed = 12345;
-const deterministicRandom = () => {
-  seed = (seed * 16807) % 2147483647;
-  return (seed - 1) / 2147483646;
-};
-
-export const mockSKUs: SKU[] = Array.from({ length: 80 }).map((_, i) => {
-  const category = CATEGORIES[i % CATEGORIES.length];
-  const namesForCat = CATEGORY_NAMES[category];
-  const name = namesForCat[i % namesForCat.length] + (i >= namesForCat.length ? ` #${Math.floor(i / namesForCat.length)}` : '');
-
-  const dailyForecastKg = Number((deterministicRandom() * 30 + 10).toFixed(1));
-  const storeStocks: Record<string, number> = {};
-  let outOfStockCount = 0;
-  let totalStock = 0;
-
-  STORES.forEach(store => {
-    // Детерминированный выбор: пусто или нет
-    const isOutOfStock = deterministicRandom() < 0.25;
-    const stock = isOutOfStock ? 0 : Number((deterministicRandom() * 15).toFixed(1));
-    storeStocks[store] = stock;
-    if (stock === 0) outOfStockCount++;
-    totalStock += stock;
-  });
-
-  return {
-    id: `sku-${i}`,
-    name,
-    category,
-    totalStockKg: Number(totalStock.toFixed(1)),
-    dailyForecastKg,
-    minStockThresholdKg: Number((dailyForecastKg * 0.5).toFixed(1)),
-    outOfStockStores: outOfStockCount,
-    salesTrendKg: Array.from({ length: 10 }).map(() => Number((deterministicRandom() * 15 + 5).toFixed(1))),
-    storeStocks,
-  };
-});
-
 export function getProductionQueue(skus: SKU[]): ProductionTask[] {
-  return skus
-    .map(sku => {
-      let priority: 'critical' | 'high' | 'normal' = 'normal';
-      let reason = '';
+  return skus.map(sku => {
+    const deficit = sku.minStockKg - sku.currentStockKg;
+    const deficitPercent = (deficit / sku.minStockKg) * 100;
 
-      if (sku.outOfStockStores >= 3) {
-        priority = 'critical';
-        reason = `КРИТИЧНИЙ ДЕФІЦИТ: ${sku.outOfStockStores} ТОЧОК`;
-      } else if (sku.totalStockKg < sku.minStockThresholdKg) {
-        priority = 'high';
-        reason = 'НИЗЬКИЙ ЗАЛИШОК';
-      } else {
-        reason = 'В НОРМІ';
-      }
+    let priority: PriorityKey = 'normal';
+    if (sku.currentStockKg === 0) priority = 'critical';
+    else if (sku.currentStockKg < sku.minStockKg * 0.5) priority = 'high';
+    else if (sku.currentStockKg < sku.minStockKg) priority = 'reserve';
 
-      const recommendedQtyKg = Math.max(0, Number((sku.dailyForecastKg * 1.5 - sku.totalStockKg).toFixed(0)));
-
-      return {
-        ...sku,
-        recommendedQtyKg: Math.round(recommendedQtyKg / 10) * 10 || 20, // Округление до 10кг для реального производства
-        priority,
-        priorityReason: reason,
-        status: 'pending' as const,
-      };
-    })
-    .sort((a, b) => {
-      const priorityMap = { critical: 0, high: 1, reserve: 2, normal: 3 };
-      return priorityMap[a.priority as keyof typeof priorityMap] - priorityMap[b.priority as keyof typeof priorityMap];
-    });
-}
-
-export interface SupabaseRow {
-  код_магазину: number;
-  назва_магазину: string;
-  код_продукту: number;
-  назва_продукту: string;
-  category_name: string;
-  current_stock: number;
-  min_stock: number;
-  deficit_kg: number;
-  avg_sales_day: number;
-  deficit_percent: number;
-  priority: number;
-}
-
-export function transformSupabaseData(rows: SupabaseRow[]): ProductionTask[] {
-  if (!rows || !Array.isArray(rows)) return [];
-
-  const productMap = new Map<number, ProductionTask>();
-
-  rows.forEach(row => {
-    if (!productMap.has(row.код_продукту)) {
-      productMap.set(row.код_продукту, {
-        id: row.код_продукту.toString(),
-        name: row.назва_продукту,
-        category: row.category_name as SKUCategory,
-        totalStockKg: 0,
-        dailyForecastKg: 0,
-        minStockThresholdKg: 0,
-        outOfStockStores: 0,
-        salesTrendKg: [],
-        storeStocks: {},
-        recommendedQtyKg: 0,
-        priority: row.priority === 1 ? 'critical' : row.priority <= 3 ? 'high' : 'normal',
-        priorityReason: row.priority === 1 ? 'КРИТИЧНИЙ ДЕФІЦИТ' : 'ПОТРЕБА ПЛАНУ',
-        status: 'pending',
-      });
-    }
-
-    const task = productMap.get(row.код_продукту)!;
-    task.totalStockKg += Number(row.current_stock);
-    task.dailyForecastKg += Number(row.avg_sales_day);
-    task.minStockThresholdKg += Number(row.min_stock);
-    task.recommendedQtyKg += Number(row.deficit_kg);
-    task.storeStocks[row.назва_магазину] = Number(row.current_stock);
-    if (Number(row.current_stock) === 0) task.outOfStockStores++;
-
-    // Custom field for deficit_percent to use in UI
-    (task as any).deficitPercent = row.deficit_percent;
+    return {
+      id: sku.id,
+      productCode: Number(sku.id),
+      name: sku.name,
+      category: sku.category,
+      totalStockKg: sku.currentStockKg,
+      dailyForecastKg: sku.avgSalesKg,
+      minStockThresholdKg: sku.minStockKg,
+      outOfStockStores: sku.currentStockKg === 0 ? 3 : 0,
+      salesTrendKg: [sku.avgSalesKg * 0.8, sku.avgSalesKg * 1.1, sku.avgSalesKg],
+      stores: [
+        {
+          storeId: 1,
+          storeName: 'Магазин "Садгора"',
+          currentStock: sku.currentStockKg * 0.4,
+          minStock: sku.minStockKg * 0.4,
+          deficitKg: Math.max(0, (sku.minStockKg - sku.currentStockKg) * 0.4),
+          recommendedKg: Math.ceil(((sku.minStockKg - sku.currentStockKg) * 0.4) / 10) * 10,
+          avgSales: sku.avgSalesKg * 0.4
+        },
+        {
+          storeId: 2,
+          storeName: 'Магазин "Компас"',
+          currentStock: sku.currentStockKg * 0.6,
+          minStock: sku.minStockKg * 0.6,
+          deficitKg: Math.max(0, (sku.minStockKg - sku.currentStockKg) * 0.6),
+          recommendedKg: Math.ceil(((sku.minStockKg - sku.currentStockKg) * 0.6) / 10) * 10,
+          avgSales: sku.avgSalesKg * 0.6
+        }
+      ],
+      recommendedQtyKg: Math.max(0, Math.ceil(deficit / 10) * 10),
+      priority,
+      priorityReason: priority === 'critical' ? 'Stock Out' : 'Below Minimum',
+      status: 'pending' as const,
+      deficitPercent: Math.max(0, deficitPercent)
+    };
   });
+}
 
-  return Array.from(productMap.values()).sort((a, b) => {
-    const pMap = { critical: 0, high: 1, reserve: 2, normal: 3 };
-    return pMap[a.priority as keyof typeof pMap] - pMap[b.priority as keyof typeof pMap];
+// Transform raw Supabase data to ProductionTask
+export function transformSupabaseData(data: SupabaseDeficitRow[]): ProductionTask[] {
+  if (!data || !Array.isArray(data)) return [];
+
+  return data.map(row => {
+    const priority_label = row.priority === 1 ? 'critical' :
+      row.priority === 2 ? 'high' :
+        row.priority === 3 ? 'reserve' : 'normal';
+
+    return {
+      id: `${row.код_продукту}-${row.код_магазину}`,
+      productCode: row.код_продукту,
+      name: row.назва_продукту,
+      category: (row.category_name as SKUCategory) || 'Інше',
+      totalStockKg: Number(row.current_stock),
+      dailyForecastKg: Number(row.avg_sales_day),
+      minStockThresholdKg: Number(row.min_stock),
+      outOfStockStores: Number(row.current_stock) === 0 ? 1 : 0,
+      salesTrendKg: [row.avg_sales_day],
+      stores: [{
+        storeId: row.код_магазину,
+        storeName: row.назва_магазину,
+        currentStock: Number(row.current_stock),
+        minStock: Number(row.min_stock),
+        deficitKg: Number(row.deficit_kg),
+        recommendedKg: Number(row.recommended_kg),
+        avgSales: Number(row.avg_sales_day)
+      }],
+      recommendedQtyKg: Number(row.recommended_kg),
+      priority: priority_label as PriorityKey,
+      priorityReason: `Store: ${row.назва_магазину}`,
+      status: 'pending' as const,
+      deficitPercent: Number(row.deficit_percent)
+    };
   });
 }

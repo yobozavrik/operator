@@ -5,16 +5,17 @@ import useSWR from 'swr';
 import { DashboardLayout } from '@/components/layout';
 import { SeniorProductionMatrix } from '@/components/SeniorProductionMatrix';
 import { SeniorAnalytics } from '@/components/SeniorAnalytics';
-import { ProductionTask, SKUCategory, SupabaseRow, transformSupabaseData } from '@/lib/data';
+import { transformSupabaseData } from '@/lib/data';
+import { SupabaseDeficitRow, BI_Metrics } from '@/types/bi';
 
 const fetcher = (url: string) => fetch(url).then(r => r.json());
 
 export default function Dashboard() {
-  const { data: rawDeficit, error: deficitError } = useSWR('/api/graviton/deficit', fetcher, {
+  const { data: rawDeficit, error: deficitError } = useSWR<SupabaseDeficitRow[]>('/api/graviton/deficit', fetcher, {
     refreshInterval: 30000
   });
 
-  const { data: metrics, error: metricsError } = useSWR('/api/graviton/metrics', fetcher, {
+  const { data: metrics, error: metricsError } = useSWR<BI_Metrics>('/api/graviton/metrics', fetcher, {
     refreshInterval: 15000
   });
 
@@ -22,14 +23,8 @@ export default function Dashboard() {
 
   const MAX_WEIGHT = 450;
 
-  // Use metrics from API if available, fallback to calculated
-  const currentWeight = metrics?.total_deficit_kg || (292 + (queue
-    ? queue
-      .filter(t => t.status === 'completed')
-      .reduce((acc, item) => acc + item.recommendedQtyKg, 0)
-    : 0));
-
-  const lastUpdate = metrics?.last_update ? new Date(metrics.last_update).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : 'Оновлення...';
+  const currentWeight = metrics?.shopLoad || 0;
+  const lastUpdate = metrics?.lastUpdate ? new Date(metrics.lastUpdate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : 'Оновлення...';
 
   if (deficitError || metricsError) {
     return (

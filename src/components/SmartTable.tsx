@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { ProductionTask } from '@/lib/data';
+import { ProductionTask, SKUCategory, PriorityKey, SupabaseDeficitRow } from '@/types/bi';
 import { cn } from '@/lib/utils';
 import { AlertCircle, Clock, CheckCircle2, MoreVertical } from 'lucide-react';
 

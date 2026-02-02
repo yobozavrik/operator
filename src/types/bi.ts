@@ -1,0 +1,79 @@
+export type SKUCategory =
+    | 'ВАРЕНИКИ' | 'ПЕЛЬМЕНІ' | 'ХІНКАЛІ' | 'ЧЕБУРЕКИ'
+    | 'КОВБАСКИ' | 'ГОЛУБЦІ' | 'КОТЛЕТИ' | 'СИРНИКИ'
+    | 'ФРИКАДЕЛЬКИ' | 'ЗРАЗИ' | 'ПЕРЕЦЬ ФАРШИРОВАНИЙ' | 'МЛИНЦІ' | 'БЕНДЕРИКИ' | 'Інше';
+
+export type PriorityKey = 'critical' | 'high' | 'reserve' | 'normal';
+
+export interface SupabaseDeficitRow {
+    код_магазину: number;
+    назва_магазину: string;
+    код_продукту: number;
+    назва_продукту: string;
+    category_name: string;
+    current_stock: number;
+    min_stock: number;
+    deficit_kg: number;
+    avg_sales_day: number;
+    deficit_percent: number;
+    priority: number;
+    priority_label?: PriorityKey;
+    recommended_kg: number;
+}
+
+export interface Store {
+    storeId: number;
+    storeName: string;
+    currentStock: number;
+    minStock: number;
+    deficitKg: number;
+    recommendedKg: number;
+    avgSales: number;
+}
+
+export interface ProductionTask {
+    id: string;
+    productCode: number;
+    name: string;
+    category: SKUCategory;
+    totalStockKg: number;
+    dailyForecastKg: number;
+    minStockThresholdKg: number;
+    outOfStockStores: number;
+    salesTrendKg: number[];
+    stores: Store[];
+    recommendedQtyKg: number;
+    priority: PriorityKey;
+    priorityReason: string;
+    storeName?: string;
+    status: 'pending' | 'in-progress' | 'completed';
+    timeStarted?: number;
+    deficitPercent: number;
+    totalDeficitKg?: number;
+}
+
+export interface CategoryGroup {
+    categoryName: string;
+    emoji: string;
+    totalKg: number;
+    itemsCount: number;
+    items: ProductionTask[];
+}
+
+export interface PriorityHierarchy {
+    key: PriorityKey;
+    label: string;
+    emoji: string;
+    color: string;
+    totalKg: number;
+    categoriesCount: number;
+    categories: CategoryGroup[];
+}
+
+export interface BI_Metrics {
+    shopLoad: number;
+    personnel: number;
+    criticalSKUs: number;
+    aiEfficiency: number;
+    lastUpdate: string;
+}

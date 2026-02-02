@@ -3,7 +3,7 @@
 import React, { useMemo } from 'react';
 import { DashboardLayout } from '@/components/layout';
 import { MatrixTable } from '@/components/MatrixTable';
-import { mockSKUs, getProductionQueue, ProductionTask } from '@/lib/data';
+import { mockSKUs, getProductionQueue } from '@/lib/data';
 
 export default function AnalyticsPage() {
     const MAX_WEIGHT = 450;
@@ -14,19 +14,27 @@ export default function AnalyticsPage() {
 
     return (
         <DashboardLayout currentWeight={currentWeight} maxWeight={MAX_WEIGHT}>
-            <div className="p-4 lg:p-8">
-                <div className="mb-8 p-6 bi-panel rounded-2xl border border-white/5 bg-gradient-to-br from-[#161B22] to-transparent">
-                    <h1 className="text-2xl lg:text-3xl font-black text-white tracking-tighter mb-2 uppercase flex items-center gap-3">
-                        <span className="text-[#58A6FF]">|</span> Аналітична Матриця: SKU по Мережі
-                    </h1>
-                    <p className="text-slate-400 text-sm max-w-2xl font-medium leading-relaxed">
-                        Детальна візуалізація наявності продукції у розрізі 6 основних магазинів.
-                        Неонові маркеры сигналізують про потребу поповнення залишків у кг.
-                    </p>
-                </div>
+            <div className="max-w-[1200px] mx-auto">
+                {/* Outer Panel like SVG */}
+                <div className="bg-[#0B0F14] rounded-[16px] border border-[#1F2630] p-6 lg:p-10 shadow-2xl min-h-[calc(100vh-160px)]">
 
-                <div className="bi-panel rounded-2xl overflow-hidden border border-white/5">
-                    <MatrixTable skus={mockSKUs} />
+                    {/* Header Shell */}
+                    <div className="bg-[#111823] rounded-xl border border-[#202938] px-6 py-4 mb-6 flex justify-between items-center">
+                        <h1 className="text-[18px] font-bold text-[#E6EDF3] tracking-tight">
+                            SKU Матриця • Покриття залишків
+                        </h1>
+                        <div className="flex gap-4">
+                            <div className="flex items-center gap-2">
+                                <div className="w-2.5 h-2.5 rounded-full bg-[#E5534B]" />
+                                <span className="text-[11px] text-[#8B949E]">Критичний дефіцит</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Filter Bar */}
+                    <div className="mb-8">
+                        <MatrixTable skus={queue} />
+                    </div>
                 </div>
             </div>
         </DashboardLayout>

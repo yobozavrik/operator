@@ -1,154 +1,191 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
-import { SKU, STORES } from '@/lib/data';
+import { STORES } from '@/lib/data';
+import { ProductionTask, SKUCategory, PriorityKey } from '@/types/bi';
 import { cn } from '@/lib/utils';
-import { Search, Filter, ArrowUpDown, Info } from 'lucide-react';
+import { Search, Filter, ChevronDown } from 'lucide-react';
+import { UI_TOKENS } from '@/lib/design-tokens';
+import { useStore } from '@/context/StoreContext';
 
-const Sparkline = ({ data }: { data: number[] }) => {
-    const max = Math.max(...data);
-    const min = Math.min(...data);
-    const range = max - min || 1;
-    return (
-        <div className="flex items-end gap-0.5 h-6 w-16">
-            {data.map((val, i) => (
-                <div
-                    key={i}
-                    className="w-1.5 bg-brand-primary/40 rounded-t-sm"
-                    style={{ height: `${((val - min) / range) * 100}%`, minHeight: '2px' }}
-                />
-            ))}
-        </div>
-    );
-};
-
-export const MatrixTable = ({ skus }: { skus: SKU[] }) => {
-    const [onlyCritical, setOnlyCritical] = useState(true);
+export const MatrixTable = ({ skus }: { skus: ProductionTask[] }) => {
+    const { selectedStore, setSelectedStore } = useStore();
+    const [onlyCritical, setOnlyCritical] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
-    const [selectedCategory, setSelectedCategory] = useState<string>('Все');
+    const [selectedCategory, setSelectedCategory] = useState<string>('Усі');
+    const [selectedPriority, setSelectedPriority] = useState<string>('Усі');
 
     const filteredSkus = useMemo(() => {
         return skus.filter(sku => {
             const matchesSearch = sku.name.toLowerCase().includes(searchQuery.toLowerCase());
-            const matchesCategory = selectedCategory === 'Все' || sku.category === selectedCategory;
+            const matchesCategory = selectedCategory === 'Усі' || sku.category === selectedCategory;
             const matchesCritical = !onlyCritical || sku.outOfStockStores > 0;
-            return matchesSearch && matchesCategory && matchesCritical;
+            const matchesStore = selectedStore === 'Усі' || sku.stores.some(s => s.storeName === selectedStore);
+            const matchesPriority = selectedPriority === 'Усі' || sku.priority === selectedPriority;
+            return matchesSearch && matchesCategory && matchesCritical && matchesStore && matchesPriority;
         });
-    }, [skus, searchQuery, selectedCategory, onlyCritical]);
+    }, [skus, searchQuery, selectedCategory, onlyCritical, selectedStore, selectedPriority]);
 
-    const categories = ['Все', ...Array.from(new Set(skus.map(s => s.category)))];
+    const categories = ['Усі', ...Array.from(new Set(skus.map(s => s.category)))];
 
     const getCellColor = (stock: number, threshold: number) => {
-        if (stock === 0) return 'bg-status-high/20 text-status-high font-black border border-status-high/30';
-        if (stock < threshold / 6) return 'bg-status-medium/10 text-status-medium font-bold border border-status-medium/20';
-        return 'bg-white/5 text-slate-300 font-medium border border-white/5';
+        if (stock === 0) return 'rgba(229, 83, 75, 0.15)'; // Critical
+        if (stock < threshold / 4) return 'rgba(246, 195, 67, 0.1)'; // High
+        if (stock < threshold) return 'rgba(88, 166, 255, 0.08)'; // Reserve
+        return 'rgba(63, 185, 80, 0.05)'; // Normal
+    };
+
+    const getTextColor = (stock: number, threshold: number) => {
+        if (stock === 0) return UI_TOKENS.colors.priority.critical;
+        if (stock < threshold / 4) return UI_TOKENS.colors.priority.high;
+        if (stock < threshold) return UI_TOKENS.colors.priority.reserve;
+        return UI_TOKENS.colors.priority.normal;
     };
 
     return (
-        <div className="space-y-6">
-            {/* Фильтры */}
-            <div className="flex flex-wrap items-center justify-between gap-4 glass-card p-6 rounded-2xl border border-white/5">
-                <div className="flex items-center gap-4">
+        <div className="flex flex-col gap-6">
+            {/* UI Spec Style Filters Bar */}
+            <div className="bg-[#111823] border border-[#1F2630] rounded-xl px-4 py-2 flex flex-wrap items-center gap-4">
+                <div className="flex items-center gap-2 px-3 py-1.5 bg-white/5 rounded-lg border border-white/5">
+                    <Filter size={14} className="text-[#8B949E]" />
+                    <span className="text-[11px] font-bold text-[#8B949E] uppercase tracking-widest">Фільтри</span>
+                </div>
+
+                <div className="flex items-center gap-2">
+                    <select
+                        value={selectedCategory}
+                        onChange={(e) => setSelectedCategory(e.target.value)}
+                        className="bg-transparent text-[12px] font-bold text-[#E6EDF3] outline-none cursor-pointer hover:text-[#58A6FF] transition-colors"
+                    >
+                        <option value="Усі">Всі Категорії</option>
+                        {Array.from(new Set(skus.map(s => s.category))).map(cat => (
+                            <option key={cat} value={cat} className="bg-[#111823]">{cat}</option>
+                        ))}
+                    </select>
+                    <span className="text-[#2B2B2B]">|</span>
+                    <select
+                        value={selectedStore}
+                        onChange={(e) => setSelectedStore(e.target.value)}
+                        className="bg-transparent text-[12px] font-bold text-[#E6EDF3] outline-none cursor-pointer hover:text-[#58A6FF] transition-colors"
+                    >
+                        <option value="Усі">Всі Магазини</option>
+                        {STORES.map(s => (
+                            <option key={s} value={s} className="bg-[#111823]">{s}</option>
+                        ))}
+                    </select>
+                    <span className="text-[#2B2B2B]">|</span>
+                    <select
+                        value={selectedPriority}
+                        onChange={(e) => setSelectedPriority(e.target.value)}
+                        className="bg-transparent text-[12px] font-bold text-[#E6EDF3] outline-none cursor-pointer hover:text-[#58A6FF] transition-colors"
+                    >
+                        <option value="Усі">Пріоритет</option>
+                        <option value="critical" className="bg-[#111823]">Критично</option>
+                        <option value="high" className="bg-[#111823]">Високий</option>
+                        <option value="reserve" className="bg-[#111823]">Резерв</option>
+                        <option value="normal" className="bg-[#111823]">Норма</option>
+                    </select>
+                    <span className="text-[#2B2B2B]">|</span>
                     <button
                         onClick={() => setOnlyCritical(!onlyCritical)}
                         className={cn(
-                            "px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 border",
-                            onlyCritical
-                                ? "bg-status-high/10 border-status-high/30 text-status-high shadow-lg shadow-status-high/10"
-                                : "bg-white/5 border-white/10 text-slate-400 hover:text-white"
+                            "text-[12px] font-bold transition-colors px-2 py-1 rounded-md",
+                            onlyCritical ? "text-[#E5534B] bg-[#E5534B]/10" : "text-[#8B949E] hover:text-[#E6EDF3]"
                         )}
                     >
-                        Только критические (Out of Stock)
+                        Магазини OOS
                     </button>
-
-                    <div className="relative">
-                        <Filter size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
-                        <select
-                            value={selectedCategory}
-                            onChange={(e) => setSelectedCategory(e.target.value)}
-                            className="pl-9 pr-4 py-2 bg-white/5 border border-white/10 rounded-xl text-xs font-bold text-slate-300 outline-none focus:border-brand-primary appearance-none cursor-pointer"
-                        >
-                            {categories.map(cat => <option key={cat} value={cat}>{cat}</option>)}
-                        </select>
-                    </div>
                 </div>
 
-                <div className="relative flex-1 max-w-sm">
-                    <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
+                <div className="flex-1" />
+
+                <div className="relative group">
+                    <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#8B949E] group-hover:text-[#58A6FF] transition-colors" />
                     <input
                         type="text"
-                        placeholder="Найти SKU..."
+                        placeholder="Шукати по артикулу чи назві..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2.5 bg-white/5 border border-white/10 rounded-xl text-sm text-white placeholder-slate-500 outline-none focus:border-brand-primary transition-colors"
+                        className="bg-[#222325]/50 border border-[#2B2B2B] rounded-lg pl-9 pr-4 py-1.5 text-[12px] text-[#E6EDF3] placeholder-[#8B949E] outline-none focus:border-[#58A6FF]/50 transition-all w-60"
                     />
                 </div>
             </div>
 
-            {/* Тепловая карта */}
-            <div className="glass-card rounded-2xl overflow-hidden shadow-2xl border border-white/5">
-                <div className="overflow-x-auto">
-                    <table className="w-full text-left border-collapse table-fixed min-w-[1200px]">
-                        <thead>
-                            <tr className="bg-white/5">
-                                <th className="w-64 px-6 py-5 text-[10px] uppercase tracking-widest font-black text-slate-500 border-r border-white/5">
-                                    Товар / Категория
-                                </th>
+            {/* Matrix Table Container */}
+            <div className="bg-[#0F1622] border border-[#1E2A3A] rounded-xl overflow-hidden shadow-xl p-6">
+                <div className="overflow-x-auto custom-scrollbar">
+                    <div className="min-w-[1000px] space-y-2">
+                        {/* Header Box */}
+                        <div className="bg-[#111823] rounded-lg px-6 py-4 flex items-center justify-between mb-4 border border-transparent">
+                            <div className="w-80">
+                                <span className="text-[11px] font-black text-[#8B949E] uppercase tracking-widest">Артикул / Назва</span>
+                            </div>
+                            <div className="flex-1 flex items-center justify-around">
                                 {STORES.map(store => (
-                                    <th key={store} className="px-3 py-5 text-[10px] uppercase tracking-widest font-black text-slate-500 text-center">
-                                        {store}
-                                    </th>
+                                    <div key={store} className="w-20 text-center">
+                                        <span className="text-[10px] font-black text-[#8B949E] uppercase tracking-tighter">{store}</span>
+                                    </div>
                                 ))}
-                                <th className="w-40 px-6 py-5 text-[10px] uppercase tracking-widest font-black text-slate-500 text-right border-l border-white/5">
-                                    Всего (КГ)
-                                </th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-white/5">
+                            </div>
+                            <div className="w-28 text-right">
+                                <span className="text-[11px] font-black text-[#8B949E] uppercase tracking-widest">РАЗОМ</span>
+                            </div>
+                        </div>
+
+                        {/* SKU Rows */}
+                        <div className="space-y-4">
                             {filteredSkus.map((sku) => (
-                                <tr key={sku.id} className="group hover:bg-white/5 transition-colors duration-150">
-                                    <td className="px-6 py-4 border-r border-white/5">
-                                        <div className="flex flex-col">
-                                            <span className="text-sm font-bold text-white truncate">{sku.name}</span>
-                                            <span className="text-[10px] text-slate-500 font-medium">{sku.category}</span>
-                                        </div>
-                                    </td>
+                                <div
+                                    key={sku.id}
+                                    className="bg-[#0B0F14] border border-[#1E2A3A] rounded-lg px-6 py-4 flex items-center justify-between transition-all hover:border-[#58A6FF]/30 hover:bg-[#0E1520] group"
+                                >
+                                    <div className="w-80">
+                                        <span className="text-[12px] font-bold text-[#E6EDF3] group-hover:text-white transition-colors">{sku.name}</span>
+                                        <div className="text-[9px] text-[#8B949E] font-bold mt-0.5 opacity-60">ID: {sku.productCode}</div>
+                                    </div>
 
-                                    {STORES.map(store => {
-                                        const stock = sku.storeStocks[store];
-                                        const threshold = sku.minStockThresholdKg;
-                                        return (
-                                            <td key={store} className="px-2 py-3">
-                                                <div className={cn(
-                                                    "h-10 flex items-center justify-center rounded-lg text-xs transition-all duration-300",
-                                                    getCellColor(stock, threshold)
-                                                )}>
-                                                    {stock > 0 ? `${stock} кг` : '0.0 кг'}
+                                    <div className="flex-1 flex items-center justify-around">
+                                        {STORES.map(storeName => {
+                                            const storeData = sku.stores.find(s => s.storeName === storeName);
+                                            const stock = storeData ? storeData.currentStock : 0;
+                                            const threshold = storeData ? storeData.minStock : sku.minStockThresholdKg;
+                                            const bgColor = getCellColor(stock, threshold);
+                                            const textColor = getTextColor(stock, threshold);
+                                            return (
+                                                <div key={storeName} className="w-20 flex justify-center">
+                                                    <div
+                                                        className="w-14 py-2 rounded-lg border border-white/5 flex items-center justify-center transition-all group-hover:scale-110"
+                                                        style={{ backgroundColor: bgColor }}
+                                                    >
+                                                        <span
+                                                            className="text-[11px] font-black tracking-tighter"
+                                                            style={{ color: textColor }}
+                                                        >
+                                                            {storeData ? stock.toFixed(1) : '-'}
+                                                        </span>
+                                                    </div>
                                                 </div>
-                                            </td>
-                                        );
-                                    })}
+                                            );
+                                        })}
+                                    </div>
 
-                                    <td className="px-6 py-4 border-l border-white/5 text-right">
-                                        <div className="flex flex-col items-end gap-1">
-                                            <span className="text-sm font-black text-brand-primary leading-none">
-                                                {sku.totalStockKg}
-                                            </span>
-                                            <Sparkline data={sku.salesTrendKg} />
-                                        </div>
-                                    </td>
-                                </tr>
+                                    <div className="w-28 text-right">
+                                        <span className="text-[12px] font-black text-[#58A6FF]">{sku.totalStockKg.toFixed(1)}</span>
+                                        <span className="text-[9px] text-[#8B949E] ml-1">кг</span>
+                                    </div>
+                                </div>
                             ))}
-                        </tbody>
-                    </table>
-                </div>
-
-                {filteredSkus.length === 0 && (
-                    <div className="p-20 text-center text-slate-500 font-medium italic">
-                        Товары не найдены по выбранным фильтрам
+                        </div>
                     </div>
-                )}
+                </div>
             </div>
+
+            {filteredSkus.length === 0 && (
+                <div className="p-20 text-center flex flex-col items-center gap-2">
+                    <span className="text-[14px] font-bold text-[#E6EDF3]">Нічого не знайдено</span>
+                    <span className="text-[11px] text-[#8B949E]">Спробуйте змінити пошуковий запит або фільтри</span>
+                </div>
+            )}
         </div>
     );
 };

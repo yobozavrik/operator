@@ -1,8 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Calendar, Store, Package, Activity, ChevronDown, Filter } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { Calendar, Store, Package, Activity, ChevronDown, LucideIcon } from 'lucide-react';
 
 export const SidebarBI = () => {
     return (
@@ -40,8 +39,15 @@ export const SidebarBI = () => {
     );
 };
 
-const SlicerItem = ({ icon: Icon, label, value, isToggle }: any) => (
-    <div className="group flex items-center justify-between px-2 py-2 hover:bg-[#252526] rounded-sm transition-colors cursor-pointer border border-transparent hover:border-[#3e3e42]">
+interface SlicerItemProps {
+    icon: LucideIcon;
+    label: string;
+    value: string;
+    isToggle?: boolean;
+}
+
+const SlicerItem = ({ icon: Icon, label, value, isToggle }: SlicerItemProps) => (
+    <div className="group flex items-center justify-between px-2 py-2 hover:bg-[#252526] rounded-sm transition-colors cursor-pointer border border-transparent hover:border-[#3e3e42]" role="button" aria-pressed={isToggle}>
         <div className="flex items-center gap-3">
             <Icon size={14} className="text-slate-500 group-hover:text-[#00bcf2]" />
             <div className="flex flex-col">
