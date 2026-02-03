@@ -13,6 +13,10 @@ const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholde
 if (typeof window !== 'undefined' && supabaseUrl.startsWith('http://')) {
     supabaseUrl = supabaseUrl.replace('http://', 'https://')
 }
+// 🔐 Server-only fallback for self-hosted Supabase with invalid TLS
+if (typeof window === 'undefined' && supabaseUrl.includes('dmytrotovstytskyi.online') && supabaseUrl.startsWith('https://')) {
+    supabaseUrl = supabaseUrl.replace('https://', 'http://')
+}
 
 console.log('🔧 Supabase Config:', {
     url: supabaseUrl,
