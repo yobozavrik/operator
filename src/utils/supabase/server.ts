@@ -13,6 +13,12 @@ export async function createClient() {
         console.error('❌ CRITICAL ERROR [Server]: Supabase environment variables are missing!')
     }
 
+    // 🔐 Bypass SSL verification for self-hosted Supabase with self-signed certs
+    if (supabaseUrl?.includes('dmytrotovstytskyi.online')) {
+        process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+        console.log('🔓 SSL Verification disabled for:', supabaseUrl);
+    }
+
     return createServerClient(
         supabaseUrl || 'https://missing-server-url.supabase.co',
         supabaseAnonKey || 'missing-server-key',
@@ -32,20 +38,6 @@ export async function createClient() {
                         // user sessions.
                     }
                 },
-            },
-            global: {
-                fetch: (url, options) => {
-                    const isHttps = typeof url === 'string' && url.startsWith('https')
-                    return fetch(url, {
-                        ...options,
-                        ...(isHttps && {
-                            // @ts-ignore - bypassing SSL for self-hosted instance
-                            agent: new https.Agent({
-                                rejectUnauthorized: false
-                            })
-                        })
-                    })
-                }
             }
         }
     )
