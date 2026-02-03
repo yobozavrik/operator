@@ -62,7 +62,7 @@ export default function BIDashboard() {
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'dashboard_deficit' },
-        (payload) => {
+        (payload: { eventType: string }) => {
           console.log('⚡ Realtime update received:', payload.eventType);
           // Trigger re-fetch when data changes
           mutateDeficit();
