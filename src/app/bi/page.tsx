@@ -150,12 +150,39 @@ export default function BIDashboard() {
             maxWeight={450}
             fullHeight={true}
         >
+            {/* DRAMATIC CENTER GLOW - like login page */}
+            <div
+                className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] rounded-full pointer-events-none z-0"
+                style={{
+                    background: 'radial-gradient(circle, rgba(0, 212, 255, 0.15) 0%, rgba(0, 136, 255, 0.08) 30%, transparent 70%)',
+                    filter: 'blur(60px)',
+                }}
+            />
+
+            {/* Secondary glow accent */}
+            <div
+                className="fixed top-1/4 right-1/4 w-[400px] h-[400px] rounded-full pointer-events-none z-0"
+                style={{
+                    background: 'radial-gradient(circle, rgba(0, 188, 242, 0.1) 0%, transparent 60%)',
+                    filter: 'blur(80px)',
+                }}
+            />
+
             {/* FULL SCREEN FLEX CONTAINER */}
-            <div className="flex flex-col h-full overflow-hidden">
+            <div className="flex flex-col h-full overflow-hidden relative z-10">
 
                 {/* 1. HEADER (Fixed) */}
                 <header className="flex-shrink-0 p-4 lg:p-6 pb-2 lg:pb-3">
-                    <div className="glass-panel-premium rounded-2xl p-1 relative overflow-hidden group/spotlight">
+                    <div
+                        className="rounded-2xl p-1 relative overflow-hidden group/spotlight"
+                        style={{
+                            background: 'rgba(20, 27, 45, 0.8)',
+                            backdropFilter: 'blur(20px)',
+                            WebkitBackdropFilter: 'blur(20px)',
+                            border: '1px solid rgba(0, 212, 255, 0.2)',
+                            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 0 40px rgba(0, 212, 255, 0.1)',
+                        }}
+                    >
                         {/* Spotlight Effect */}
                         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover/spotlight:animate-shimmer pointer-events-none" />
 
@@ -230,7 +257,16 @@ export default function BIDashboard() {
                 <main className="flex-1 min-h-0 p-4 lg:p-6 pt-0 lg:pt-0">
                     <div className="grid grid-cols-12 gap-6 h-full">
                         {/* Main Matrix (Takes most space) */}
-                        <div className="col-span-12 lg:col-span-9 h-full flex flex-col overflow-hidden glass-panel-premium rounded-2xl p-1">
+                        <div
+                            className="col-span-12 lg:col-span-9 h-full flex flex-col overflow-hidden rounded-2xl p-1"
+                            style={{
+                                background: 'rgba(20, 27, 45, 0.8)',
+                                backdropFilter: 'blur(20px)',
+                                WebkitBackdropFilter: 'blur(20px)',
+                                border: '1px solid rgba(0, 212, 255, 0.15)',
+                                boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 0 30px rgba(0, 212, 255, 0.08)',
+                            }}
+                        >
                             <ErrorBoundary>
                                 <BIPowerMatrix deficitQueue={deficitQueue} allProductsQueue={allProductsQueue} />
                             </ErrorBoundary>
@@ -238,8 +274,17 @@ export default function BIDashboard() {
 
                         {/* Insights (Side panel if there's room) */}
                         <div className="hidden lg:flex lg:col-span-3 h-full flex-col overflow-hidden">
-                            <div className="glass-panel-premium rounded-2xl p-4 flex flex-col h-full">
-                                <h3 className="text-[11px] font-bold text-white uppercase tracking-widest mb-4 opacity-60">Оперативна Аналітика</h3>
+                            <div
+                                className="rounded-2xl p-4 flex flex-col h-full"
+                                style={{
+                                    background: 'rgba(20, 27, 45, 0.8)',
+                                    backdropFilter: 'blur(20px)',
+                                    WebkitBackdropFilter: 'blur(20px)',
+                                    border: '1px solid rgba(0, 212, 255, 0.15)',
+                                    boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 0 30px rgba(0, 212, 255, 0.08)',
+                                }}
+                            >
+                                <h3 className="text-[11px] font-bold text-[#00D4FF] uppercase tracking-widest mb-4">Оперативна Аналітика</h3>
                                 <div className="flex-1 overflow-y-auto custom-scrollbar">
                                     <ErrorBoundary>
                                         <BIInsights queue={deficitQueue} />
