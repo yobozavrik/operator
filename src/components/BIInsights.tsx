@@ -56,6 +56,7 @@ export const BIInsights = ({ queue }: { queue: ProductionTask[] }) => {
                         <div key={store} className="flex flex-col bg-[#1A1A1A] rounded-lg border border-[#2B2B2B] overflow-hidden">
                             <button
                                 onClick={() => toggleStore(store)}
+                                aria-expanded={expandedStore === store}
                                 className="flex justify-between items-center p-3 hover:bg-white/[0.02] transition-colors w-full text-left"
                             >
                                 <div className="flex items-center gap-2">

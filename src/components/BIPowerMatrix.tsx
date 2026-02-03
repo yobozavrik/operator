@@ -370,6 +370,10 @@ export const BIPowerMatrix = ({ deficitQueue, allProductsQueue }: Props) => {
               <div
                 className="px-6 py-4 bg-[#161B22] hover:bg-[#1C2128] cursor-pointer flex items-center justify-between transition-colors border-b border-[#3A3A3A]/30"
                 onClick={() => togglePriority(priority.key)}
+                role="button"
+                aria-expanded={isPriorityExpanded}
+                tabIndex={0}
+                onKeyDown={(e) => e.key === 'Enter' && togglePriority(priority.key)}
               >
                 <div className="flex items-center gap-3">
                   {isPriorityExpanded ?
@@ -401,7 +405,11 @@ export const BIPowerMatrix = ({ deficitQueue, allProductsQueue }: Props) => {
                     {/* Category Row */}
                     <div
                       className="pl-10 pr-6 py-3 hover:bg-[#161B22] cursor-pointer flex items-center justify-between transition-colors"
-                      onClick={() => toggleCategory(priority.key, category.categoryName)}
+                      onClick={() => toggleCategory(priority.key, category.categoryName as SKUCategory)}
+                      role="button"
+                      aria-expanded={isCategoryExpanded}
+                      tabIndex={0}
+                      onKeyDown={(e) => e.key === 'Enter' && toggleCategory(priority.key, category.categoryName as SKUCategory)}
                     >
                       <div className="flex items-center gap-2">
                         {isCategoryExpanded ?
@@ -438,6 +446,8 @@ export const BIPowerMatrix = ({ deficitQueue, allProductsQueue }: Props) => {
                                 <button
                                   onClick={() => toggleProduct(item.productCode)}
                                   className="p-0.5 hover:bg-white/5 rounded transition-colors"
+                                  aria-label={isProductExpanded ? "Згорнути деталі товару" : "Розгорнути деталі товару"}
+                                  aria-expanded={isProductExpanded}
                                 >
                                   {isProductExpanded ?
                                     <ChevronDown size={12} className="text-[#8B949E]" /> :
@@ -452,6 +462,9 @@ export const BIPowerMatrix = ({ deficitQueue, allProductsQueue }: Props) => {
                                       ? "bg-[#58A6FF] border-[#58A6FF]"
                                       : "border-[#3A3A3A] hover:border-[#58A6FF]"
                                   )}
+                                  aria-label={`Обрати всі магазини для товару ${item.name}`}
+                                  aria-checked={allStoresSelected}
+                                  role="checkbox"
                                 >
                                   {allStoresSelected && <CheckCircle2 size={10} className="text-white" />}
                                 </button>
@@ -489,6 +502,9 @@ export const BIPowerMatrix = ({ deficitQueue, allProductsQueue }: Props) => {
                                             ? "bg-[#58A6FF] border-[#58A6FF]"
                                             : "border-[#3A3A3A] hover:border-[#58A6FF]"
                                         )}
+                                        aria-label={`Обрати магазин ${store.storeName}`}
+                                        aria-checked={isSelected}
+                                        role="checkbox"
                                       >
                                         {isSelected && <CheckCircle2 size={8} className="text-white" />}
                                       </button>

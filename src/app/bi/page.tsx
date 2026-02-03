@@ -13,27 +13,56 @@ import { Users, AlertTriangle, TrendingUp, RotateCw, Activity, RefreshCw, BarCha
 import { UI_TOKENS } from '@/lib/design-tokens';
 import { cn } from '@/lib/utils';
 
+import { supabase } from '@/lib/supabase';
+
 const fetcher = (url: string) => fetch(url).then(r => r.json());
 
 export default function BIDashboard() {
+    // ⚡ REALTIME ARCHITECTURE: No more polling!
+    // We fetch initially, then listen for DB events to re-fetch.
     const { data: deficitData, error: deficitError, mutate: mutateDeficit } = useSWR<SupabaseDeficitRow[]>(
         '/api/graviton/deficit',
-        fetcher,
-        { refreshInterval: 30000 }
+        fetcher
     );
 
     const { data: metrics, error: metricsError, mutate: mutateMetrics } = useSWR<BI_Metrics>(
         '/api/graviton/metrics',
-        fetcher,
-        { refreshInterval: 30000 }
+        fetcher
     );
 
     // Для режиму "Конкретний магазин" потрібні ВСІ товари
-    const { data: allProductsData, error: allProductsError } = useSWR<SupabaseDeficitRow[]>(
+    const { data: allProductsData, error: allProductsError, mutate: mutateAllProducts } = useSWR<SupabaseDeficitRow[]>(
         '/api/graviton/all-products',
-        fetcher,
-        { refreshInterval: 30000 }
+        fetcher
     );
+
+    // 🔄 EVENT-DRIVEN UPDATES
+    React.useEffect(() => {
+        console.log('🔌 Connecting to Supabase Realtime...');
+
+        const channel = supabase
+            .channel('dashboard-updates')
+            .on(
+                'postgres_changes',
+                { event: '*', schema: 'public', table: 'dashboard_deficit' },
+                (payload) => {
+                    console.log('⚡ Realtime update received:', payload.eventType);
+                    // Trigger re-fetch when data changes
+                    mutateDeficit();
+                    mutateMetrics();
+                    mutateAllProducts();
+                }
+            )
+            .subscribe((status) => {
+                if (status === 'SUBSCRIBED') {
+                    console.log('✅ Connected to Realtime stream');
+                }
+            });
+
+        return () => {
+            supabase.removeChannel(channel);
+        };
+    }, [mutateDeficit, mutateMetrics, mutateAllProducts]);
 
     const [isRefreshing, setIsRefreshing] = React.useState(false);
 
@@ -156,7 +185,7 @@ export default function BIDashboard() {
     );
 }
 
-const SmallKPI = ({ label, value, icon: Icon, color }: { label: string; value: string | number; icon: any; color: string }) => (
+const SmallKPI = ({ label, value, icon: Icon, color }: { label: string; value: string | number; icon: React.ElementType; color: string }) => (
     <div className="flex items-center gap-3 px-4 py-2 bg-[#222325] border border-[#33343A] rounded-xl shadow-sm hover:border-[#44454A] transition-all">
         <div className="p-2 rounded-lg" style={{ backgroundColor: `${color}15` }}>
             <Icon size={14} style={{ color: color }} />

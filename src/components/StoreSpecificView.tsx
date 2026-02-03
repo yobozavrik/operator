@@ -106,6 +106,10 @@ export const StoreSpecificView = ({ queue, storeName }: Props) => {
                             <div
                                 className="px-6 py-4 bg-[#161B22] hover:bg-[#1C2128] cursor-pointer flex items-center justify-between transition-colors"
                                 onClick={() => toggleCategory(category.categoryName)}
+                                role="button"
+                                aria-expanded={isCategoryExpanded}
+                                tabIndex={0}
+                                onKeyDown={(e) => e.key === 'Enter' && toggleCategory(category.categoryName)}
                             >
                                 <div className="flex items-center gap-3">
                                     {isCategoryExpanded ?
