@@ -131,7 +131,7 @@ export default function ProductionPage() {
                         <div className="flex flex-wrap gap-3">
                             <HeaderKPI label="Дефіцит кг" value="1.2k кг" />
                             <HeaderKPI label="Критичні SKU" value={metrics.criticalSKU} />
-                            <HeaderKPI label="Завантаження" value={`${Math.round(metrics.shopLoad / (currentCapacity / 100))}%`} />
+                            <HeaderKPI label="Завантаження" value={`${Math.round(metrics.shopLoad / ((currentCapacity || 450) / 100))}%`} />
                             <HeaderKPI label="Зміна / SLA" value="98%" />
                         </div>
                     </div>

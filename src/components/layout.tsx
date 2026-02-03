@@ -295,8 +295,8 @@ export const DashboardLayout = ({
     fullHeight = false
 }: {
     children: React.ReactNode,
-    currentWeight: number,
-    maxWeight: number,
+    currentWeight?: number,
+    maxWeight?: number | null,
     fullHeight?: boolean
 }) => {
     return (

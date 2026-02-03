@@ -1,4 +1,4 @@
-const https = require('http');
+const http = require('http');
 
 const ENDPOINTS = [
     '/api/graviton/metrics',
@@ -8,10 +8,17 @@ const ENDPOINTS = [
 
 const BASE_URL = 'http://localhost:3001';
 
+// Add headers to bypass authentication
+const OPTIONS = {
+    headers: {
+        'Cookie': 'bypass_auth=true'
+    }
+};
+
 async function fetchUrl(path) {
     const start = performance.now();
     return new Promise((resolve) => {
-        http.get(BASE_URL + path, (res) => {
+        http.get(BASE_URL + path, OPTIONS, (res) => { // Passed OPTIONS here
             let data = '';
             res.on('data', chunk => data += chunk);
             res.on('end', () => {
@@ -19,7 +26,8 @@ async function fetchUrl(path) {
                 resolve({
                     path,
                     status: res.statusCode,
-                    time: end - start
+                    time: end - start,
+                    error: res.statusCode !== 200 ? `Status ${res.statusCode}` : null
                 });
             });
         }).on('error', (err) => {
@@ -29,7 +37,7 @@ async function fetchUrl(path) {
 }
 
 async function runBenchmark() {
-    console.log('🚀 Starting API Benchmark on ' + BASE_URL);
+    console.log('🚀 Starting API Benchmark on ' + BASE_URL + ' (Auth Bypassed)');
 
     // 1. Warmup
     console.log('\n--- Warming up ---');
@@ -39,11 +47,14 @@ async function runBenchmark() {
     console.log('\n--- Sequential Latency Test (Average of 5 runs) ---');
     for (const ep of ENDPOINTS) {
         let totalTime = 0;
+        const codes = [];
         for (let i = 0; i < 5; i++) {
             const res = await fetchUrl(ep);
             totalTime += res.time;
+            codes.push(res.status);
         }
-        console.log(`${ep}: ${(totalTime / 5).toFixed(2)}ms`);
+        const uniqueCodes = [...new Set(codes)];
+        console.log(`${ep}: ${(totalTime / 5).toFixed(2)}ms [Status: ${uniqueCodes.join(', ')}]`);
     }
 
     // 3. Concurrency Test
@@ -67,12 +78,16 @@ async function runBenchmark() {
 
         console.log(`Total Time: ${totalTime.toFixed(2)}ms`);
         console.log(`Throughput: ${(level / (totalTime / 1000)).toFixed(2)} req/sec`);
-        console.log(`Avg Request Time: ${avgResponse.toFixed(2)}ms`);
+        console.log(`Avg Request Time: ${avgResponse.toFixed(2)}ms`); // This is client-side perceived time per request
         console.log(`Success: ${success}, Failures: ${failures}`);
+
+        if (failures > 0) {
+            const err = results.find(r => r.status !== 200);
+            console.log('🔴 Failure Reason (Sample):', err.error);
+        }
     }
 }
 
-const http = require('http');
 const { performance } = require('perf_hooks');
 
 runBenchmark();
