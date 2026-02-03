@@ -133,30 +133,70 @@ export const StoreSpecificView = ({ queue, storeName }: Props) => {
                                             key={item.productCode}
                                             className="px-6 py-3 border-b border-[#3A3A3A]/10 last:border-0 hover:bg-white/[0.02] transition-colors"
                                         >
-                                            <div className="flex items-center justify-between">
+                                            <div className="flex items-center justify-between mb-2">
                                                 <div className="flex items-center gap-3 flex-1">
                                                     <Package size={14} className="text-[#8B949E]" />
                                                     <span className="text-[12px] font-semibold text-[#E6EDF3]">
                                                         {item.name}
                                                     </span>
                                                 </div>
-                                                <div className="flex items-center gap-4">
-                                                    <div className="flex flex-col items-end">
-                                                        <span className="text-[9px] text-[#8B949E] uppercase font-bold tracking-wider">
-                                                            Дефіцит
-                                                        </span>
-                                                        <span className="text-[11px] font-bold text-[#F85149]">
-                                                            -{item.totalDeficitKg} кг
-                                                        </span>
-                                                    </div>
-                                                    <div className="flex flex-col items-end">
-                                                        <span className="text-[9px] text-[#8B949E] uppercase font-bold tracking-wider">
-                                                            Рекомендовано
-                                                        </span>
-                                                        <span className="text-[13px] font-black text-[#58A6FF]">
-                                                            {item.recommendedQtyKg} кг
-                                                        </span>
-                                                    </div>
+                                            </div>
+
+                                            {/* Metrics Grid */}
+                                            <div className="grid grid-cols-5 gap-3 pl-6">
+                                                {/* Фактичний залишок */}
+                                                <div className="flex flex-col">
+                                                    <span className="text-[8px] text-[#8B949E] uppercase font-bold tracking-wider mb-0.5">
+                                                        Залишок
+                                                    </span>
+                                                    <span className={cn(
+                                                        "text-[11px] font-bold",
+                                                        item.stores[0].currentStock === 0 ? "text-[#F85149]" :
+                                                            item.stores[0].currentStock < item.stores[0].minStock ? "text-[#F6C343]" :
+                                                                "text-[#3FB950]"
+                                                    )}>
+                                                        {item.stores[0].currentStock.toFixed(1)} кг
+                                                    </span>
+                                                </div>
+
+                                                {/* Мінімум */}
+                                                <div className="flex flex-col">
+                                                    <span className="text-[8px] text-[#8B949E] uppercase font-bold tracking-wider mb-0.5">
+                                                        Мінімум
+                                                    </span>
+                                                    <span className="text-[11px] font-bold text-[#8B949E]">
+                                                        {item.stores[0].minStock.toFixed(1)} кг
+                                                    </span>
+                                                </div>
+
+                                                {/* Середні продажі */}
+                                                <div className="flex flex-col">
+                                                    <span className="text-[8px] text-[#8B949E] uppercase font-bold tracking-wider mb-0.5">
+                                                        Продажі/день
+                                                    </span>
+                                                    <span className="text-[11px] font-bold text-[#58A6FF]">
+                                                        {item.stores[0].avgSales.toFixed(1)} кг
+                                                    </span>
+                                                </div>
+
+                                                {/* Дефіцит */}
+                                                <div className="flex flex-col">
+                                                    <span className="text-[8px] text-[#8B949E] uppercase font-bold tracking-wider mb-0.5">
+                                                        Дефіцит
+                                                    </span>
+                                                    <span className="text-[11px] font-bold text-[#F85149]">
+                                                        -{item.stores[0].deficitKg.toFixed(1)} кг
+                                                    </span>
+                                                </div>
+
+                                                {/* Рекомендація */}
+                                                <div className="flex flex-col">
+                                                    <span className="text-[8px] text-[#8B949E] uppercase font-bold tracking-wider mb-0.5">
+                                                        Рекомендовано
+                                                    </span>
+                                                    <span className="text-[13px] font-black text-[#58A6FF]">
+                                                        {item.stores[0].recommendedKg.toFixed(1)} кг
+                                                    </span>
                                                 </div>
                                             </div>
                                         </div>

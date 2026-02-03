@@ -5,7 +5,7 @@ import { ChevronDown, ChevronRight, CheckCircle2, Package } from 'lucide-react';
 import { ProductionTask, PriorityKey, SKUCategory, PriorityHierarchy, CategoryGroup } from '@/types/bi';
 import { cn } from '@/lib/utils';
 import { UI_TOKENS } from '@/lib/design-tokens';
-import { useStore } from '@/lib/store';
+import { useStore } from '@/context/StoreContext';
 import { StoreSpecificView } from './StoreSpecificView';
 import { OrderConfirmationModal } from './OrderConfirmationModal';
 import { ShareOptionsModal } from './ShareOptionsModal';
@@ -71,14 +71,7 @@ export const BIPowerMatrix = ({ deficitQueue, allProductsQueue }: Props) => {
   }, [queue, selectedStore]);
 
   // ============================================================================
-  // РЕЖИМ: Конкретний магазин → показуємо StoreSpecificView
-  // ============================================================================
-  if (selectedStore !== 'Усі') {
-    return <StoreSpecificView queue={filteredQueue} storeName={selectedStore} />;
-  }
-
-  // ============================================================================
-  // РЕЖИМ: Усі магазини → показуємо AllStoresView (поточна логіка)
+  // ALL HOOKS MUST BE CALLED UNCONDITIONALLY (Rules of Hooks)
   // ============================================================================
 
   // Підрахунок обраної ваги
@@ -334,6 +327,14 @@ export const BIPowerMatrix = ({ deficitQueue, allProductsQueue }: Props) => {
     });
     return Math.round(total);
   }, [hierarchy]);
+
+  // ============================================================================
+  // CONDITIONAL RENDERING (after all hooks are called)
+  // ============================================================================
+
+  if (selectedStore !== 'Усі') {
+    return <StoreSpecificView queue={filteredQueue} storeName={selectedStore} />;
+  }
 
   return (
     <div className="flex flex-col h-full bg-[#1A1A1A] rounded-xl border border-[#3A3A3A] overflow-hidden font-sans">
