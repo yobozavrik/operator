@@ -150,21 +150,60 @@ export default function BIDashboard() {
             maxWeight={450}
             fullHeight={true}
         >
-            {/* DRAMATIC CENTER GLOW - like login page */}
+            {/* ========== SUPER DRAMATIC VISUAL EFFECTS ========== */}
+
+            {/* MAIN CENTER GLOW - PULSATING */}
             <div
-                className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] rounded-full pointer-events-none z-0"
+                className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[1000px] h-[1000px] rounded-full pointer-events-none z-0 animate-pulse"
                 style={{
-                    background: 'radial-gradient(circle, rgba(0, 212, 255, 0.15) 0%, rgba(0, 136, 255, 0.08) 30%, transparent 70%)',
+                    background: 'radial-gradient(circle, rgba(0, 212, 255, 0.25) 0%, rgba(0, 136, 255, 0.15) 30%, rgba(0, 100, 200, 0.05) 50%, transparent 70%)',
+                    filter: 'blur(40px)',
+                }}
+            />
+
+            {/* SECONDARY GLOW - TOP RIGHT */}
+            <div
+                className="fixed top-0 right-0 w-[600px] h-[600px] rounded-full pointer-events-none z-0"
+                style={{
+                    background: 'radial-gradient(circle, rgba(0, 212, 255, 0.2) 0%, transparent 60%)',
                     filter: 'blur(60px)',
                 }}
             />
 
-            {/* Secondary glow accent */}
+            {/* ACCENT GLOW - BOTTOM LEFT */}
             <div
-                className="fixed top-1/4 right-1/4 w-[400px] h-[400px] rounded-full pointer-events-none z-0"
+                className="fixed bottom-0 left-0 w-[500px] h-[500px] rounded-full pointer-events-none z-0"
                 style={{
-                    background: 'radial-gradient(circle, rgba(0, 188, 242, 0.1) 0%, transparent 60%)',
+                    background: 'radial-gradient(circle, rgba(0, 188, 242, 0.15) 0%, transparent 60%)',
                     filter: 'blur(80px)',
+                }}
+            />
+
+            {/* ANIMATED FLOATING PARTICLES */}
+            <div className="fixed inset-0 pointer-events-none z-[1] overflow-hidden">
+                {Array.from({ length: 40 }).map((_, i) => (
+                    <div
+                        key={i}
+                        className="absolute rounded-full"
+                        style={{
+                            width: `${2 + Math.random() * 4}px`,
+                            height: `${2 + Math.random() * 4}px`,
+                            left: `${Math.random() * 100}%`,
+                            top: `${Math.random() * 100}%`,
+                            background: `rgba(0, 212, 255, ${0.3 + Math.random() * 0.5})`,
+                            boxShadow: '0 0 6px rgba(0, 212, 255, 0.8)',
+                            animation: `float-particle ${4 + Math.random() * 4}s ease-in-out infinite`,
+                            animationDelay: `${Math.random() * 4}s`,
+                        }}
+                    />
+                ))}
+            </div>
+
+            {/* SCAN LINE EFFECT */}
+            <div
+                className="fixed inset-0 pointer-events-none z-[2] opacity-30"
+                style={{
+                    background: 'repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0, 212, 255, 0.03) 2px, rgba(0, 212, 255, 0.03) 4px)',
                 }}
             />
 
