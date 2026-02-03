@@ -70,7 +70,7 @@ export default function BIDashboard() {
                     mutateAllProducts();
                 }
             )
-            .subscribe((status) => {
+            .subscribe((status: string) => {
                 if (status === 'SUBSCRIBED') {
                     console.log('✅ Connected to Realtime stream');
                 }
