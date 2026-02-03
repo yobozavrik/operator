@@ -12,23 +12,9 @@ import { ShareOptionsModal } from './ShareOptionsModal';
 import { OrderItem, SharePlatform } from '@/types/order';
 import { generateExcel, groupItemsByCategory } from '@/lib/order-export';
 
-const CATEGORY_EMOJI: Record<string, string> = {
-  'ВАРЕНИКИ': '🥟',
-  'ПЕЛЬМЕНІ': '🥢',
-  'ХІНКАЛІ': '🥡',
-  'ЧЕБУРЕКИ': '🌯',
-  'КОВБАСКИ': '🌭',
-  'ГОЛУБЦІ': '🥬',
-  'КОТЛЕТИ': '🥩',
-  'СИРНИКИ': '🥞',
-  'ФРИКАДЕЛЬКИ': '🧆',
-  'ЗРАЗИ': '🥔',
-  'ПЕРЕЦЬ ФАРШИРОВАНИЙ': '🫑',
-  'МЛИНЦІ': '🥞',
-  'БЕНДЕРИКИ': '🌮'
-};
+const CATEGORY_EMOJI: Record<string, string> = {};
 
-const getEmoji = (category: string) => CATEGORY_EMOJI[category.toUpperCase()] || '📦';
+const getEmoji = (category: string) => '';
 
 interface Props {
   deficitQueue: ProductionTask[];
