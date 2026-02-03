@@ -46,12 +46,11 @@ export const Sidebar = () => {
                     </div>
                 </div>
 
-                <div className="flex-1 px-4 space-y-0.5 overflow-y-auto custom-scrollbar z-10">
-                    <p className="px-2 text-[11px] font-semibold text-[var(--text-muted)] uppercase tracking-widest mb-3 mt-4 opacity-80">Магазини</p>
+                <div className="flex-1 px-4 space-y-2 overflow-y-auto custom-scrollbar z-10">
+                    <p className="px-2 text-[11px] font-semibold text-[#00D4FF] uppercase tracking-widest mb-4 mt-4">Магазини</p>
                     {STORES_MENU.map((item, i) => {
                         const isActive = selectedStore === item.label;
                         const isHovered = hoveredStore === i;
-                        const gradientConfig = storeGradients[i] || storeGradients[0];
 
                         return (
                             <button
@@ -63,46 +62,66 @@ export const Sidebar = () => {
                                 onMouseEnter={() => setHoveredStore(i)}
                                 onMouseLeave={() => setHoveredStore(null)}
                                 className={cn(
-                                    "w-[calc(100%-16px)] px-5 py-4 mx-2 mb-3 text-left rounded-xl transition-all duration-300 relative overflow-hidden group",
-                                    isActive ? "translate-x-[4px]" : "hover:translate-x-[2px]"
+                                    "w-full px-4 py-3.5 text-left rounded-xl transition-all duration-300 relative overflow-hidden group",
+                                    isActive && "scale-[1.02]"
                                 )}
                                 style={{
-                                    background: 'rgba(37, 45, 69, 0.6)',
-                                    backdropFilter: 'blur(10px)',
-                                    WebkitBackdropFilter: 'blur(10px)',
-                                    border: '1px solid rgba(255, 255, 255, 0.05)',
-                                    boxShadow: (isActive || isHovered)
-                                        ? `0 8px 24px rgba(0, 0, 0, 0.6), 0 0 20px ${gradientConfig.glow}40`
-                                        : '0 4px 12px rgba(0, 0, 0, 0.4)',
-                                    opacity: isActive || isHovered ? 1 : 0.7
+                                    background: isActive
+                                        ? 'rgba(0, 212, 255, 0.1)'
+                                        : 'rgba(20, 27, 45, 0.7)',
+                                    backdropFilter: 'blur(20px)',
+                                    WebkitBackdropFilter: 'blur(20px)',
+                                    border: isActive
+                                        ? '1px solid rgba(0, 212, 255, 0.5)'
+                                        : isHovered
+                                            ? '1px solid rgba(0, 212, 255, 0.3)'
+                                            : '1px solid rgba(255, 255, 255, 0.08)',
+                                    boxShadow: isActive
+                                        ? '0 0 30px rgba(0, 212, 255, 0.3), 0 8px 32px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1)'
+                                        : isHovered
+                                            ? '0 0 20px rgba(0, 212, 255, 0.15), 0 8px 24px rgba(0, 0, 0, 0.3)'
+                                            : '0 4px 16px rgba(0, 0, 0, 0.2)',
                                 }}
                             >
-                                <div
-                                    className="absolute left-0 top-0 bottom-0 w-1 rounded-l-xl z-20"
-                                    style={{
-                                        background: gradientConfig.gradient
-                                    }}
-                                />
+                                {/* Shimmer effect on hover */}
                                 <div
                                     className={cn(
-                                        "text-[11px] font-semibold uppercase tracking-wide transition-colors relative z-10",
-                                        isActive || isHovered ? "text-[#E6EDF3]" : "text-[var(--text-muted)]"
+                                        "absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full transition-transform duration-700",
+                                        isHovered && "translate-x-full"
                                     )}
-                                >
-                                    {item.label}
-                                </div>
+                                />
 
-                                {/* Background glow for active state */}
+                                {/* Active glow indicator */}
                                 {isActive && (
                                     <div
-                                        className="absolute inset-0 opacity-10"
-                                        style={{ background: gradientConfig.gradient }}
+                                        className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 rounded-r-full"
+                                        style={{
+                                            background: 'linear-gradient(180deg, #00D4FF 0%, #0088FF 100%)',
+                                            boxShadow: '0 0 12px rgba(0, 212, 255, 0.8)',
+                                        }}
                                     />
                                 )}
+
+                                <div className="flex items-center gap-3 relative z-10">
+                                    <span className="text-lg">{item.icon}</span>
+                                    <span
+                                        className={cn(
+                                            "text-[12px] font-semibold uppercase tracking-wide transition-all duration-300",
+                                            isActive
+                                                ? "text-[#00D4FF]"
+                                                : isHovered
+                                                    ? "text-white"
+                                                    : "text-gray-400"
+                                        )}
+                                    >
+                                        {item.label}
+                                    </span>
+                                </div>
                             </button>
                         );
                     })}
                 </div>
+
 
                 <div className="px-4 mt-6 pt-4 border-t border-[var(--border)] z-10">
                     <button
