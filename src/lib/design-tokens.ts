@@ -5,28 +5,32 @@
 
 export const UI_TOKENS = {
     colors: {
-        background: '#0E1117',
-        panel: '#0F1622',
-        border: '#1F2630',
+        background: '#050B09', // Deep Forest Black
+        panel: '#0F1F19',      // Dark Emerald
+        border: '#1D332B',     // Jungle Green
         text: {
-            primary: '#E6EDF3',
-            muted: '#8B949E',
+            primary: '#ECFDF5', // Mint Ice
+            muted: '#6E8C83',   // Sage Grey
         },
         priority: {
-            critical: '#E5534B',
-            high: '#F6C343',
-            reserve: '#58A6FF',
-            normal: '#3FB950',
+            critical: '#F87171', // Soft Red
+            high: '#FBBF24',     // Warm Amber
+            reserve: '#A78BFA',  // Lavender (New "Recommended" color)
+            normal: '#34D399',   // Bright Mint
+        },
+        brand: {
+            primary: '#34D399',  // Mint
+            secondary: '#A78BFA' // Lavender
         }
     },
     radius: {
-        panel: '12px',
-        component: '8px',
+        panel: '16px', // Slightly more rounded for organic feel
+        component: '10px',
     },
     typography: {
-        headingXL: '24px',
-        headingL: '18px',
-        body: '13px', // Average of 12-14px
-        label: '11px', // Average of 10-12px
+        headingXL: '26px',
+        headingL: '20px',
+        body: '13px',
+        label: '11px',
     }
 } as const;

@@ -337,38 +337,38 @@ export const BIPowerMatrix = ({ deficitQueue, allProductsQueue }: Props) => {
   }
 
   return (
-    <div className="flex flex-col h-full bg-[#1A1A1A] rounded-xl border border-[#3A3A3A] overflow-hidden font-sans">
+    <div className="flex flex-col h-full bg-[#0F1F19]/40 rounded-xl border border-[var(--border)] overflow-hidden font-sans">
       {/* Header with weight counter */}
-      <div className="px-6 py-5 border-b border-[#3A3A3A] bg-[#111823]">
+      <div className="px-6 py-5 border-b border-[var(--border)] bg-[var(--background)]/80">
         <div className="flex items-center justify-between">
-          <h3 className="text-[14px] font-black uppercase tracking-tighter text-[#E6EDF3] flex items-center gap-2">
+          <h3 className="text-[14px] font-black uppercase tracking-tighter text-[var(--foreground)] flex items-center gap-2">
             📋 {selectedWeight > 0 ? `Замовлення на ${selectedWeight} кг` : 'Формування замовлення'}
           </h3>
           <div className="flex flex-col items-end">
-            <span className="text-[10px] text-[#8B949E] uppercase font-bold tracking-widest leading-none mb-1">Вибрано до виробництва</span>
+            <span className="text-[10px] text-[var(--text-muted)] uppercase font-bold tracking-widest leading-none mb-1">Вибрано до виробництва</span>
             <div className="flex items-baseline gap-1">
               <span className={cn(
                 "text-lg font-black leading-none",
-                selectedWeight > 0 ? "text-[#58A6FF]" : "text-[#8B949E]"
+                selectedWeight > 0 ? "text-[var(--status-normal)]" : "text-[var(--text-muted)]"
               )}>
                 {selectedWeight}
               </span>
-              <span className="text-[10px] text-[#8B949E] font-bold">кг</span>
+              <span className="text-[10px] text-[var(--text-muted)] font-bold">кг</span>
             </div>
           </div>
         </div>
       </div>
 
       {/* Content */}
-      <div className="flex-1 overflow-y-auto custom-scrollbar bg-[#0D1117]">
+      <div className="flex-1 overflow-y-auto custom-scrollbar bg-[var(--background)]/20">
         {hierarchy.map((priority: PriorityHierarchy) => {
           const isPriorityExpanded = expandedPriorities.has(priority.key);
 
           return (
-            <div key={priority.key} className="border-b border-[#3A3A3A]/50 last:border-0">
+            <div key={priority.key} className="border-b border-[var(--border)]/50 last:border-0">
               {/* Priority Header */}
               <div
-                className="px-6 py-4 bg-[#161B22] hover:bg-[#1C2128] cursor-pointer flex items-center justify-between transition-colors border-b border-[#3A3A3A]/30"
+                className="px-6 py-4 bg-[var(--panel)]/50 hover:bg-[var(--panel)] cursor-pointer flex items-center justify-between transition-colors border-b border-[var(--border)]/30"
                 onClick={() => togglePriority(priority.key)}
                 role="button"
                 aria-expanded={isPriorityExpanded}
@@ -377,8 +377,8 @@ export const BIPowerMatrix = ({ deficitQueue, allProductsQueue }: Props) => {
               >
                 <div className="flex items-center gap-3">
                   {isPriorityExpanded ?
-                    <ChevronDown size={16} className="text-[#8B949E]" /> :
-                    <ChevronRight size={16} className="text-[#8B949E]" />
+                    <ChevronDown size={16} className="text-[var(--text-muted)]" /> :
+                    <ChevronRight size={16} className="text-[var(--text-muted)]" />
                   }
                   <span
                     className="text-[12px] font-black uppercase tracking-wider"
@@ -386,11 +386,11 @@ export const BIPowerMatrix = ({ deficitQueue, allProductsQueue }: Props) => {
                   >
                     {priority.label}
                   </span>
-                  <span className="text-[10px] text-[#8B949E] font-semibold">
+                  <span className="text-[10px] text-[var(--text-muted)] font-semibold">
                     ({priority.categoriesCount} кат.)
                   </span>
                 </div>
-                <span className="text-[14px] font-black text-[#E6EDF3]">
+                <span className="text-[14px] font-black text-[var(--foreground)]">
                   {priority.totalKg} кг
                 </span>
               </div>
@@ -401,10 +401,10 @@ export const BIPowerMatrix = ({ deficitQueue, allProductsQueue }: Props) => {
                 const isCategoryExpanded = expandedCategories.has(categoryKey);
 
                 return (
-                  <div key={categoryKey} className="border-b border-[#3A3A3A]/10 last:border-0">
+                  <div key={categoryKey} className="border-b border-[var(--border)]/10 last:border-0">
                     {/* Category Row */}
                     <div
-                      className="pl-10 pr-6 py-3 hover:bg-[#161B22] cursor-pointer flex items-center justify-between transition-colors"
+                      className="pl-10 pr-6 py-3 hover:bg-[var(--panel)] cursor-pointer flex items-center justify-between transition-colors"
                       onClick={() => toggleCategory(priority.key, category.categoryName as SKUCategory)}
                       role="button"
                       aria-expanded={isCategoryExpanded}
@@ -413,18 +413,18 @@ export const BIPowerMatrix = ({ deficitQueue, allProductsQueue }: Props) => {
                     >
                       <div className="flex items-center gap-2">
                         {isCategoryExpanded ?
-                          <ChevronDown size={14} className="text-[#8B949E]" /> :
-                          <ChevronRight size={14} className="text-[#8B949E]" />
+                          <ChevronDown size={14} className="text-[var(--text-muted)]" /> :
+                          <ChevronRight size={14} className="text-[var(--text-muted)]" />
                         }
                         <span className="text-[14px]">{category.emoji}</span>
-                        <span className="text-[12px] font-bold text-[#E6EDF3]">
+                        <span className="text-[12px] font-bold text-[var(--foreground)]">
                           {category.categoryName}
                         </span>
-                        <span className="text-[10px] text-[#8B949E]">
+                        <span className="text-[10px] text-[var(--text-muted)]">
                           ({category.itemsCount} поз.)
                         </span>
                       </div>
-                      <span className="text-[13px] font-black text-[#58A6FF]">
+                      <span className="text-[13px] font-black text-[var(--status-normal)]">
                         {category.totalKg} кг
                       </span>
                     </div>
@@ -438,7 +438,7 @@ export const BIPowerMatrix = ({ deficitQueue, allProductsQueue }: Props) => {
                       });
 
                       return (
-                        <div key={item.productCode} className="border-b border-[#3A3A3A]/5 last:border-0">
+                        <div key={item.productCode} className="border-b border-[var(--border)]/5 last:border-0">
                           {/* Product Row */}
                           <div className="pl-16 pr-6 py-2.5 hover:bg-white/[0.02] transition-colors">
                             <div className="flex items-center justify-between">
@@ -450,8 +450,8 @@ export const BIPowerMatrix = ({ deficitQueue, allProductsQueue }: Props) => {
                                   aria-expanded={isProductExpanded}
                                 >
                                   {isProductExpanded ?
-                                    <ChevronDown size={12} className="text-[#8B949E]" /> :
-                                    <ChevronRight size={12} className="text-[#8B949E]" />
+                                    <ChevronDown size={12} className="text-[var(--text-muted)]" /> :
+                                    <ChevronRight size={12} className="text-[var(--text-muted)]" />
                                   }
                                 </button>
                                 <button
@@ -459,8 +459,8 @@ export const BIPowerMatrix = ({ deficitQueue, allProductsQueue }: Props) => {
                                   className={cn(
                                     "w-4 h-4 rounded border flex items-center justify-center transition-all",
                                     allStoresSelected
-                                      ? "bg-[#58A6FF] border-[#58A6FF]"
-                                      : "border-[#3A3A3A] hover:border-[#58A6FF]"
+                                      ? "bg-[var(--status-normal)] border-[var(--status-normal)]"
+                                      : "border-[var(--border)] hover:border-[var(--status-normal)]"
                                   )}
                                   aria-label={`Обрати всі магазини для товару ${item.name}`}
                                   aria-checked={allStoresSelected}
@@ -468,14 +468,14 @@ export const BIPowerMatrix = ({ deficitQueue, allProductsQueue }: Props) => {
                                 >
                                   {allStoresSelected && <CheckCircle2 size={10} className="text-white" />}
                                 </button>
-                                <span className="text-[11px] font-semibold text-[#E6EDF3]">
+                                <span className="text-[11px] font-semibold text-[var(--foreground)]">
                                   {item.name}
                                 </span>
-                                <span className="text-[9px] text-[#8B949E]">
+                                <span className="text-[9px] text-[var(--text-muted)]">
                                   ({item.stores.length} маг.)
                                 </span>
                               </div>
-                              <span className="text-[12px] font-black text-[#58A6FF]">
+                              <span className="text-[12px] font-black text-[var(--status-normal)]">
                                 {item.recommendedQtyKg} кг
                               </span>
                             </div>
@@ -483,7 +483,7 @@ export const BIPowerMatrix = ({ deficitQueue, allProductsQueue }: Props) => {
 
                           {/* Stores */}
                           {isProductExpanded && (
-                            <div className="bg-[#0D1117] border-t border-[#3A3A3A]/10">
+                            <div className="bg-[var(--background)] border-t border-[var(--border)]/10">
                               {item.stores.map(store => {
                                 const storeKey = `${item.productCode}_${store.storeName}`;
                                 const isSelected = selectedStores.has(storeKey);
@@ -499,8 +499,8 @@ export const BIPowerMatrix = ({ deficitQueue, allProductsQueue }: Props) => {
                                         className={cn(
                                           "w-3.5 h-3.5 rounded border flex items-center justify-center transition-all",
                                           isSelected
-                                            ? "bg-[#58A6FF] border-[#58A6FF]"
-                                            : "border-[#3A3A3A] hover:border-[#58A6FF]"
+                                            ? "bg-[var(--status-normal)] border-[var(--status-normal)]"
+                                            : "border-[var(--border)] hover:border-[var(--status-normal)]"
                                         )}
                                         aria-label={`Обрати магазин ${store.storeName}`}
                                         aria-checked={isSelected}
@@ -508,15 +508,15 @@ export const BIPowerMatrix = ({ deficitQueue, allProductsQueue }: Props) => {
                                       >
                                         {isSelected && <CheckCircle2 size={8} className="text-white" />}
                                       </button>
-                                      <span className="text-[10px] text-[#8B949E]">
+                                      <span className="text-[10px] text-[var(--text-muted)]">
                                         {store.storeName}
                                       </span>
                                     </div>
                                     <div className="flex items-center gap-3">
-                                      <span className="text-[9px] text-[#F85149]">
+                                      <span className="text-[9px] text-[var(--status-critical)]">
                                         -{store.deficitKg.toFixed(1)} кг
                                       </span>
-                                      <span className="text-[11px] font-bold text-[#58A6FF]">
+                                      <span className="text-[11px] font-bold text-[var(--status-normal)]">
                                         {store.recommendedKg.toFixed(1)} кг
                                       </span>
                                     </div>
@@ -537,7 +537,7 @@ export const BIPowerMatrix = ({ deficitQueue, allProductsQueue }: Props) => {
       </div>
 
       {/* Footer */}
-      <div className="px-6 py-4 border-t border-[#3A3A3A] bg-[#111823]">
+      <div className="px-6 py-4 border-t border-[var(--border)] bg-[var(--background)]/80">
         <div className="flex gap-2">
           <button
             onClick={selectRecommended}
@@ -549,7 +549,7 @@ export const BIPowerMatrix = ({ deficitQueue, allProductsQueue }: Props) => {
           </button>
           <button
             onClick={clearSelection}
-            className="px-4 py-2.5 bg-black/20 border border-[#3A3A3A] hover:bg-black/30 text-[#8B949E] hover:text-white text-[10px] font-black uppercase tracking-wider rounded-lg transition-all"
+            className="px-4 py-2.5 bg-black/20 border border-[var(--border)] hover:bg-black/30 text-[var(--text-muted)] hover:text-white text-[10px] font-black uppercase tracking-wider rounded-lg transition-all"
           >
             Очистити
           </button>
@@ -561,8 +561,8 @@ export const BIPowerMatrix = ({ deficitQueue, allProductsQueue }: Props) => {
             className={cn(
               "flex-1 px-4 py-2.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all flex items-center justify-center gap-2",
               selectedStores.size > 0
-                ? "bg-[#58A6FF] hover:bg-[#3d8bfd] text-white shadow-lg shadow-blue-500/20"
-                : "bg-[#252526] text-[#8B949E] cursor-not-allowed"
+                ? "bg-[var(--status-normal)] hover:brightness-110 text-white shadow-lg shadow-emerald-500/20"
+                : "bg-[#252526] text-[var(--text-muted)] cursor-not-allowed"
             )}
           >
             <Package size={14} />

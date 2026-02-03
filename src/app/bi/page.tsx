@@ -103,7 +103,7 @@ export default function BIDashboard() {
 
     if (deficitError || metricsError || allProductsError) {
         return (
-            <div className="flex items-center justify-center min-h-screen bg-[#1e1e1e] text-[#e74856] font-bold uppercase tracking-widest" role="alert">
+            <div className="flex items-center justify-center min-h-screen bg-[var(--background)] text-[var(--status-critical)] font-bold uppercase tracking-widest" role="alert">
                 Помилка даних | Supabase Offline
             </div>
         );
@@ -111,7 +111,7 @@ export default function BIDashboard() {
 
     if (!deficitData || !metrics || !allProductsData) {
         return (
-            <div className="flex items-center justify-center min-h-screen bg-[#1e1e1e] text-slate-600 font-bold uppercase tracking-widest animate-pulse">
+            <div className="flex items-center justify-center min-h-screen bg-[var(--background)] text-[var(--text-muted)] font-bold uppercase tracking-widest animate-pulse">
                 Ініціалізація двигуна BI...
             </div>
         );
@@ -121,29 +121,29 @@ export default function BIDashboard() {
         <DashboardLayout currentWeight={metrics.shopLoad} maxWeight={450}>
             <div className="max-w-[1200px] mx-auto min-h-[calc(100vh-160px)]">
                 {/* Outer Panel like SVG */}
-                <div className="bg-[#1A1A1A] rounded-[16px] border border-[#2B2B2B] p-6 lg:p-10 shadow-2xl h-full flex flex-col">
+                <div className="bi-panel rounded-[16px] p-6 lg:p-10 h-full flex flex-col">
 
                     {/* Header Shell */}
-                    <div className="bg-[#111823] rounded-xl border border-[#202938] px-6 py-4 mb-8 flex flex-col md:flex-row justify-between items-center gap-6 shadow-lg">
+                    <div className="bg-[var(--background)]/50 rounded-xl border border-[var(--border)] px-6 py-4 mb-8 flex flex-col md:flex-row justify-between items-center gap-6 shadow-inner">
                         <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 rounded-lg bg-[#58A6FF]/10 flex items-center justify-center border border-[#58A6FF]/20">
-                                <BarChart2 size={18} className="text-[#58A6FF]" />
+                            <div className="w-8 h-8 rounded-lg bg-[var(--status-normal)]/10 flex items-center justify-center border border-[var(--status-normal)]/20">
+                                <BarChart2 size={18} className="text-[var(--status-normal)]" />
                             </div>
-                            <h1 className="text-[18px] font-black text-[#E6EDF3] tracking-tighter uppercase">
+                            <h1 className="text-[18px] font-black text-[var(--foreground)] tracking-tighter uppercase">
                                 BI Аналітична Консоль
                             </h1>
                         </div>
 
                         <div className="flex flex-wrap gap-4 items-center">
-                            <SmallKPI label="Загалом кг" value={Math.round(metrics.shopLoad)} icon={Activity} color="#58A6FF" />
-                            <SmallKPI label="Критичні SKU" value={metrics.criticalSKUs} icon={AlertTriangle} color="#F85149" />
-                            <SmallKPI label="Персонал" value={`${metrics.personnel} ПЕРС`} icon={Users} color="#3FB950" />
-                            <SmallKPI label="Синхронізація" value={new Date(metrics.lastUpdate).toLocaleTimeString('uk-UA')} icon={RefreshCw} color="#F6C343" />
+                            <SmallKPI label="Загалом кг" value={Math.round(metrics.shopLoad)} icon={Activity} color={UI_TOKENS.colors.priority.normal} />
+                            <SmallKPI label="Критичні SKU" value={metrics.criticalSKUs} icon={AlertTriangle} color={UI_TOKENS.colors.priority.critical} />
+                            <SmallKPI label="Персонал" value={`${metrics.personnel} ПЕРС`} icon={Users} color={UI_TOKENS.colors.priority.reserve} />
+                            <SmallKPI label="Синхронізація" value={new Date(metrics.lastUpdate).toLocaleTimeString('uk-UA')} icon={RefreshCw} color={UI_TOKENS.colors.priority.high} />
 
                             <button
                                 onClick={handleRefresh}
                                 disabled={isRefreshing}
-                                className="p-2.5 bg-[#222325] hover:bg-[#2A2B2F] text-[#8B949E] hover:text-[#58A6FF] rounded-xl border border-[#33343A] transition-all disabled:opacity-50 shadow-sm"
+                                className="p-2.5 bg-[var(--panel)] hover:bg-[var(--border)] text-[var(--text-muted)] hover:text-[var(--status-normal)] rounded-xl border border-[var(--border)] transition-all disabled:opacity-50 shadow-sm"
                                 title="Оновити залишки"
                             >
                                 <RotateCw size={16} className={isRefreshing ? "animate-spin" : ""} />
@@ -156,7 +156,7 @@ export default function BIDashboard() {
                         {/* Priority Tree Section */}
                         <div className="flex flex-col h-full overflow-hidden">
                             <div className="flex items-center gap-2 mb-6 px-2">
-                                <h2 className="text-[13px] font-bold text-[#E6EDF3] tracking-tight">Priority Tree</h2>
+                                <h2 className="text-[13px] font-bold text-[var(--foreground)] tracking-tight">Priority Tree</h2>
                             </div>
 
                             <div className="flex-1 overflow-hidden">
@@ -167,9 +167,9 @@ export default function BIDashboard() {
                         </div>
 
                         {/* Insights Section */}
-                        <div className="flex flex-col h-full overflow-hidden border-l border-[#2B2B2B] border-dashed pl-8">
+                        <div className="flex flex-col h-full overflow-hidden border-l border-[var(--border)] border-dashed pl-8">
                             <div className="flex items-center gap-2 mb-6 px-2">
-                                <h2 className="text-[13px] font-bold text-[#E6EDF3] tracking-tight">Insights</h2>
+                                <h2 className="text-[13px] font-bold text-[var(--foreground)] tracking-tight">Insights</h2>
                             </div>
 
                             <div className="flex-1 overflow-y-auto custom-scrollbar pr-2">
@@ -186,13 +186,13 @@ export default function BIDashboard() {
 }
 
 const SmallKPI = ({ label, value, icon: Icon, color }: { label: string; value: string | number; icon: React.ElementType; color: string }) => (
-    <div className="flex items-center gap-3 px-4 py-2 bg-[#222325] border border-[#33343A] rounded-xl shadow-sm hover:border-[#44454A] transition-all">
+    <div className="flex items-center gap-3 px-4 py-2 bg-[var(--background)] border border-[var(--border)] rounded-xl shadow-sm hover:border-[var(--text-muted)] transition-all">
         <div className="p-2 rounded-lg" style={{ backgroundColor: `${color}15` }}>
             <Icon size={14} style={{ color: color }} />
         </div>
         <div className="flex flex-col">
-            <span className="text-[10px] font-bold text-[#8B949E] uppercase tracking-wider leading-none mb-1">{label}</span>
-            <span className="text-[14px] font-black text-[#E6EDF3] leading-none">{value}</span>
+            <span className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider leading-none mb-1">{label}</span>
+            <span className="text-[14px] font-black text-[var(--foreground)] leading-none">{value}</span>
         </div>
     </div>
 );

@@ -1,18 +1,18 @@
 @import "tailwindcss";
 
 :root {
-  --background: #0E1117;
-  --foreground: #E6EDF3;
-  --panel: #0F1622;
-  --border: #1F2630;
-  --text-primary: #E6EDF3;
-  --text-muted: #8B949E;
-  --status-critical: #E5534B;
-  --status-high: #F6C343;
-  --status-reserve: #58A6FF;
-  --status-normal: #3FB950;
+  --background: #050B09;
+  --foreground: #ECFDF5;
+  --panel: #0F1F19;
+  --border: #1D332B;
+  --text-primary: #ECFDF5;
+  --text-muted: #6E8C83;
+  --status-critical: #F87171;
+  --status-high: #FBBF24;
+  --status-reserve: #A78BFA;
+  --status-normal: #34D399;
 
-  --radius-panel: 12px;
+  --radius-panel: 16px;
   --page-margin: 40px;
   --gutter: 24px;
 }
@@ -32,12 +32,13 @@
 }
 
 .bi-panel {
-  @apply bg-[#161B22]/60 backdrop-blur-xl border border-[#30363D] shadow-2xl;
+  @apply bg-[#0F1F19]/60 backdrop-blur-xl border border-[#1D332B] shadow-2xl;
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
 }
 
 .bi-glow-red {
-  box-shadow: 0 0 15px rgba(248, 81, 73, 0.2);
-  @apply border-[#F85149]/50;
+  box-shadow: 0 0 15px rgba(248, 113, 113, 0.2);
+  @apply border-[#F87171]/50;
 }
 
 .dot-neon {
@@ -46,12 +47,12 @@
 }
 
 .progress-bi-bg {
-  @apply h-1.5 w-full bg-[#30363D] rounded-full overflow-hidden;
+  @apply h-1.5 w-full bg-[#1D332B] rounded-full overflow-hidden;
 }
 
 .progress-bi-fill {
   @apply h-full transition-all duration-1000 ease-in-out;
-  box-shadow: 0 0 10px currentColor;
+  box-shadow: 0 0 12px currentColor;
 }
 
 /* Scrollbar styling for high-density sidebars */
@@ -64,12 +65,12 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #30363D;
+  background: #1D332B;
   border-radius: 10px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #58A6FF;
+  background: #34D399;
 }
 
 .custom-scrollbar::-webkit-scrollbar {
@@ -78,14 +79,14 @@
 }
 
 .custom-scrollbar::-webkit-scrollbar-track {
-  background: #1e1e1e;
+  background: #050B09;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: #3e3e42;
+  background: #1D332B;
   border-radius: 3px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: #4e4e52;
+  background: #34D399;
 }
