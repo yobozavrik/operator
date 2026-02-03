@@ -70,6 +70,20 @@ export async function middleware(request: NextRequest) {
         return NextResponse.redirect(url)
     }
 
+    // Перенаправлення зі старої адреси /bi на нову головну
+    if (request.nextUrl.pathname.startsWith('/bi')) {
+        const url = request.nextUrl.clone()
+        url.pathname = '/'
+        return NextResponse.redirect(url)
+    }
+
+    // Перенаправлення зі старої адреси /bi на нову головну
+    if (request.nextUrl.pathname.startsWith('/bi')) {
+        const url = request.nextUrl.clone()
+        url.pathname = '/'
+        return NextResponse.redirect(url)
+    }
+
     return response
 }
 
