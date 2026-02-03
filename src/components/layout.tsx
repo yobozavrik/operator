@@ -142,6 +142,34 @@ export const Sidebar = () => {
 
 import { StoreProvider } from '@/context/StoreContext';
 
+// Particle component for background animation
+const ParticleGrid = () => {
+    const particles = Array.from({ length: 30 }, (_, i) => ({
+        id: i,
+        left: `${Math.random() * 100}%`,
+        top: `${Math.random() * 100}%`,
+        delay: `${Math.random() * 4}s`,
+        duration: `${3 + Math.random() * 3}s`,
+    }));
+
+    return (
+        <div className="particle-grid">
+            {particles.map(p => (
+                <div
+                    key={p.id}
+                    className="particle"
+                    style={{
+                        left: p.left,
+                        top: p.top,
+                        animationDelay: p.delay,
+                        animationDuration: p.duration,
+                    }}
+                />
+            ))}
+        </div>
+    );
+};
+
 export const DashboardLayout = ({
     children,
     currentWeight,
@@ -155,9 +183,28 @@ export const DashboardLayout = ({
 }) => {
     return (
         <StoreProvider>
-            <div className="flex h-screen bg-[var(--background)] text-[var(--foreground)] font-sans antialiased overflow-hidden">
+            <div className="flex h-screen premium-bg text-[var(--foreground)] font-sans antialiased overflow-hidden relative">
+                {/* Animated particles background */}
+                <ParticleGrid />
+
+                {/* Ambient glow effects */}
+                <div
+                    className="fixed top-0 left-1/4 w-[600px] h-[600px] rounded-full pointer-events-none z-0"
+                    style={{
+                        background: 'radial-gradient(circle, rgba(0, 212, 255, 0.08) 0%, transparent 70%)',
+                        filter: 'blur(80px)',
+                    }}
+                />
+                <div
+                    className="fixed bottom-0 right-1/4 w-[500px] h-[500px] rounded-full pointer-events-none z-0"
+                    style={{
+                        background: 'radial-gradient(circle, rgba(0, 136, 255, 0.06) 0%, transparent 70%)',
+                        filter: 'blur(100px)',
+                    }}
+                />
+
                 <Sidebar />
-                <div className="flex-1 flex flex-col min-w-0 h-full">
+                <div className="flex-1 flex flex-col min-w-0 h-full relative z-10">
                     <main className={cn(
                         "flex-1 flex flex-col min-h-0",
                         !fullHeight && "overflow-y-auto p-4 md:p-6 lg:p-8"
@@ -169,3 +216,4 @@ export const DashboardLayout = ({
         </StoreProvider>
     );
 };
+
