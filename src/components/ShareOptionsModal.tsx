@@ -6,6 +6,7 @@ import { OrderItem, SharePlatform } from '@/types/order';
 import { formatOrderMessage } from '@/lib/messageFormatter';
 import { cn } from '@/lib/utils';
 import { groupItemsByCategory, generateExcel, prepareWorkbook } from '@/lib/order-export';
+import { auditLog } from '@/lib/logger';
 import ExcelJS from 'exceljs';
 
 interface ShareOptionsModalProps {
@@ -20,12 +21,26 @@ export const ShareOptionsModal = ({ isOpen, items, orderData, onClose, onShare }
     const [copied, setCopied] = useState(false);
 
     const handleDownloadExcel = async () => {
+        // Log export action
+        await auditLog('EXPORT_EXCEL', 'ShareOptionsModal', {
+            date: orderData.date,
+            totalKg: orderData.totalKg,
+            itemCount: items.length
+        });
+
         const fileName = await generateExcel(orderData);
         alert(`Файл збережено: ${fileName}`);
     };
 
     const handleShareExcel = async () => {
         try {
+            // Log share action
+            await auditLog('SHARE_ORDER', 'ShareOptionsModal', {
+                date: orderData.date,
+                totalKg: orderData.totalKg,
+                itemCount: items.length
+            });
+
             const workbook = await prepareWorkbook(orderData);
             const buffer = await workbook.xlsx.writeBuffer();
             const file = new File(
@@ -45,9 +60,11 @@ export const ShareOptionsModal = ({ isOpen, items, orderData, onClose, onShare }
             }
         } catch (error) {
             console.error('Помилка при поділитися:', error);
+            await auditLog('ERROR', 'ShareOptionsModal', { error: String(error) });
             alert('Помилка при поділитися файлом');
         }
     };
+
 
     const messagePreview = useMemo(() => {
         return formatOrderMessage(items);

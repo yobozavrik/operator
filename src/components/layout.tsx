@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { LogOut } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { auditLog } from '@/lib/logger';
 
 import { useStore } from '@/context/StoreContext';
 
@@ -55,7 +56,10 @@ export const Sidebar = () => {
                         return (
                             <button
                                 key={i}
-                                onClick={() => setSelectedStore(item.label)}
+                                onClick={() => {
+                                    setSelectedStore(item.label);
+                                    auditLog('CHANGE_STORE', 'Sidebar', { store: item.label });
+                                }}
                                 onMouseEnter={() => setHoveredStore(i)}
                                 onMouseLeave={() => setHoveredStore(null)}
                                 className={cn(
@@ -101,7 +105,15 @@ export const Sidebar = () => {
                 </div>
 
                 <div className="px-4 mt-6 pt-4 border-t border-[var(--border)] z-10">
-                    <button className="w-full flex items-center gap-3 px-4 py-2 rounded-lg text-[var(--text-muted)] hover:text-white hover:bg-[var(--panel)]/50 text-xs font-semibold uppercase transition-colors">
+                    <button
+                        onClick={async () => {
+                            await auditLog('LOGOUT', 'Sidebar', { timestamp: new Date().toISOString() });
+                            // Clear auth cookie and redirect to login
+                            document.cookie = 'auth-token=; Max-Age=0; path=/';
+                            window.location.href = '/login';
+                        }}
+                        className="w-full flex items-center gap-3 px-4 py-2 rounded-lg text-[var(--text-muted)] hover:text-white hover:bg-[var(--panel)]/50 text-xs font-semibold uppercase transition-colors"
+                    >
                         <LogOut size={16} />
                         Вихід
                     </button>

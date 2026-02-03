@@ -1,7 +1,13 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase'
+import { serverAuditLog } from '@/lib/logger'
 
-export async function GET() {
+export async function GET(request: NextRequest) {
+    // Log API access
+    await serverAuditLog('VIEW_METRICS', '/api/graviton/metrics', request, {
+        timestamp: new Date().toISOString()
+    });
+
     // Общая загрузка цеха
     const { data: deficitData, error: deficitError } = await supabase
         .from('dashboard_deficit')
@@ -10,6 +16,9 @@ export async function GET() {
 
     if (deficitError) {
         console.error('Deficit error:', deficitError)
+        await serverAuditLog('ERROR', '/api/graviton/metrics', request, {
+            error: deficitError.message
+        });
     }
 
     const totalRecommended = deficitData?.reduce((sum, row) => sum + (row.recommended_kg || 0), 0) || 0
@@ -43,3 +52,4 @@ export async function GET() {
         lastUpdate: new Date().toISOString()
     })
 }
+

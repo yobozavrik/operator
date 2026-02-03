@@ -1,8 +1,14 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
 import { SupabaseDeficitRow } from '@/types/bi';
+import { serverAuditLog } from '@/lib/logger';
 
-export async function GET() {
+export async function GET(request: NextRequest) {
+    // Log API access
+    await serverAuditLog('VIEW_DEFICIT', '/api/graviton/deficit', request, {
+        timestamp: new Date().toISOString()
+    });
+
     const { data, error } = await supabase
         .from('dashboard_deficit')
         .select('*')
@@ -13,6 +19,9 @@ export async function GET() {
 
     if (error) {
         console.error('Supabase error:', error);
+        await serverAuditLog('ERROR', '/api/graviton/deficit', request, {
+            error: error.message
+        });
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
@@ -26,3 +35,4 @@ export async function GET() {
 
     return NextResponse.json(mappedData);
 }
+
