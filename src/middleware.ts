@@ -51,7 +51,13 @@ export async function middleware(request: NextRequest) {
 
     // ПРОТЕКЦІЯ РОУТІВ
     // Якщо користувач не залогінений і намагається зайти на закриті сторінки
-    if (!user && (request.nextUrl.pathname.startsWith('/bi') || request.nextUrl.pathname.startsWith('/production'))) {
+    const isProtectedPath =
+        request.nextUrl.pathname === '/' ||
+        request.nextUrl.pathname.startsWith('/bi') ||
+        request.nextUrl.pathname.startsWith('/hub') ||
+        request.nextUrl.pathname.startsWith('/production');
+
+    if (!user && isProtectedPath) {
         const url = request.nextUrl.clone()
         url.pathname = '/login'
         return NextResponse.redirect(url)
@@ -60,7 +66,7 @@ export async function middleware(request: NextRequest) {
     // Якщо користувач вже залогінений і намагається зайти на логін
     if (user && request.nextUrl.pathname === '/login') {
         const url = request.nextUrl.clone()
-        url.pathname = '/bi'
+        url.pathname = '/'
         return NextResponse.redirect(url)
     }
 
