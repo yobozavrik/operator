@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { LogOut } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { auditLog } from '@/lib/logger';
+import { PersonnelCard } from './PersonnelCard';
 
 import { useStore } from '@/context/StoreContext';
 
@@ -144,6 +145,10 @@ export const Sidebar = () => {
                     })}
                 </div>
 
+                {/* Personnel Card */}
+                <div className="px-4 mt-4 z-10">
+                    <PersonnelCard />
+                </div>
 
                 <div className="px-4 mt-6 pt-4 border-t border-[var(--border)] z-10">
                     <button
