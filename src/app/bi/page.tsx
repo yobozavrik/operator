@@ -22,6 +22,7 @@ const fetcher = (url: string) => fetch(url).then(r => r.json());
 export default function BIDashboard() {
     // Get selected store from context
     const { selectedStore } = useStore();
+    console.log('BIDashboard selectedStore:', selectedStore);
 
     // ⚡ REALTIME ARCHITECTURE: No more polling!
     // We fetch initially, then listen for DB events to re-fetch.
