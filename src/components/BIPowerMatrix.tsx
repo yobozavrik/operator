@@ -337,9 +337,9 @@ export const BIPowerMatrix = ({ deficitQueue, allProductsQueue }: Props) => {
   }
 
   return (
-    <div className="flex flex-col h-full bg-[#0F1F19]/40 rounded-xl border border-[var(--border)] overflow-hidden font-sans">
+    <div className="flex flex-col h-full w-full font-sans">
       {/* Header with weight counter */}
-      <div className="px-6 py-5 border-b border-[var(--border)] bg-[var(--background)]/80">
+      <div className="px-6 py-5 border-b border-[var(--border)]/50 bg-[var(--background)]/40 backdrop-blur-md sticky top-0 z-20">
         <div className="flex items-center justify-between">
           <h3 className="text-[14px] font-black uppercase tracking-tighter text-[var(--foreground)] flex items-center gap-2">
             📋 {selectedWeight > 0 ? `Замовлення на ${selectedWeight} кг` : 'Формування замовлення'}
@@ -348,8 +348,8 @@ export const BIPowerMatrix = ({ deficitQueue, allProductsQueue }: Props) => {
             <span className="text-[10px] text-[var(--text-muted)] uppercase font-bold tracking-widest leading-none mb-1">Вибрано до виробництва</span>
             <div className="flex items-baseline gap-1">
               <span className={cn(
-                "text-lg font-black leading-none",
-                selectedWeight > 0 ? "text-[var(--status-normal)]" : "text-[var(--text-muted)]"
+                "text-2xl font-black leading-none tabular-nums tracking-tighter",
+                selectedWeight > 0 ? "text-[var(--status-normal)] drop-shadow-sm" : "text-[var(--text-muted)]"
               )}>
                 {selectedWeight}
               </span>
@@ -360,7 +360,7 @@ export const BIPowerMatrix = ({ deficitQueue, allProductsQueue }: Props) => {
       </div>
 
       {/* Content */}
-      <div className="flex-1 overflow-y-auto custom-scrollbar bg-[var(--background)]/20">
+      <div className="flex-1 overflow-y-auto custom-scrollbar">
         {hierarchy.map((priority: PriorityHierarchy) => {
           const isPriorityExpanded = expandedPriorities.has(priority.key);
 

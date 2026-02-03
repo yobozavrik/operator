@@ -119,22 +119,31 @@ export default function BIDashboard() {
 
     return (
         <DashboardLayout currentWeight={metrics.shopLoad} maxWeight={450}>
-            <div className="max-w-[1200px] mx-auto min-h-[calc(100vh-160px)]">
-                {/* Outer Panel like SVG */}
-                <div className="bi-panel rounded-[16px] p-6 lg:p-10 h-full flex flex-col">
+            {/* BENTO GRID CONTAINER */}
+            <div className="max-w-[1600px] mx-auto min-h-[calc(100vh-140px)] p-6">
 
-                    {/* Header Shell */}
-                    <div className="bg-[var(--background)]/50 rounded-xl border border-[var(--border)] px-6 py-4 mb-8 flex flex-col md:flex-row justify-between items-center gap-6 shadow-inner">
-                        <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 rounded-lg bg-[var(--status-normal)]/10 flex items-center justify-center border border-[var(--status-normal)]/20">
-                                <BarChart2 size={18} className="text-[var(--status-normal)]" />
+                <div className="grid grid-cols-12 gap-6 h-full">
+
+                    {/* 1. HEADER & KPI ROW (Span 12) */}
+                    <div className="col-span-12 glass-panel-premium rounded-2xl p-6 flex flex-col md:flex-row justify-between items-center gap-6 relative overflow-hidden group/spotlight">
+                        {/* Spotlight Effect */}
+                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover/spotlight:animate-shimmer pointer-events-none" />
+
+                        <div className="flex items-center gap-4 z-10">
+                            <div className="w-12 h-12 rounded-xl bg-[var(--status-normal)]/10 flex items-center justify-center border border-[var(--status-normal)]/20 shadow-[0_0_15px_rgba(52,211,153,0.2)]">
+                                <BarChart2 size={24} className="text-[var(--status-normal)]" />
                             </div>
-                            <h1 className="text-[18px] font-black text-[var(--foreground)] tracking-tighter uppercase">
-                                BI Аналітична Консоль
-                            </h1>
+                            <div>
+                                <h1 className="text-2xl font-black text-[var(--foreground)] tracking-tight uppercase">
+                                    BI Production Hub
+                                </h1>
+                                <p className="text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-widest">
+                                    Realtime Analytics Engine
+                                </p>
+                            </div>
                         </div>
 
-                        <div className="flex flex-wrap gap-4 items-center">
+                        <div className="flex flex-wrap gap-4 items-center z-10">
                             <SmallKPI label="Загалом кг" value={Math.round(metrics.shopLoad)} icon={Activity} color={UI_TOKENS.colors.priority.normal} />
                             <SmallKPI label="Критичні SKU" value={metrics.criticalSKUs} icon={AlertTriangle} color={UI_TOKENS.colors.priority.critical} />
                             <SmallKPI label="Персонал" value={`${metrics.personnel} ПЕРС`} icon={Users} color={UI_TOKENS.colors.priority.reserve} />
@@ -143,42 +152,39 @@ export default function BIDashboard() {
                             <button
                                 onClick={handleRefresh}
                                 disabled={isRefreshing}
-                                className="p-2.5 bg-[var(--panel)] hover:bg-[var(--border)] text-[var(--text-muted)] hover:text-[var(--status-normal)] rounded-xl border border-[var(--border)] transition-all disabled:opacity-50 shadow-sm"
+                                className="p-3 bg-[var(--panel)] hover:bg-[var(--border)] text-[var(--text-muted)] hover:text-[var(--status-normal)] rounded-xl border border-[var(--border)] transition-all disabled:opacity-50 shadow-lg hover:shadow-[0_0_15px_rgba(52,211,153,0.1)] active:scale-95"
                                 title="Оновити залишки"
                             >
-                                <RotateCw size={16} className={isRefreshing ? "animate-spin" : ""} />
+                                <RotateCw size={18} className={isRefreshing ? "animate-spin" : ""} />
                             </button>
                         </div>
                     </div>
 
-                    {/* Main Content: 840/360 Split according to SVG */}
-                    <div className="grid grid-cols-[8.4fr_3.6fr] gap-8 h-[calc(100vh-220px)] mt-4">
-                        {/* Priority Tree Section */}
-                        <div className="flex flex-col h-full overflow-hidden">
-                            <div className="flex items-center gap-2 mb-6 px-2">
-                                <h2 className="text-[13px] font-bold text-[var(--foreground)] tracking-tight">Priority Tree</h2>
-                            </div>
-
-                            <div className="flex-1 overflow-hidden">
-                                <ErrorBoundary>
-                                    <BIPowerMatrix deficitQueue={deficitQueue} allProductsQueue={allProductsQueue} />
-                                </ErrorBoundary>
-                            </div>
-                        </div>
-
-                        {/* Insights Section */}
-                        <div className="flex flex-col h-full overflow-hidden border-l border-[var(--border)] border-dashed pl-8">
-                            <div className="flex items-center gap-2 mb-6 px-2">
-                                <h2 className="text-[13px] font-bold text-[var(--foreground)] tracking-tight">Insights</h2>
-                            </div>
-
-                            <div className="flex-1 overflow-y-auto custom-scrollbar pr-2">
-                                <ErrorBoundary>
-                                    <BIInsights queue={deficitQueue} />
-                                </ErrorBoundary>
-                            </div>
+                    {/* 2. MAIN MATRIX (Span 8) */}
+                    <div className="col-span-12 lg:col-span-8 glass-panel-premium rounded-2xl p-1 flex flex-col h-[600px] lg:h-auto overflow-hidden">
+                        <div className="flex-1 overflow-hidden relative">
+                            <ErrorBoundary>
+                                <BIPowerMatrix deficitQueue={deficitQueue} allProductsQueue={allProductsQueue} />
+                            </ErrorBoundary>
                         </div>
                     </div>
+
+                    {/* 3. INSIGHTS PANEL (Span 4) */}
+                    <div className="col-span-12 lg:col-span-4 glass-panel-premium rounded-2xl p-6 flex flex-col h-[600px] lg:h-auto">
+                        <div className="flex items-center gap-2 mb-6">
+                            <Lightbulb size={16} className="text-[var(--status-reserve)]" />
+                            <h2 className="text-[13px] font-bold text-[var(--foreground)] tracking-[0.2em] uppercase">
+                                AI Insights
+                            </h2>
+                        </div>
+
+                        <div className="flex-1 overflow-y-auto custom-scrollbar -mr-2 pr-2">
+                            <ErrorBoundary>
+                                <BIInsights queue={deficitQueue} />
+                            </ErrorBoundary>
+                        </div>
+                    </div>
+
                 </div>
             </div>
         </DashboardLayout>
@@ -186,13 +192,16 @@ export default function BIDashboard() {
 }
 
 const SmallKPI = ({ label, value, icon: Icon, color }: { label: string; value: string | number; icon: React.ElementType; color: string }) => (
-    <div className="flex items-center gap-3 px-4 py-2 bg-[var(--background)] border border-[var(--border)] rounded-xl shadow-sm hover:border-[var(--text-muted)] transition-all">
-        <div className="p-2 rounded-lg" style={{ backgroundColor: `${color}15` }}>
-            <Icon size={14} style={{ color: color }} />
+    <div className="group relative flex items-center gap-3 px-5 py-3 bg-[var(--background)]/50 border border-[var(--border)] rounded-xl shadow-lg transition-all duration-300 hover:scale-105 hover:border-[var(--text-muted)] hover:shadow-[0_0_20px_rgba(0,0,0,0.3)] overflow-hidden">
+        {/* Shimmer on hover */}
+        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:animate-shimmer pointer-events-none" />
+
+        <div className="p-2.5 rounded-lg transition-colors group-hover:bg-white/5" style={{ backgroundColor: `${color}10` }}>
+            <Icon size={16} style={{ color: color }} className="transition-transform group-hover:scale-110" />
         </div>
         <div className="flex flex-col">
-            <span className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider leading-none mb-1">{label}</span>
-            <span className="text-[14px] font-black text-[var(--foreground)] leading-none">{value}</span>
+            <span className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest leading-none mb-1.5">{label}</span>
+            <span className="text-[16px] font-black text-[var(--foreground)] leading-none tabular-nums tracking-tight">{value}</span>
         </div>
     </div>
 );
