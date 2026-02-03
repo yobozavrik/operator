@@ -6,18 +6,23 @@ import { DashboardLayout } from '@/components/layout';
 import { BIGauge, BIStatCard } from '@/components/BIPanels';
 import { BIPowerMatrix } from '@/components/BIPowerMatrix';
 import { BIInsights } from '@/components/BIInsights';
+import { PersonnelView } from '@/components/PersonnelView';
 import { ProductionTask, BI_Metrics, SupabaseDeficitRow } from '@/types/bi';
 import { transformDeficitData } from '@/lib/transformers';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { Users, AlertTriangle, TrendingUp, RotateCw, Activity, RefreshCw, BarChart2 } from 'lucide-react';
 import { UI_TOKENS } from '@/lib/design-tokens';
 import { cn } from '@/lib/utils';
+import { useStore } from '@/context/StoreContext';
 
 import { supabase } from '@/lib/supabase';
 
 const fetcher = (url: string) => fetch(url).then(r => r.json());
 
 export default function BIDashboard() {
+    // Get selected store from context
+    const { selectedStore } = useStore();
+
     // ⚡ REALTIME ARCHITECTURE: No more polling!
     // We fetch initially, then listen for DB events to re-fetch.
     const { data: deficitData, error: deficitError, mutate: mutateDeficit } = useSWR<SupabaseDeficitRow[]>(
@@ -307,7 +312,11 @@ export default function BIDashboard() {
                             }}
                         >
                             <ErrorBoundary>
-                                <BIPowerMatrix deficitQueue={deficitQueue} allProductsQueue={allProductsQueue} />
+                                {selectedStore === 'Персонал' ? (
+                                    <PersonnelView />
+                                ) : (
+                                    <BIPowerMatrix deficitQueue={deficitQueue} allProductsQueue={allProductsQueue} />
+                                )}
                             </ErrorBoundary>
                         </div>
 

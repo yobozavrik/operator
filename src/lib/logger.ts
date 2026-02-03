@@ -14,6 +14,7 @@ export type AuditAction =
     | 'LOGOUT'
     | 'VIEW_METRICS'
     | 'VIEW_DEFICIT'
+    | 'VIEW_PERSONNEL'
     | 'EXPORT_EXCEL'
     | 'SHARE_ORDER'
     | 'CHANGE_STORE'
