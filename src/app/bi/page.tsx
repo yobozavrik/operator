@@ -20,9 +20,8 @@ import { supabase } from '@/lib/supabase';
 const fetcher = (url: string) => fetch(url).then(r => r.json());
 
 export default function BIDashboard() {
-    // Get selected store from context
-    const { selectedStore } = useStore();
-    console.log('BIDashboard selectedStore:', selectedStore);
+    // Get store context
+    const { selectedStore, currentCapacity } = useStore();
 
     // ⚡ REALTIME ARCHITECTURE: No more polling!
     // We fetch initially, then listen for DB events to re-fetch.
@@ -153,7 +152,7 @@ export default function BIDashboard() {
     return (
         <DashboardLayout
             currentWeight={metrics.shopLoad}
-            maxWeight={450}
+            maxWeight={currentCapacity}
             fullHeight={true}
         >
             {/* ========== SUPER DRAMATIC VISUAL EFFECTS ========== */}
@@ -280,6 +279,7 @@ export default function BIDashboard() {
                                     <SmallKPI label="Загалом кг" value={Math.round(metrics.shopLoad)} icon={Activity} color={UI_TOKENS.colors.priority.normal} />
                                 </button>
                                 <SmallKPI label="Критичні SKU" value={metrics.criticalSKU} icon={AlertTriangle} color={UI_TOKENS.colors.priority.critical} />
+                                <SmallKPI label="Потужність зміні" value={`${currentCapacity} кг`} icon={Users} color="#00D4FF" />
                             </div>
 
                             <div className="flex gap-4 items-center">

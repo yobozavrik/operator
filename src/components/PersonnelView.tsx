@@ -4,6 +4,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { ChevronDown, ChevronRight, Users, Crown, User, Snowflake, Check, X, AlertCircle } from 'lucide-react';
 import { SHIFTS, PRODUCTION_NORM_PER_PERSON, Shift, Employee } from '@/lib/personnel';
 import { cn } from '@/lib/utils';
+import { useStore } from '@/context/StoreContext';
 
 // Attendance status types
 type AttendanceStatus = 'present' | 'absent' | 'sick';
@@ -63,6 +64,8 @@ const getStatusLabel = (status: AttendanceStatus) => {
 };
 
 export const PersonnelView = () => {
+    const { setCurrentCapacity } = useStore();
+
     // Active shift (1 or 2)
     const [activeShiftId, setActiveShiftId] = useState<1 | 2>(1);
 
@@ -122,6 +125,11 @@ export const PersonnelView = () => {
             presentEmployees: present.map(e => e.employeeId)
         };
     }, [currentShiftAttendance]);
+
+    // Sync total capacity to global context whenever it changes
+    useEffect(() => {
+        setCurrentCapacity(totalCapacity);
+    }, [totalCapacity, setCurrentCapacity]);
 
     // Toggle employee status
     const cycleEmployeeStatus = (employeeId: number) => {
