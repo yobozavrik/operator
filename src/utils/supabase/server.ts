@@ -5,12 +5,13 @@ import https from 'https'
 export async function createClient() {
     const cookieStore = await cookies()
 
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+    let supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
     const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
-    // Missing keys? Log critical error but don't crash the server context immediately
-    if (!supabaseUrl || !supabaseAnonKey) {
-        console.error('❌ CRITICAL ERROR [Server]: Supabase environment variables are missing!')
+    // 🔐 AUTO-FIX: Force HTTP if using self-signed VPS domain to bypass Vercel SSL rejection
+    if (supabaseUrl?.includes('dmytrotovstytskyi.online') && supabaseUrl.startsWith('https://')) {
+        supabaseUrl = supabaseUrl.replace('https://', 'http://');
+        console.log('🔄 Protocol downgraded to HTTP for SSL bypass:', supabaseUrl);
     }
 
     // 🔐 Bypass SSL verification for self-hosted Supabase with self-signed certs
@@ -20,7 +21,7 @@ export async function createClient() {
     }
 
     return createServerClient(
-        supabaseUrl || 'https://missing-server-url.supabase.co',
+        supabaseUrl || 'http://missing-server-url.supabase.co',
         supabaseAnonKey || 'missing-server-key',
         {
             cookies: {
