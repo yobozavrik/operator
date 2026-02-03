@@ -27,22 +27,34 @@ interface CategoryGroup {
 }
 
 function groupByCategory(items: OrderItem[]): CategoryGroup[] {
-    const groups = new Map<SKUCategory, OrderItem[]>();
+    const categoryMap = new Map<SKUCategory, Map<string, number>>();
 
     items.forEach(item => {
-        if (!groups.has(item.category)) {
-            groups.set(item.category, []);
+        if (!categoryMap.has(item.category)) {
+            categoryMap.set(item.category, new Map());
         }
-        groups.get(item.category)!.push(item);
+        const productMap = categoryMap.get(item.category)!;
+        const currentKg = productMap.get(item.productName) || 0;
+        productMap.set(item.productName, currentKg + item.kg);
     });
 
-    return Array.from(groups.entries())
-        .map(([category, items]) => ({
-            category,
-            emoji: getEmoji(category),
-            totalKg: items.reduce((sum, item) => sum + item.quantity, 0),
-            items: items.sort((a, b) => a.productName.localeCompare(b.productName))
-        }))
+    return Array.from(categoryMap.entries())
+        .map(([category, products]) => {
+            const productList = Array.from(products.entries()).map(([productName, kg]) => ({
+                productName,
+                kg
+            })).sort((a, b) => a.productName.localeCompare(b.productName));
+
+            const totalKg = productList.reduce((sum, p) => sum + p.kg, 0);
+
+            return {
+                category,
+                emoji: getEmoji(category),
+                totalKg,
+                // Partial OrderItem for formatting
+                items: productList as any[]
+            };
+        })
         .sort((a, b) => b.totalKg - a.totalKg);
 }
 
@@ -69,18 +81,17 @@ export function formatOrderMessage(items: OrderItem[], date: string = new Date()
         lines.push('─'.repeat(40));
 
         items.forEach(item => {
-            lines.push(`  • ${item.productName}`);
-            lines.push(`    ${item.storeName}: ${item.quantity.toFixed(1)} кг`);
+            lines.push(`  • ${item.productName} — ${item.kg.toFixed(1)} кг`);
         });
 
         lines.push('');
     });
 
     // Footer
-    const totalWeight = items.reduce((sum, item) => sum + item.quantity, 0);
+    const totalWeight = items.reduce((sum, item) => sum + item.kg, 0);
     lines.push('═'.repeat(40));
     lines.push(`⚖️ ВСЬОГО: ${totalWeight.toFixed(1)} кг`);
-    lines.push(`📦 Позицій: ${items.length}`);
+    lines.push(`📦 Позицій: ${byCategory.reduce((sum, cat) => sum + cat.items.length, 0)}`);
 
     return lines.join('\n');
 }
@@ -108,18 +119,17 @@ export function formatOrderMessageHTML(items: OrderItem[], date: string = new Da
         lines.push('─'.repeat(40));
 
         items.forEach(item => {
-            lines.push(`  • ${item.productName}`);
-            lines.push(`    <i>${item.storeName}</i>: ${item.quantity.toFixed(1)} кг`);
+            lines.push(`  • ${item.productName} — ${item.kg.toFixed(1)} кг`);
         });
 
         lines.push('');
     });
 
     // Footer
-    const totalWeight = items.reduce((sum, item) => sum + item.quantity, 0);
+    const totalWeight = items.reduce((sum, item) => sum + item.kg, 0);
     lines.push('═'.repeat(40));
     lines.push(`<b>⚖️ ВСЬОГО: ${totalWeight.toFixed(1)} кг</b>`);
-    lines.push(`📦 Позицій: ${items.length}`);
+    lines.push(`📦 Позицій: ${byCategory.reduce((sum, cat) => sum + cat.items.length, 0)}`);
 
     return lines.join('\n');
 }

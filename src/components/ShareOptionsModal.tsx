@@ -5,41 +5,62 @@ import { X, Send, Download, Copy, Check } from 'lucide-react';
 import { OrderItem, SharePlatform } from '@/types/order';
 import { formatOrderMessage } from '@/lib/messageFormatter';
 import { cn } from '@/lib/utils';
+import { groupItemsByCategory, generateExcel, prepareWorkbook } from '@/lib/order-export';
+import ExcelJS from 'exceljs';
 
 interface ShareOptionsModalProps {
     isOpen: boolean;
     items: OrderItem[];
+    orderData: any;
     onClose: () => void;
     onShare: (platform: SharePlatform['id']) => void;
 }
 
-const SHARE_OPTIONS: SharePlatform[] = [
-    { id: 'telegram', label: 'Telegram', icon: '📱', color: '#0088cc' },
-    { id: 'viber', label: 'Viber', icon: '💜', color: '#7360f2' },
-    { id: 'whatsapp', label: 'WhatsApp', icon: '💬', color: '#25d366' },
-    { id: 'download', label: 'Завантажити', icon: '📥', color: '#58A6FF' }
-];
-
-export const ShareOptionsModal = ({ isOpen, items, onClose, onShare }: ShareOptionsModalProps) => {
-    const [selectedPlatform, setSelectedPlatform] = useState<SharePlatform['id'] | null>(null);
+export const ShareOptionsModal = ({ isOpen, items, orderData, onClose, onShare }: ShareOptionsModalProps) => {
     const [copied, setCopied] = useState(false);
+
+    const handleDownloadExcel = async () => {
+        const fileName = await generateExcel(orderData);
+        alert(`Файл збережено: ${fileName}`);
+    };
+
+    const handleShareExcel = async () => {
+        try {
+            const workbook = await prepareWorkbook(orderData);
+            const buffer = await workbook.xlsx.writeBuffer();
+            const file = new File(
+                [buffer],
+                `Graviton_${orderData.date.replace(/\./g, '-')}.xlsx`,
+                { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }
+            );
+
+            if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+                await navigator.share({
+                    files: [file],
+                    title: 'Виробниче замовлення',
+                    text: `Замовлення GRAVITON на ${orderData.date}\nЗагальна вага: ${orderData.totalKg} кг`
+                });
+            } else {
+                alert('Ваш браузер не підтримує функцію поділитися. Використайте кнопку "Завантажити".');
+            }
+        } catch (error) {
+            console.error('Помилка при поділитися:', error);
+            alert('Помилка при поділитися файлом');
+        }
+    };
 
     const messagePreview = useMemo(() => {
         return formatOrderMessage(items);
+    }, [items]);
+
+    const groupedByCategory = useMemo(() => {
+        return groupItemsByCategory(items);
     }, [items]);
 
     const handleCopy = () => {
         navigator.clipboard.writeText(messagePreview);
         setCopied(true);
         setTimeout(() => setCopied(false), 2000);
-    };
-
-    const handleShare = () => {
-        if (!selectedPlatform) {
-            alert('Оберіть платформу для відправки');
-            return;
-        }
-        onShare(selectedPlatform);
     };
 
     if (!isOpen) return null;
@@ -66,30 +87,35 @@ export const ShareOptionsModal = ({ isOpen, items, onClose, onShare }: ShareOpti
                 </div>
 
                 {/* Content */}
-                <div className="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-6">
-                    {/* Platform Selection */}
-                    <div>
-                        <h3 className="text-[12px] font-bold uppercase text-[#8B949E] mb-3 tracking-widest">
-                            Оберіть спосіб відправки
+                <div className="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-8">
+                    {/* Action Buttons */}
+                    <div className="space-y-4">
+                        <h3 className="text-[12px] font-bold uppercase text-[#8B949E] tracking-widest text-center mb-6">
+                            Оберіть дію
                         </h3>
-                        <div className="grid grid-cols-2 gap-3">
-                            {SHARE_OPTIONS.map(option => (
-                                <button
-                                    key={option.id}
-                                    onClick={() => setSelectedPlatform(option.id)}
-                                    className={cn(
-                                        "flex items-center gap-3 px-4 py-3 rounded-xl border-2 transition-all",
-                                        selectedPlatform === option.id
-                                            ? "border-[#58A6FF] bg-[#58A6FF]/10"
-                                            : "border-[#3A3A3A] bg-[#252526] hover:border-[#44454A]"
-                                    )}
-                                >
-                                    <span className="text-[24px]">{option.icon}</span>
-                                    <span className="text-[13px] font-bold text-[#E6EDF3]">
-                                        {option.label}
-                                    </span>
-                                </button>
-                            ))}
+
+                        <div className="flex gap-4">
+                            {/* Кнопка Поділитися */}
+                            <button
+                                onClick={handleShareExcel}
+                                className="flex-1 flex items-center justify-center gap-3 px-6 py-5 rounded-2xl font-bold text-[14px] transition-all hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-blue-500/20"
+                                style={{
+                                    background: 'linear-gradient(135deg, #0088CC 0%, #0066AA 100%)',
+                                    color: '#fff'
+                                }}
+                            >
+                                <Send size={20} />
+                                Поділитися
+                            </button>
+
+                            {/* Кнопка Завантажити */}
+                            <button
+                                onClick={handleDownloadExcel}
+                                className="flex-1 flex items-center justify-center gap-3 px-6 py-5 rounded-2xl font-bold text-[14px] transition-all hover:scale-[1.02] active:scale-[0.98] bg-white/5 border border-white/10 hover:bg-white/10 text-white"
+                            >
+                                <Download size={20} className="text-[#58A6FF]" />
+                                Завантажити
+                            </button>
                         </div>
                     </div>
 
@@ -117,34 +143,39 @@ export const ShareOptionsModal = ({ isOpen, items, onClose, onShare }: ShareOpti
                             </button>
                         </div>
 
-                        <div className="bg-[#0D1117] border border-[#3A3A3A] rounded-xl p-4 font-mono text-[11px] text-[#E6EDF3] leading-relaxed whitespace-pre-wrap max-h-[400px] overflow-y-auto custom-scrollbar">
-                            {messagePreview}
+                        <div className="bg-[#0D1117] border border-[#3A3A3A] rounded-xl p-5 font-sans text-[13px] text-[#E6EDF3] leading-relaxed max-h-[400px] overflow-y-auto custom-scrollbar">
+                            <div className="space-y-4">
+                                {Object.entries(groupedByCategory).map(([category, data]: any) => (
+                                    <div key={category} className="space-y-1">
+                                        <div className="font-black text-[#58A6FF] border-b border-white/5 pb-1 mb-2">
+                                            {category.toUpperCase()}: {data.totalKg} кг
+                                        </div>
+                                        <div className="pl-2 space-y-1.5 opacity-90">
+                                            {data.items.map((item: any, idx: number) => (
+                                                <div key={idx} className="flex justify-between items-center text-[12px]">
+                                                    <span>• {item.productName}</span>
+                                                    <span className="font-bold text-[#52E8FF]">{item.kg} кг</span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                ))}
+                                {Object.keys(groupedByCategory).length === 0 && (
+                                    <p className="text-center opacity-40 py-8">Немає вибраних товарів</p>
+                                )}
+                            </div>
                         </div>
                     </div>
                 </div>
 
                 {/* Footer */}
                 <div className="px-6 py-4 border-t border-[#3A3A3A] bg-[#111823] rounded-b-2xl">
-                    <div className="flex items-center justify-between gap-4">
+                    <div className="flex items-center justify-center">
                         <button
                             onClick={onClose}
-                            className="px-6 py-2.5 bg-[#252526] border border-[#3A3A3A] rounded-lg text-[12px] font-bold text-[#E6EDF3] hover:bg-[#2D2D2D] hover:border-[#44454A] transition-all"
+                            className="px-10 py-2.5 bg-[#252526] border border-[#3A3A3A] rounded-lg text-[12px] font-bold text-[#E6EDF3] hover:bg-[#2D2D2D] hover:border-[#44454A] transition-all"
                         >
-                            Назад
-                        </button>
-
-                        <button
-                            onClick={handleShare}
-                            disabled={!selectedPlatform}
-                            className={cn(
-                                "flex items-center gap-2 px-6 py-2.5 rounded-lg text-[12px] font-bold transition-all",
-                                selectedPlatform
-                                    ? "bg-[#58A6FF] text-white hover:bg-[#4A9EEE] shadow-lg shadow-[#58A6FF]/20"
-                                    : "bg-[#252526] border border-[#3A3A3A] text-[#8B949E] cursor-not-allowed"
-                            )}
-                        >
-                            <Send size={14} />
-                            Відправити
+                            Закрити
                         </button>
                     </div>
                 </div>

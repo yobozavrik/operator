@@ -65,6 +65,8 @@ export interface PriorityHierarchy {
     label: string;
     emoji: string;
     color: string;
+    colorDark?: string;
+    glow?: string;
     totalKg: number;
     categoriesCount: number;
     categories: CategoryGroup[];
@@ -72,8 +74,14 @@ export interface PriorityHierarchy {
 
 export interface BI_Metrics {
     shopLoad: number;
-    personnel: number;
-    criticalSKUs: number;
+    staffCount: number;
+    criticalSKU: number;
+    highSKU: number;
+    reserveSKU: number;
+    criticalWeight: number;
+    highWeight: number;
+    reserveWeight: number;
+    totalSKU: number;
     aiEfficiency: number;
     lastUpdate: string;
 }

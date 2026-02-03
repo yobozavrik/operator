@@ -1,16 +1,23 @@
 @import "tailwindcss";
 
 :root {
-  --background: #050B09;
-  --foreground: #ECFDF5;
-  --panel: #0F1F19;
-  --border: #1D332B;
-  --text-primary: #ECFDF5;
-  --text-muted: #6E8C83;
-  --status-critical: #F87171;
-  --status-high: #FBBF24;
-  --status-reserve: #A78BFA;
-  --status-normal: #34D399;
+  /* OCEAN THEME: Deep Navy & Periwinkle */
+  --background: #0A1931;
+  --foreground: #F6FAFD;
+
+  --panel: #112240;
+  --border: #1A3D63;
+
+  --text-primary: #F6FAFD;
+  --text-muted: #B3CFE5;
+
+  /* Status Colors */
+  --status-critical: #EF4444;
+  --status-high: #F59E0B;
+  --status-reserve: #64FFDA;
+  /* Cyan Pop */
+  --status-normal: #10B981;
+  /* Emerald */
 
   --radius-panel: 16px;
   --page-margin: 40px;
@@ -32,13 +39,13 @@
 }
 
 .bi-panel {
-  @apply bg-[#0F1F19]/60 backdrop-blur-xl border border-[#1D332B] shadow-2xl;
-  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+  @apply bg-[#112240]/60 backdrop-blur-xl border border-[#1A3D63] shadow-2xl;
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
 }
 
 .bi-glow-red {
   box-shadow: 0 0 15px rgba(248, 113, 113, 0.2);
-  @apply border-[#F87171]/50;
+  @apply border-[#EF4444]/50;
 }
 
 .dot-neon {
@@ -47,7 +54,7 @@
 }
 
 .progress-bi-bg {
-  @apply h-1.5 w-full bg-[#1D332B] rounded-full overflow-hidden;
+  @apply h-1.5 w-full bg-[#1A3D63] rounded-full overflow-hidden;
 }
 
 .progress-bi-fill {
@@ -65,12 +72,12 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #1D332B;
+  background: #1A3D63;
   border-radius: 10px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #34D399;
+  background: #4A7FA7;
 }
 
 .custom-scrollbar::-webkit-scrollbar {
@@ -79,17 +86,17 @@
 }
 
 .custom-scrollbar::-webkit-scrollbar-track {
-  background: #050B09;
+  background: #0A1931;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: #1D332B;
+  background: #1A3D63;
   border-radius: 3px;
 }
 
 /* ... existing scrollbar styles ... */
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: #34D399;
+  background: #4A7FA7;
 }
 
 /* 💎 PREMIUM UI UTILITIES 💎 */
@@ -103,17 +110,18 @@
   height: 100%;
   pointer-events: none;
   z-index: 50;
-  opacity: 0.03;
+  opacity: 0.04;
+  /* Slightly higher for dark blue */
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
 }
 
-/* Advanced Glassmorphism */
+/* Advanced Glassmorphism (Blue Tint) */
 .glass-panel-premium {
-  @apply bg-[#0F1F19]/40 backdrop-blur-2xl border border-[#1D332B];
+  @apply bg-[#112240]/40 backdrop-blur-2xl border border-[#1A3D63];
   box-shadow:
-    0 4px 6px -1px rgba(0, 0, 0, 0.1),
-    0 24px 60px -12px rgba(5, 11, 9, 0.5),
-    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    0 4px 6px -1px rgba(0, 0, 0, 0.2),
+    0 24px 60px -12px rgba(10, 25, 49, 0.6),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
   /* Top highlight */
 }
 
@@ -124,7 +132,7 @@
   isolation: isolate;
 }
 
-/* The travelling light */
+/* The travelling light - Cyan/Blue tint */
 .spotlight-card::before {
   content: "";
   position: absolute;
@@ -132,7 +140,8 @@
   left: 0;
   right: 0;
   height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(52, 211, 153, 0.5), transparent);
+  background: linear-gradient(90deg, transparent, rgba(74, 127, 167, 0.8), transparent);
+  /* Ocean Blue Light */
   opacity: 0;
   transition: opacity 0.5s;
   transform: translateX(-100%);
@@ -173,4 +182,35 @@
   to {
     background-position: 200% 0;
   }
+}
+
+/* 🎭 ANIMATIONS 🎭 */
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.priority-card {
+  animation: fadeInUp 0.4s ease-out backwards;
+  /* backwards ensures initial state is hidden before delay */
+}
+
+.priority-card:nth-child(1) {
+  animation-delay: 0s;
+}
+
+.priority-card:nth-child(2) {
+  animation-delay: 0.1s;
+}
+
+.priority-card:nth-child(3) {
+  animation-delay: 0.2s;
 }

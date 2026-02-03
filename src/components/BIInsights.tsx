@@ -10,6 +10,7 @@ import { useStore } from '@/context/StoreContext';
 export const BIInsights = ({ queue }: { queue: ProductionTask[] }) => {
     const { selectedStore } = useStore();
     const [expandedStore, setExpandedStore] = useState<string | null>(null);
+    const [hoveredStore, setHoveredStore] = useState<string | null>(null);
 
     const insights = useMemo(() => {
         const criticalCount = queue.filter(t => t.priority === 'critical').length;
@@ -43,29 +44,62 @@ export const BIInsights = ({ queue }: { queue: ProductionTask[] }) => {
 
     return (
         <div className="flex flex-col gap-6 h-full font-sans">
+            {/* Main Header */}
+            <div className="flex items-center justify-center mb-0">
+                <h3 className="text-[14px] font-bold text-[#E74856] uppercase tracking-wider flex items-center gap-2">
+                    ⚠️ ЗВЕРНУТИ УВАГУ
+                </h3>
+            </div>
+
             {/* Top risk stores */}
-            <div className="bg-[#222325] border border-[#33343A] p-6 rounded-xl shadow-sm">
-                <div className="flex items-center gap-3 mb-5">
-                    <MapPin className="text-[#58A6FF]" size={16} />
-                    <h4 className="text-[12px] font-bold text-[#E6EDF3] tracking-tight">
+            <div className="bg-[#0a0e27] border border-[#3e4362] p-4 rounded-xl shadow-sm">
+                <div className="flex items-center gap-2 px-2 mb-3">
+                    <span className="text-[16px]">⚠️</span>
+                    <h4 className="text-[10px] font-semibold text-[#E6EDF3] uppercase tracking-wide">
                         {selectedStore === 'Усі' ? 'Магазини з ризиком OOS' : `Ризики: ${selectedStore}`}
                     </h4>
                 </div>
                 <div className="space-y-3">
                     {insights.topRiskStores.map(({ store, count, items }) => (
-                        <div key={store} className="flex flex-col bg-[#1A1A1A] rounded-lg border border-[#2B2B2B] overflow-hidden">
+                        <div key={store} className="relative group/card">
                             <button
                                 onClick={() => toggleStore(store)}
+                                onMouseEnter={() => setHoveredStore(store)}
+                                onMouseLeave={() => setHoveredStore(null)}
                                 aria-expanded={expandedStore === store}
-                                className="flex justify-between items-center p-3 hover:bg-white/[0.02] transition-colors w-full text-left"
+                                className="w-full px-5 py-4 mb-3 text-left rounded-xl transition-all duration-300 hover:translate-x-[2px] relative overflow-hidden"
+                                style={{
+                                    background: 'rgba(37, 45, 69, 0.6)',
+                                    backdropFilter: 'blur(10px)',
+                                    WebkitBackdropFilter: 'blur(10px)',
+                                    border: '1px solid rgba(255, 255, 255, 0.05)',
+                                    boxShadow: (expandedStore === store || hoveredStore === store)
+                                        ? '0 8px 24px rgba(0, 0, 0, 0.6), 0 0 20px rgba(231, 72, 86, 0.4)'
+                                        : '0 4px 12px rgba(0, 0, 0, 0.4)'
+                                }}
                             >
-                                <div className="flex items-center gap-2">
-                                    {expandedStore === store ? <ChevronDown size={14} className="text-[#8B949E]" /> : <ChevronRight size={14} className="text-[#8B949E]" />}
-                                    <span className="text-[12px] text-[#8B949E] font-medium">{store}</span>
+                                <div
+                                    className="absolute left-0 top-0 bottom-0 w-1 rounded-l-xl z-20"
+                                    style={{
+                                        background: 'linear-gradient(135deg, #E74856 0%, #C41E3A 100%)'
+                                    }}
+                                />
+                                <div className="flex items-center justify-between relative z-10">
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-[11px] font-semibold text-[#E6EDF3] uppercase tracking-wide">
+                                            {store}
+                                        </span>
+                                    </div>
+                                    <div className="flex items-center gap-3">
+                                        <span className="text-[13px] font-bold text-[#FF4B4B] drop-shadow-[0_0_8px_rgba(255,75,75,0.4)]">
+                                            {count} OOS
+                                        </span>
+                                        {expandedStore === store ?
+                                            <ChevronDown size={14} className="text-white/40" /> :
+                                            <ChevronRight size={14} className="text-white/40" />
+                                        }
+                                    </div>
                                 </div>
-                                <span className="text-[11px] font-extrabold" style={{ color: UI_TOKENS.colors.priority.critical }}>
-                                    {count} OOS
-                                </span>
                             </button>
 
                             {expandedStore === store && (
@@ -112,6 +146,6 @@ export const BIInsights = ({ queue }: { queue: ProductionTask[] }) => {
                     Згенерувати
                 </button>
             </div>
-        </div>
+        </div >
     );
 };

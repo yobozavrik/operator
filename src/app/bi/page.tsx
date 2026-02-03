@@ -9,7 +9,7 @@ import { BIInsights } from '@/components/BIInsights';
 import { ProductionTask, BI_Metrics, SupabaseDeficitRow } from '@/types/bi';
 import { transformDeficitData } from '@/lib/transformers';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
-import { Users, AlertTriangle, TrendingUp, RotateCw, Activity, RefreshCw, BarChart2, Lightbulb } from 'lucide-react';
+import { Users, AlertTriangle, TrendingUp, RotateCw, Activity, RefreshCw, BarChart2 } from 'lucide-react';
 import { UI_TOKENS } from '@/lib/design-tokens';
 import { cn } from '@/lib/utils';
 
@@ -65,6 +65,33 @@ export default function BIDashboard() {
     }, [mutateDeficit, mutateMetrics, mutateAllProducts]);
 
     const [isRefreshing, setIsRefreshing] = React.useState(false);
+    const [currentTime, setCurrentTime] = React.useState<Date | null>(null);
+    const [showBreakdownModal, setShowBreakdownModal] = React.useState(false);
+
+    React.useEffect(() => {
+        setCurrentTime(new Date());
+        const timer = setInterval(() => setCurrentTime(new Date()), 1000);
+        return () => clearInterval(timer);
+    }, []);
+
+    // Format Date: "П'ятниця, 3 Лютого 2026"
+    const formattedDate = useMemo(() => {
+        if (!currentTime) return '';
+        const options: Intl.DateTimeFormatOptions = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
+        const parts = new Intl.DateTimeFormat('uk-UA', options).formatToParts(currentTime);
+
+        // Manual capitalization because CSS capitalize works on all words
+        const weekday = parts.find(p => p.type === 'weekday')?.value || '';
+        const day = parts.find(p => p.type === 'day')?.value || '';
+        const month = parts.find(p => p.type === 'month')?.value || '';
+        const year = parts.find(p => p.type === 'year')?.value || '';
+
+        const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+
+        return `${capitalize(weekday)}, ${day} ${capitalize(month)} ${year}`;
+    }, [currentTime]);
+
+    const formattedTime = currentTime?.toLocaleTimeString('uk-UA', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) || '00:00:00';
 
     const handleRefresh = async () => {
         setIsRefreshing(true);
@@ -118,81 +145,227 @@ export default function BIDashboard() {
     }
 
     return (
-        <DashboardLayout currentWeight={metrics.shopLoad} maxWeight={450}>
-            {/* BENTO GRID CONTAINER */}
-            <div className="max-w-[1600px] mx-auto min-h-[calc(100vh-140px)] p-6">
+        <DashboardLayout
+            currentWeight={metrics.shopLoad}
+            maxWeight={450}
+            fullHeight={true}
+        >
+            {/* FULL SCREEN FLEX CONTAINER */}
+            <div className="flex flex-col h-full overflow-hidden">
 
-                <div className="grid grid-cols-12 gap-6 h-full">
-
-                    {/* 1. HEADER & KPI ROW (Span 12) */}
-                    <div className="col-span-12 glass-panel-premium rounded-2xl p-6 flex flex-col md:flex-row justify-between items-center gap-6 relative overflow-hidden group/spotlight">
+                {/* 1. HEADER (Fixed) */}
+                <header className="flex-shrink-0 p-4 lg:p-6 pb-2 lg:pb-3">
+                    <div className="glass-panel-premium rounded-2xl p-1 relative overflow-hidden group/spotlight">
                         {/* Spotlight Effect */}
                         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover/spotlight:animate-shimmer pointer-events-none" />
 
-                        <div className="flex items-center gap-4 z-10">
-                            <div className="w-12 h-12 rounded-xl bg-[var(--status-normal)]/10 flex items-center justify-center border border-[var(--status-normal)]/20 shadow-[0_0_15px_rgba(52,211,153,0.2)]">
-                                <BarChart2 size={24} className="text-[var(--status-normal)]" />
+                        {/* Branding + Clock */}
+                        <div
+                            className="px-6 py-4 flex flex-col md:flex-row justify-between items-center gap-6 z-10"
+                            style={{
+                                background: 'rgba(26, 31, 58, 0.7)',
+                                backdropFilter: 'blur(12px)',
+                                WebkitBackdropFilter: 'blur(12px)',
+                                border: '1px solid rgba(255, 255, 255, 0.1)',
+                                borderBottom: '1px solid rgba(255, 255, 255, 0.15)',
+                                boxShadow: '0 4px 16px rgba(0, 0, 0, 0.3)',
+                                borderRadius: '12px'
+                            }}
+                        >
+                            {/* Left: Branding */}
+                            <div className="flex items-center gap-4">
+                                <div className="w-12 h-12 rounded-xl bg-[var(--status-normal)]/10 flex items-center justify-center border border-[var(--status-normal)]/20 shadow-[0_0_15px_rgba(52,211,153,0.2)]">
+                                    <BarChart2 size={24} className="text-[var(--status-normal)]" />
+                                </div>
+                                <div>
+                                    <h1 className="text-[24px] font-bold text-white tracking-wide uppercase">
+                                        ГАЛЯ БАЛУВАНА
+                                    </h1>
+                                    <p className="text-[11px] text-white/60 uppercase tracking-wider mt-1">
+                                        Виробничий контроль • Graviton
+                                    </p>
+                                </div>
                             </div>
-                            <div>
-                                <h1 className="text-2xl font-black text-[var(--foreground)] tracking-tight uppercase">
-                                    BI Production Hub
-                                </h1>
-                                <p className="text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-widest">
-                                    Realtime Analytics Engine
-                                </p>
+
+                            {/* Right: Date/Time */}
+                            <div className="text-right flex flex-col items-end">
+                                <div className="text-[13px] font-semibold text-white/80">
+                                    {formattedDate}
+                                </div>
+                                <div className="text-[20px] font-mono font-bold text-[#52E8FF] mt-1 drop-shadow-[0_0_8px_rgba(82,232,255,0.5)]">
+                                    {formattedTime}
+                                </div>
                             </div>
                         </div>
 
-                        <div className="flex flex-wrap gap-4 items-center z-10">
-                            <SmallKPI label="Загалом кг" value={Math.round(metrics.shopLoad)} icon={Activity} color={UI_TOKENS.colors.priority.normal} />
-                            <SmallKPI label="Критичні SKU" value={metrics.criticalSKUs} icon={AlertTriangle} color={UI_TOKENS.colors.priority.critical} />
-                            <SmallKPI label="Персонал" value={`${metrics.personnel} ПЕРС`} icon={Users} color={UI_TOKENS.colors.priority.reserve} />
-                            <SmallKPI label="Синхронізація" value={new Date(metrics.lastUpdate).toLocaleTimeString('uk-UA')} icon={RefreshCw} color={UI_TOKENS.colors.priority.high} />
+                        {/* Small KPI Strip */}
+                        <div className="px-6 py-3 flex flex-wrap gap-4 items-center justify-between z-10 border-t border-white/5 mt-1">
+                            <div className="flex gap-4">
+                                <button
+                                    onClick={() => setShowBreakdownModal(true)}
+                                    className="transition-transform hover:scale-105 active:scale-95"
+                                >
+                                    <SmallKPI label="Загалом кг" value={Math.round(metrics.shopLoad)} icon={Activity} color={UI_TOKENS.colors.priority.normal} />
+                                </button>
+                                <SmallKPI label="Критичні SKU" value={metrics.criticalSKU} icon={AlertTriangle} color={UI_TOKENS.colors.priority.critical} />
+                            </div>
 
-                            <button
-                                onClick={handleRefresh}
-                                disabled={isRefreshing}
-                                className="p-3 bg-[var(--panel)] hover:bg-[var(--border)] text-[var(--text-muted)] hover:text-[var(--status-normal)] rounded-xl border border-[var(--border)] transition-all disabled:opacity-50 shadow-lg hover:shadow-[0_0_15px_rgba(52,211,153,0.1)] active:scale-95"
-                                title="Оновити залишки"
-                            >
-                                <RotateCw size={18} className={isRefreshing ? "animate-spin" : ""} />
-                            </button>
+                            <div className="flex gap-4 items-center">
+                                <p className="text-[10px] text-white/40 uppercase tracking-widest font-bold">
+                                    Оновлено: {new Date(metrics.lastUpdate).toLocaleTimeString('uk-UA')}
+                                </p>
+                                <button
+                                    onClick={handleRefresh}
+                                    disabled={isRefreshing}
+                                    className="p-2 bg-[var(--panel)] hover:bg-[var(--border)] text-[var(--text-muted)] hover:text-[var(--status-normal)] rounded-lg border border-[var(--border)] transition-all disabled:opacity-50 active:scale-95"
+                                >
+                                    <RotateCw size={14} className={isRefreshing ? "animate-spin" : ""} />
+                                </button>
+                            </div>
                         </div>
                     </div>
+                </header>
 
-                    {/* 2. MAIN MATRIX (Span 8) */}
-                    <div className="col-span-12 lg:col-span-8 glass-panel-premium rounded-2xl p-1 flex flex-col h-[600px] lg:h-auto overflow-hidden">
-                        <div className="flex-1 overflow-hidden relative">
+                {/* 2. MAIN CONTENT (Flexible) */}
+                <main className="flex-1 min-h-0 p-4 lg:p-6 pt-0 lg:pt-0">
+                    <div className="grid grid-cols-12 gap-6 h-full">
+                        {/* Main Matrix (Takes most space) */}
+                        <div className="col-span-12 lg:col-span-9 h-full flex flex-col overflow-hidden glass-panel-premium rounded-2xl p-1">
                             <ErrorBoundary>
                                 <BIPowerMatrix deficitQueue={deficitQueue} allProductsQueue={allProductsQueue} />
                             </ErrorBoundary>
                         </div>
-                    </div>
 
-                    {/* 3. INSIGHTS PANEL (Span 4) */}
-                    <div className="col-span-12 lg:col-span-4 glass-panel-premium rounded-2xl p-6 flex flex-col h-[600px] lg:h-auto">
-                        <div className="flex items-center gap-2 mb-6">
-                            <Lightbulb size={16} className="text-[var(--status-reserve)]" />
-                            <h2 className="text-[13px] font-bold text-[var(--foreground)] tracking-[0.2em] uppercase">
-                                AI Insights
+                        {/* Insights (Side panel if there's room) */}
+                        <div className="hidden lg:flex lg:col-span-3 h-full flex-col overflow-hidden">
+                            <div className="glass-panel-premium rounded-2xl p-4 flex flex-col h-full">
+                                <h3 className="text-[11px] font-bold text-white uppercase tracking-widest mb-4 opacity-60">Оперативна Аналітика</h3>
+                                <div className="flex-1 overflow-y-auto custom-scrollbar">
+                                    <ErrorBoundary>
+                                        <BIInsights queue={deficitQueue} />
+                                    </ErrorBoundary>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </main>
+
+                {/* Breakdown Modal */}
+                {showBreakdownModal && (
+                    <div
+                        className="fixed inset-0 z-[100] flex items-center justify-center p-4"
+                        style={{
+                            background: 'rgba(0, 0, 0, 0.7)',
+                            backdropFilter: 'blur(8px)',
+                            WebkitBackdropFilter: 'blur(8px)'
+                        }}
+                        onClick={() => setShowBreakdownModal(false)}
+                    >
+                        <div
+                            className="relative w-full max-w-[500px] max-h-[90vh] flex flex-col rounded-2xl p-6 overflow-y-auto custom-scrollbar"
+                            style={{
+                                background: 'rgba(26, 31, 58, 0.95)',
+                                backdropFilter: 'blur(20px)',
+                                WebkitBackdropFilter: 'blur(20px)',
+                                border: '1px solid rgba(255, 255, 255, 0.1)',
+                                boxShadow: '0 20px 60px rgba(0, 0, 0, 0.5)'
+                            }}
+                            onClick={(e) => e.stopPropagation()}
+                        >
+                            <h2 className="text-[18px] font-bold text-white mb-6">
+                                📊 Розбивка по пріоритетам
                             </h2>
-                        </div>
 
-                        <div className="flex-1 overflow-y-auto custom-scrollbar -mr-2 pr-2">
-                            <ErrorBoundary>
-                                <BIInsights queue={deficitQueue} />
-                            </ErrorBoundary>
+                            <div className="mb-4 p-4 rounded-xl" style={{
+                                background: 'rgba(231, 72, 86, 0.1)',
+                                border: '1px solid rgba(231, 72, 86, 0.3)'
+                            }}>
+                                <div className="flex items-center justify-between mb-2">
+                                    <span className="text-[14px] font-semibold text-[#E74856]">
+                                        🔴 КРИТИЧНО
+                                    </span>
+                                    <span className="text-[16px] font-bold text-[#E74856]">
+                                        {Math.round(metrics.criticalWeight)} кг
+                                    </span>
+                                </div>
+                                <div className="text-[11px] text-white/60">
+                                    товару немає — {metrics.criticalSKU} SKU
+                                </div>
+                            </div>
+
+                            <div className="mb-4 p-4 rounded-xl" style={{
+                                background: 'rgba(255, 192, 0, 0.1)',
+                                border: '1px solid rgba(255, 192, 0, 0.3)'
+                            }}>
+                                <div className="flex items-center justify-between mb-2">
+                                    <span className="text-[14px] font-semibold text-[#FFC000]">
+                                        🟠 ВИСОКИЙ
+                                    </span>
+                                    <span className="text-[16px] font-bold text-[#FFC000]">
+                                        {Math.round(metrics.highWeight)} кг
+                                    </span>
+                                </div>
+                                <div className="text-[11px] text-white/60">
+                                    майже закінчилось — {metrics.highSKU} SKU
+                                </div>
+                            </div>
+
+                            <div className="mb-6 p-4 rounded-xl" style={{
+                                background: 'rgba(0, 188, 242, 0.1)',
+                                border: '1px solid rgba(0, 188, 242, 0.3)'
+                            }}>
+                                <div className="flex items-center justify-between mb-2">
+                                    <span className="text-[14px] font-semibold text-[#00BCF2]">
+                                        🔵 РЕЗЕРВ
+                                    </span>
+                                    <span className="text-[16px] font-bold text-[#00BCF2]">
+                                        {Math.round(metrics.reserveWeight)} кг
+                                    </span>
+                                </div>
+                                <div className="text-[11px] text-white/60">
+                                    нижче мінімального — {metrics.reserveSKU} SKU
+                                </div>
+                            </div>
+
+                            <div className="pt-4 border-t border-white/10">
+                                <div className="flex items-center justify-between">
+                                    <span className="text-[14px] font-bold text-white">
+                                        ВСЬОГО:
+                                    </span>
+                                    <span className="text-[20px] font-bold text-[#52E8FF]">
+                                        {Math.round(metrics.shopLoad)} кг
+                                    </span>
+                                </div>
+                                <div className="text-[11px] text-white/50 text-right mt-1">
+                                    {metrics.totalSKU} SKU
+                                </div>
+                            </div>
+
+                            <button
+                                onClick={() => setShowBreakdownModal(false)}
+                                className="mt-6 w-full px-6 py-3 rounded-xl font-semibold bg-white/5 border border-white/20 text-white hover:bg-white/10 transition-all"
+                            >
+                                Закрити
+                            </button>
                         </div>
                     </div>
-
-                </div>
+                )}
             </div>
         </DashboardLayout>
     );
 }
 
 const SmallKPI = ({ label, value, icon: Icon, color }: { label: string; value: string | number; icon: React.ElementType; color: string }) => (
-    <div className="group relative flex items-center gap-3 px-5 py-3 bg-[var(--background)]/50 border border-[var(--border)] rounded-xl shadow-lg transition-all duration-300 hover:scale-105 hover:border-[var(--text-muted)] hover:shadow-[0_0_20px_rgba(0,0,0,0.3)] overflow-hidden">
+    <div
+        className="group relative flex items-center gap-3 px-5 py-3 rounded-xl transition-all duration-300 hover:scale-105 hover:shadow-[0_0_20px_rgba(0,0,0,0.3)] overflow-hidden"
+        style={{
+            background: 'rgba(26, 31, 58, 0.6)',
+            backdropFilter: 'blur(10px)',
+            WebkitBackdropFilter: 'blur(10px)',
+            border: '1px solid rgba(255, 255, 255, 0.1)',
+            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)'
+        }}
+    >
         {/* Shimmer on hover */}
         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:animate-shimmer pointer-events-none" />
 

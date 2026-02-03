@@ -10,6 +10,7 @@ import { StoreSpecificView } from './StoreSpecificView';
 import { OrderConfirmationModal } from './OrderConfirmationModal';
 import { ShareOptionsModal } from './ShareOptionsModal';
 import { OrderItem, SharePlatform } from '@/types/order';
+import { generateExcel, groupItemsByCategory } from '@/lib/order-export';
 
 const CATEGORY_EMOJI: Record<string, string> = {
   'ВАРЕНИКИ': '🥟',
@@ -44,8 +45,9 @@ export const BIPowerMatrix = ({ deficitQueue, allProductsQueue }: Props) => {
   const [selectedStores, setSelectedStores] = useState<Map<string, boolean>>(new Map());
 
   // Modal states
-  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [isOrderModalOpen, setIsOrderModalOpen] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
+  const [orderData, setOrderData] = useState<any>(null);
   const [orderItems, setOrderItems] = useState<OrderItem[]>([]);
 
   // Вибираємо правильний датасет залежно від режиму
@@ -114,14 +116,35 @@ export const BIPowerMatrix = ({ deficitQueue, allProductsQueue }: Props) => {
       productMap.get(productId)!.push(item);
     });
 
-    const priorityConfigs: { key: PriorityKey; label: string }[] = [
-      { key: 'critical', label: 'Критично (товару немає)' },
-      { key: 'high', label: 'Важливо (ходовий товар)' },
-      { key: 'reserve', label: 'Рекомендовано (зробити наперед)' }
-    ];
+    const priorityConfigs = [
+      {
+        key: 'critical',
+        label: 'КРИТИЧНО (товару немає)',
+        emoji: '🔴',
+        color: '#E74856',
+        colorDark: '#C41E3A',
+        glow: '#FF6B6B'
+      },
+      {
+        key: 'high',
+        label: 'ВАЖЛИВО (ходовий товар)',
+        emoji: '🟠',
+        color: '#FFC000',
+        colorDark: '#FF8C00',
+        glow: '#FFD700'
+      },
+      {
+        key: 'reserve',
+        label: 'РЕКОМЕНДОВАНО (зробити наперед)',
+        emoji: '🔵',
+        color: '#007BA7',
+        colorDark: '#005F8C',
+        glow: '#00BCF2'
+      }
+    ] as const;
 
     return priorityConfigs.map(config => {
-      const categoryMap = priorityMap.get(config.key);
+      const categoryMap = priorityMap.get(config.key as PriorityKey);
       if (!categoryMap || categoryMap.size === 0) return null;
 
       const categories: CategoryGroup[] = [];
@@ -161,8 +184,10 @@ export const BIPowerMatrix = ({ deficitQueue, allProductsQueue }: Props) => {
       return {
         key: config.key,
         label: config.label,
-        emoji: '',
-        color: String(UI_TOKENS.colors.priority[config.key] || '#8B949E'),
+        emoji: config.emoji,
+        color: config.color,
+        colorDark: config.colorDark,
+        glow: config.glow,
         totalKg: Math.round(totalKg),
         categoriesCount: categories.length,
         categories: categories.sort((a, b) => b.totalKg - a.totalKg)
@@ -256,7 +281,7 @@ export const BIPowerMatrix = ({ deficitQueue, allProductsQueue }: Props) => {
   };
 
   // 5. Функція відправки
-  const submitOrder = () => {
+  const handleFormOrder = () => {
     const items: OrderItem[] = [];
 
     hierarchy.forEach((priority: PriorityHierarchy) => {
@@ -272,6 +297,7 @@ export const BIPowerMatrix = ({ deficitQueue, allProductsQueue }: Props) => {
                 category: item.category,
                 storeName: store.storeName,
                 quantity: store.recommendedKg,
+                kg: store.recommendedKg, // For user's Step 4
                 priority: item.priority
               });
             }
@@ -285,13 +311,20 @@ export const BIPowerMatrix = ({ deficitQueue, allProductsQueue }: Props) => {
       return;
     }
 
-    setOrderItems(items);
-    setShowConfirmModal(true);
+    const order = {
+      date: new Date().toLocaleDateString('uk-UA'),
+      totalKg: selectedWeight,
+      items: items.filter(item => item.kg > 0)
+    };
+
+    setOrderData(order);
+    setOrderItems(order.items); // Keep for compatibility with existing modals
+    setIsOrderModalOpen(true);
   };
 
   const handleConfirmOrder = (confirmedItems: OrderItem[]) => {
     setOrderItems(confirmedItems);
-    setShowConfirmModal(false);
+    setIsOrderModalOpen(false);
     setShowShareModal(true);
   };
 
@@ -328,6 +361,20 @@ export const BIPowerMatrix = ({ deficitQueue, allProductsQueue }: Props) => {
     return Math.round(total);
   }, [hierarchy]);
 
+  // Группировка по категориям
+  const groupedByCategory = useMemo(() => {
+    const groups = groupItemsByCategory(orderData?.items || []);
+    // Добавляем эмодзи для UI
+    const groupsWithEmoji: Record<string, any> = {};
+    Object.entries(groups).forEach(([cat, data]) => {
+      groupsWithEmoji[cat] = {
+        ...data,
+        emoji: getEmoji(cat)
+      };
+    });
+    return groupsWithEmoji;
+  }, [orderData]);
+
   // ============================================================================
   // CONDITIONAL RENDERING (after all hooks are called)
   // ============================================================================
@@ -337,30 +384,26 @@ export const BIPowerMatrix = ({ deficitQueue, allProductsQueue }: Props) => {
   }
 
   return (
-    <div className="flex flex-col h-full w-full font-sans">
+    <div className="flex flex-col h-full w-full font-sans overflow-hidden">
       {/* Header with weight counter */}
-      <div className="px-6 py-5 border-b border-[var(--border)]/50 bg-[var(--background)]/40 backdrop-blur-md sticky top-0 z-20">
+      <header className="flex-shrink-0 px-4 py-3 border-b border-[#3e4362] bg-gradient-to-r from-[#1a1f3a] to-[#0a0e27] z-20">
         <div className="flex items-center justify-between">
           <h3 className="text-[14px] font-black uppercase tracking-tighter text-[var(--foreground)] flex items-center gap-2">
             📋 {selectedWeight > 0 ? `Замовлення на ${selectedWeight} кг` : 'Формування замовлення'}
           </h3>
-          <div className="flex flex-col items-end">
-            <span className="text-[10px] text-[var(--text-muted)] uppercase font-bold tracking-widest leading-none mb-1">Вибрано до виробництва</span>
-            <div className="flex items-baseline gap-1">
-              <span className={cn(
-                "text-2xl font-black leading-none tabular-nums tracking-tighter",
-                selectedWeight > 0 ? "text-[var(--status-normal)] drop-shadow-sm" : "text-[var(--text-muted)]"
-              )}>
-                {selectedWeight}
-              </span>
-              <span className="text-[10px] text-[var(--text-muted)] font-bold">кг</span>
-            </div>
+          <div className="flex items-center gap-2">
+            <div className="h-2 w-2 rounded-full bg-[#52e8ff] animate-pulse"></div>
+            <span className="text-[11px] text-[#8b949e]">
+              Вибрано: <span className={`font-bold ${selectedWeight > 450 ? 'text-[#e74856]' : 'text-[#52e8ff]'}`}>
+                {selectedWeight} кг
+              </span> / 450 кг
+            </span>
           </div>
         </div>
-      </div>
+      </header>
 
-      {/* Content */}
-      <div className="flex-1 overflow-y-auto custom-scrollbar">
+      {/* Main Content (scrollable) */}
+      <main className="flex-1 overflow-y-auto custom-scrollbar">
         {hierarchy.map((priority: PriorityHierarchy) => {
           const isPriorityExpanded = expandedPriorities.has(priority.key);
 
@@ -368,31 +411,60 @@ export const BIPowerMatrix = ({ deficitQueue, allProductsQueue }: Props) => {
             <div key={priority.key} className="border-b border-[var(--border)]/50 last:border-0">
               {/* Priority Header */}
               <div
-                className="px-6 py-4 bg-[var(--panel)]/50 hover:bg-[var(--panel)] cursor-pointer flex items-center justify-between transition-colors border-b border-[var(--border)]/30"
+                className="priority-card m-3 px-5 py-4 rounded-xl cursor-pointer flex flex-col transition-all duration-300 hover:translate-y-[-2px] border-b border-white/5 hover:shadow-[0_8px_24px_var(--priority-shadow)]"
+                style={{
+                  background: `linear-gradient(135deg, ${priority.color}66 0%, ${priority.colorDark}66 100%)`,
+                  backdropFilter: 'blur(10px)',
+                  WebkitBackdropFilter: 'blur(10px)',
+                  borderLeft: `4px solid ${priority.glow}`,
+                  border: '1px solid rgba(255, 255, 255, 0.1)',
+                  boxShadow: '0 8px 24px rgba(0, 0, 0, 0.4)',
+                  //@ts-ignore
+                  '--priority-shadow': `${priority.glow}50`
+                }}
                 onClick={() => togglePriority(priority.key)}
                 role="button"
                 aria-expanded={isPriorityExpanded}
                 tabIndex={0}
                 onKeyDown={(e) => e.key === 'Enter' && togglePriority(priority.key)}
               >
-                <div className="flex items-center gap-3">
-                  {isPriorityExpanded ?
-                    <ChevronDown size={16} className="text-[var(--text-muted)]" /> :
-                    <ChevronRight size={16} className="text-[var(--text-muted)]" />
-                  }
-                  <span
-                    className="text-[12px] font-black uppercase tracking-wider"
-                    style={{ color: priority.color }}
-                  >
-                    {priority.label}
-                  </span>
-                  <span className="text-[10px] text-[var(--text-muted)] font-semibold">
-                    ({priority.categoriesCount} кат.)
-                  </span>
+                <div className="flex items-center justify-between w-full">
+                  <div className="flex items-center gap-3">
+                    {isPriorityExpanded ?
+                      <ChevronDown size={20} className="text-[var(--text-muted)]" /> :
+                      <ChevronRight size={20} className="text-[var(--text-muted)]" />
+                    }
+
+                    <div className="flex items-center gap-2">
+                      <span className="text-[20px]">{priority.emoji}</span>
+                      <div>
+                        <div className="text-[11px] font-bold uppercase tracking-wider text-white">
+                          {priority.label.split('(')[0]}
+                        </div>
+                        <div className="text-[9px] text-white/70 mt-0.5">
+                          {priority.label.match(/\((.*?)\)/)?.[1] || ''}
+                        </div>
+                      </div>
+                    </div>
+
+                    <span className="text-[10px] text-[var(--text-muted)] font-semibold ml-2">
+                      ({priority.categoriesCount} кат.)
+                    </span>
+                  </div>
+                  {/* Weight removed from top right as it is now in stats */}
                 </div>
-                <span className="text-[14px] font-black text-[var(--foreground)]">
-                  {priority.totalKg} кг
-                </span>
+
+                {/* Статистика (внизу карточки) */}
+                <div className="flex items-center gap-6 mt-3 pt-3 border-t border-white/20">
+                  <div className="flex items-center gap-2">
+                    <span className="text-[9px] text-white/60 uppercase tracking-wide">Вага:</span>
+                    <span className="text-[14px] font-bold text-white">{priority.totalKg} кг</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[9px] text-white/60 uppercase tracking-wide">Категорії:</span>
+                    <span className="text-[12px] font-semibold text-white">{priority.categoriesCount}</span>
+                  </div>
+                </div>
               </div>
 
               {/* Categories */}
@@ -404,7 +476,7 @@ export const BIPowerMatrix = ({ deficitQueue, allProductsQueue }: Props) => {
                   <div key={categoryKey} className="border-b border-[var(--border)]/10 last:border-0">
                     {/* Category Row */}
                     <div
-                      className="pl-10 pr-6 py-3 hover:bg-[var(--panel)] cursor-pointer flex items-center justify-between transition-colors"
+                      className="mx-2 my-1 pl-8 pr-4 py-2.5 rounded-lg hover:bg-[#2a2f4a] cursor-pointer flex items-center justify-between transition-all duration-200"
                       onClick={() => toggleCategory(priority.key, category.categoryName as SKUCategory)}
                       role="button"
                       aria-expanded={isCategoryExpanded}
@@ -416,7 +488,6 @@ export const BIPowerMatrix = ({ deficitQueue, allProductsQueue }: Props) => {
                           <ChevronDown size={14} className="text-[var(--text-muted)]" /> :
                           <ChevronRight size={14} className="text-[var(--text-muted)]" />
                         }
-                        <span className="text-[14px]">{category.emoji}</span>
                         <span className="text-[12px] font-bold text-[var(--foreground)]">
                           {category.categoryName}
                         </span>
@@ -424,7 +495,15 @@ export const BIPowerMatrix = ({ deficitQueue, allProductsQueue }: Props) => {
                           ({category.itemsCount} поз.)
                         </span>
                       </div>
-                      <span className="text-[13px] font-black text-[var(--status-normal)]">
+                      <span
+                        className="text-[13px] font-black"
+                        style={{
+                          background: 'linear-gradient(135deg, #E74856 0%, #FF6B6B 100%)',
+                          WebkitBackgroundClip: 'text',
+                          WebkitTextFillColor: 'transparent',
+                          backgroundClip: 'text'
+                        }}
+                      >
                         {category.totalKg} кг
                       </span>
                     </div>
@@ -497,7 +576,7 @@ export const BIPowerMatrix = ({ deficitQueue, allProductsQueue }: Props) => {
                                       <button
                                         onClick={() => toggleStoreSelection(item.productCode, store.storeName)}
                                         className={cn(
-                                          "w-3.5 h-3.5 rounded border flex items-center justify-center transition-all",
+                                          "w-3.5 h-3.5 rounded border flex items-center justify-center transition-all mt-0.5",
                                           isSelected
                                             ? "bg-[var(--status-normal)] border-[var(--status-normal)]"
                                             : "border-[var(--border)] hover:border-[var(--status-normal)]"
@@ -508,16 +587,29 @@ export const BIPowerMatrix = ({ deficitQueue, allProductsQueue }: Props) => {
                                       >
                                         {isSelected && <CheckCircle2 size={8} className="text-white" />}
                                       </button>
-                                      <span className="text-[10px] text-[var(--text-muted)]">
-                                        {store.storeName}
-                                      </span>
+
+                                      <div>
+                                        <div className="flex items-center justify-between text-[12px] mb-1">
+                                          <span className="text-white/50">🏪 {store.storeName}</span>
+                                          <div className="font-mono">
+                                            <span className="text-white/60">факт:</span>{' '}
+                                            <span className={store.currentStock < 0 ? 'text-[#FF6B6B]' : 'text-[#52E8FF]'}>
+                                              {store.currentStock.toFixed(1)}
+                                            </span>
+                                            <span className="text-white/30 mx-1">→</span>
+                                            <span className="text-white/60">мін:</span>{' '}
+                                            <span className="text-[#FFB84D]">{store.minStock.toFixed(1)}</span>
+                                            <span className="text-white/30 mx-1">→</span>
+                                            <span className="text-white/60">треба:</span>{' '}
+                                            <span className="text-[#3FB950] font-bold">{store.recommendedKg}</span> кг
+                                          </div>
+                                        </div>
+                                      </div>
                                     </div>
+
                                     <div className="flex items-center gap-3">
-                                      <span className="text-[9px] text-[var(--status-critical)]">
-                                        -{store.deficitKg.toFixed(1)} кг
-                                      </span>
-                                      <span className="text-[11px] font-bold text-[var(--status-normal)]">
-                                        {store.recommendedKg.toFixed(1)} кг
+                                      <span className="text-[11px] font-bold text-[#58a6ff]">
+                                        {store.recommendedKg} кг
                                       </span>
                                     </div>
                                   </div>
@@ -534,18 +626,26 @@ export const BIPowerMatrix = ({ deficitQueue, allProductsQueue }: Props) => {
             </div>
           );
         })}
-      </div>
+      </main>
 
-      {/* Footer */}
-      <div className="px-6 py-4 border-t border-[var(--border)] bg-[var(--background)]/80">
+      {/* Footer (Fixed) */}
+      <footer className="flex-shrink-0 px-6 py-4 border-t border-[var(--border)] bg-[var(--background)]/80">
         <div className="flex gap-2">
           <button
             onClick={selectRecommended}
-            className="flex-1 px-4 py-2.5 bg-[#238636] hover:bg-[#2EA043] text-white text-[10px] font-black uppercase tracking-wider rounded-lg transition-all flex items-center justify-center gap-2 shadow-lg shadow-green-500/10"
+            className="flex-1 px-6 py-3 rounded-xl font-black text-[10px] uppercase tracking-wider transition-all duration-300 flex items-center justify-center gap-2"
+            style={{
+              background: 'rgba(63, 185, 80, 0.3)',
+              backdropFilter: 'blur(10px)',
+              WebkitBackdropFilter: 'blur(10px)',
+              border: '1px solid rgba(63, 185, 80, 0.4)',
+              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)',
+              color: '#3FB950'
+            }}
           >
             <CheckCircle2 size={14} />
-            Вибрати КРИТИЧНІ
-            <span className="text-white font-bold ml-1">{recommendedWeight} кг</span>
+            ВИБРАТИ КРИТИЧНІ
+            <span className="font-bold ml-1">{recommendedWeight} КГ</span>
           </button>
           <button
             onClick={clearSelection}
@@ -556,7 +656,7 @@ export const BIPowerMatrix = ({ deficitQueue, allProductsQueue }: Props) => {
         </div>
         <div className="flex items-center gap-2 mt-2">
           <button
-            onClick={submitOrder}
+            onClick={handleFormOrder}
             disabled={selectedStores.size === 0}
             className={cn(
               "flex-1 px-4 py-2.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all flex items-center justify-center gap-2",
@@ -569,22 +669,137 @@ export const BIPowerMatrix = ({ deficitQueue, allProductsQueue }: Props) => {
             Сформувати
           </button>
         </div>
-      </div>
+      </footer>
 
       {/* Modals */}
-      <OrderConfirmationModal
-        isOpen={showConfirmModal}
-        items={orderItems}
-        onClose={() => setShowConfirmModal(false)}
-        onConfirm={handleConfirmOrder}
-      />
+      {
+        isOrderModalOpen && (
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center"
+            style={{
+              background: 'rgba(0, 0, 0, 0.7)',
+              backdropFilter: 'blur(8px)'
+            }}
+            onClick={() => setIsOrderModalOpen(false)}
+          >
+            {/* Модальное окно */}
+            <div
+              className="relative w-[90vw] max-w-[600px] max-h-[80vh] flex flex-col rounded-2xl"
+              style={{
+                background: 'rgba(26, 31, 58, 0.95)',
+                backdropFilter: 'blur(20px)',
+                WebkitBackdropFilter: 'blur(20px)',
+                border: '1px solid rgba(255, 255, 255, 0.1)',
+                boxShadow: '0 20px 60px rgba(0, 0, 0, 0.5)'
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Header (фиксированный) */}
+              <div className="flex-shrink-0 p-6 pb-4">
+                <h2 className="text-[20px] font-bold text-white mb-2">
+                  ✓ Підтвердження замовлення
+                </h2>
+                <p className="text-[12px] text-white/60">
+                  Перевірте деталі перед відправкою в виробництво
+                </p>
+              </div>
+
+              {/* Scrollable content */}
+              <div className="flex-1 overflow-y-auto px-6 custom-scrollbar">
+                {/* Информация о заказе */}
+                <div className="mb-6 p-4 rounded-xl" style={{
+                  background: 'rgba(0, 0, 0, 0.2)',
+                  border: '1px solid rgba(255, 255, 255, 0.05)'
+                }}>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-[11px] text-white/60 uppercase">Дата:</span>
+                    <span className="text-[13px] font-semibold text-white">{orderData?.date}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] text-white/60 uppercase">Загальна вага:</span>
+                    <span className="text-[16px] font-bold text-[#52E8FF]">{orderData?.totalKg} кг</span>
+                  </div>
+                </div>
+
+                {/* Список товаров */}
+                <div className="mb-6">
+                  <h3 className="text-[12px] font-semibold text-white/80 uppercase mb-3">
+                    Товари до виробництва:
+                  </h3>
+
+                  {/* Группировка по категориям */}
+                  {Object.entries(groupedByCategory).map(([categoryName, categoryData]: any) => (
+                    <div key={categoryName} className="mb-4">
+                      {/* Категория + общий вес */}
+                      <div className="flex items-center justify-between mb-2 pb-2 border-b border-white/10">
+                        <div className="text-[13px] font-bold text-white">
+                          {categoryData.emoji} {categoryName}
+                        </div>
+                        <div className="text-[14px] font-bold text-[#52E8FF]">
+                          {categoryData.totalKg} кг
+                        </div>
+                      </div>
+
+                      {/* Товары внутри категории */}
+                      <div className="ml-4 space-y-2">
+                        {categoryData.items.map((item: any, idx: number) => (
+                          <div key={idx} className="flex items-center justify-between py-1.5 text-[11px]">
+                            <span className="text-white/70">• {item.productName}</span>
+                            <span className="font-semibold text-[#52E8FF]">{item.kg} кг</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Footer (фиксированный) */}
+              <div className="flex-shrink-0 p-8 border-t border-white/10">
+                <div className="flex items-center gap-3">
+                  {/* Кнопка СКАСУВАТИ */}
+                  <button
+                    className="flex-1 px-6 py-3 rounded-xl font-semibold transition-all duration-300 hover:bg-white/[0.1]"
+                    style={{
+                      background: 'rgba(255, 255, 255, 0.05)',
+                      border: '1px solid rgba(255, 255, 255, 0.1)',
+                      color: '#fff'
+                    }}
+                    onClick={() => setIsOrderModalOpen(false)}
+                  >
+                    ✕ СКАСУВАТИ
+                  </button>
+
+                  {/* Кнопка ПІДТВЕРДИТИ */}
+                  <button
+                    className="flex-1 px-6 py-3 rounded-xl font-semibold transition-all duration-300 hover:brightness-110 active:scale-[0.98]"
+                    style={{
+                      background: 'linear-gradient(135deg, #3FB950 0%, #2EA043 100%)',
+                      border: '1px solid rgba(63, 185, 80, 0.3)',
+                      color: '#fff',
+                      boxShadow: '0 4px 12px rgba(63, 185, 80, 0.3)'
+                    }}
+                    onClick={() => {
+                      console.log('Заказ подтверждён:', orderData);
+                      handleConfirmOrder(orderData?.items || []);
+                    }}
+                  >
+                    ✓ ПІДТВЕРДИТИ
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )
+      }
 
       <ShareOptionsModal
         isOpen={showShareModal}
         items={orderItems}
+        orderData={orderData}
         onClose={() => setShowShareModal(false)}
         onShare={handleShare}
       />
-    </div>
+    </div >
   );
 };

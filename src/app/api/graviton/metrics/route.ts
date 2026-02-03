@@ -5,29 +5,40 @@ export async function GET() {
     // Общая загрузка цеха
     const { data: deficitData, error: deficitError } = await supabase
         .from('dashboard_deficit')
-        .select('deficit_kg')
+        .select('recommended_kg, priority')
         .in('priority', [1, 2, 3])
 
     if (deficitError) {
         console.error('Deficit error:', deficitError)
     }
 
-    const totalDeficit = deficitData?.reduce((sum, row) => sum + (row.deficit_kg || 0), 0) || 0
+    const totalRecommended = deficitData?.reduce((sum, row) => sum + (row.recommended_kg || 0), 0) || 0
 
-    // Критические позиции
-    const { count: criticalCount, error: countError } = await supabase
-        .from('dashboard_deficit')
-        .select('*', { count: 'exact', head: true })
-        .eq('priority', 1)
+    // Критично (priority 1)
+    const criticalItems = deficitData?.filter(row => row.priority === 1) || [];
+    const criticalWeight = criticalItems.reduce((sum, row) => sum + (row.recommended_kg || 0), 0);
+    const criticalSKU = criticalItems.length;
 
-    if (countError) {
-        console.error('Count error:', countError)
-    }
+    // Високий (priority 2)
+    const highItems = deficitData?.filter(row => row.priority === 2) || [];
+    const highWeight = highItems.reduce((sum, row) => sum + (row.recommended_kg || 0), 0);
+    const highSKU = highItems.length;
+
+    // Резерв (priority 3)
+    const reserveItems = deficitData?.filter(row => row.priority === 3) || [];
+    const reserveWeight = reserveItems.reduce((sum, row) => sum + (row.recommended_kg || 0), 0);
+    const reserveSKU = reserveItems.length;
 
     return NextResponse.json({
-        shopLoad: totalDeficit,
-        personnel: 8,
-        criticalSKUs: criticalCount || 0,
+        shopLoad: totalRecommended,
+        criticalSKU,
+        staffCount: 8,
+        criticalWeight,
+        highWeight,
+        reserveWeight,
+        totalSKU: deficitData?.length || 0,
+        highSKU,
+        reserveSKU,
         aiEfficiency: 94.2,
         lastUpdate: new Date().toISOString()
     })

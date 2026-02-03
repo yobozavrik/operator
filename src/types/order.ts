@@ -7,6 +7,7 @@ export interface OrderItem {
     category: SKUCategory;
     storeName: string;
     quantity: number;
+    kg: number;
     priority: PriorityKey;
 }
 

@@ -5,24 +5,25 @@
 
 export const UI_TOKENS = {
     colors: {
-        background: '#050B09', // Deep Forest Black
-        panel: '#0F1F19',      // Dark Emerald
-        border: '#1D332B',     // Jungle Green
-        text: {
-            primary: '#ECFDF5', // Mint Ice
-            muted: '#6E8C83',   // Sage Grey
-        },
+        background: '#0A1931', // Deep Navy
+        panel: '#112240',      // Midnight Blue
+        border: '#1A3D63',     // Deep Sea Border
+        foreground: '#F6FAFD', // Ice White
+        muted: '#B3CFE5',      // Periwinkle
+        accent: '#4A7FA7',     // Ocean Blue
+
         priority: {
-            critical: '#F87171', // Soft Red
-            high: '#FBBF24',     // Warm Amber
-            reserve: '#A78BFA',  // Lavender (New "Recommended" color)
-            normal: '#34D399',   // Bright Mint
-        },
-        brand: {
-            primary: '#34D399',  // Mint
-            secondary: '#A78BFA' // Lavender
+            critical: '#EF4444', // Red
+            high: '#F59E0B',     // Amber
+            reserve: '#64FFDA',  // Cyan/Teal (Pop)
+            normal: '#10B981',   // Emerald
         }
     },
+    brand: {
+        primary: '#4A7FA7',  // Ocean Blue
+        secondary: '#64FFDA' // Cyan
+    },
+
     radius: {
         panel: '16px', // Slightly more rounded for organic feel
         component: '10px',
