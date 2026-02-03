@@ -1,5 +1,6 @@
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
+import https from 'https'
 
 export async function createClient() {
     const cookieStore = await cookies()
@@ -32,6 +33,20 @@ export async function createClient() {
                     }
                 },
             },
+            global: {
+                fetch: (url, options) => {
+                    const isHttps = typeof url === 'string' && url.startsWith('https')
+                    return fetch(url, {
+                        ...options,
+                        ...(isHttps && {
+                            // @ts-ignore - bypassing SSL for self-hosted instance
+                            agent: new https.Agent({
+                                rejectUnauthorized: false
+                            })
+                        })
+                    })
+                }
+            }
         }
     )
 }
