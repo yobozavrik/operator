@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
 import { SupabaseDeficitRow } from '@/types/bi';
-import { serverAuditLog } from '@/lib/logger';
+import { serverAuditLog } from '@/lib/logger.server';
 
 export async function GET(request: NextRequest) {
     // Log API access

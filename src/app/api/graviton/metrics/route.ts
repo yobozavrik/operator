@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/utils/supabase/server'
-import { serverAuditLog } from '@/lib/logger'
+import { serverAuditLog } from '@/lib/logger.server'
 
 export async function GET(request: NextRequest) {
     const supabase = await createClient();
