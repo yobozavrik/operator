@@ -6,23 +6,9 @@ import { ProductionTask, PriorityKey, SKUCategory, PriorityHierarchy, CategoryGr
 import { cn } from '@/lib/utils';
 import { UI_TOKENS } from '@/lib/design-tokens';
 
-const CATEGORY_EMOJI: Record<string, string> = {
-    'ВАРЕНИКИ': '🥟',
-    'ПЕЛЬМЕНІ': '🥢',
-    'ХІНКАЛІ': '🥡',
-    'ЧЕБУРЕКИ': '🌯',
-    'КОВБАСКИ': '🌭',
-    'ГОЛУБЦІ': '🥬',
-    'КОТЛЕТИ': '🥩',
-    'СИРНИКИ': '🥞',
-    'ФРИКАДЕЛЬКИ': '🧆',
-    'ЗРАЗИ': '🥔',
-    'ПЕРЕЦЬ ФАРШИРОВАНИЙ': '🫑',
-    'МЛИНЦІ': '🥞',
-    'БЕНДЕРИКИ': '🌮'
-};
+const CATEGORY_EMOJI: Record<string, string> = {};
 
-const getEmoji = (category: string) => CATEGORY_EMOJI[category.toUpperCase()] || '📦';
+const getEmoji = (category: string) => '';
 
 interface Props {
     queue: ProductionTask[];
@@ -116,7 +102,6 @@ export const StoreSpecificView = ({ queue, storeName }: Props) => {
                                         <ChevronDown size={16} className="text-[#8B949E]" /> :
                                         <ChevronRight size={16} className="text-[#8B949E]" />
                                     }
-                                    <span className="text-[16px]">{category.emoji}</span>
                                     <span className="text-[13px] font-bold text-[#E6EDF3]">
                                         {category.categoryName}
                                     </span>
