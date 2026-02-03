@@ -17,7 +17,7 @@ export async function GET() {
         }
 
         // Приводимо типи та нормалізуємо дані для фронтенду
-        const mappedData = (data || []).map((row) => ({
+        const mappedData = (data || []).map((row: SupabaseDeficitRow) => ({
             ...row,
             priority_label: row.priority === 1 ? 'critical' :
                 row.priority === 2 ? 'high' :
