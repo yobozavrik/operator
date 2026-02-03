@@ -11,7 +11,10 @@ console.log('🔧 Supabase Config:', {
 })
 
 if (!supabaseUrl || !supabaseAnonKey) {
-    throw new Error('Missing Supabase credentials! Check .env.local')
+    console.warn('⚠️ Supply Supabase credentials to .env.local to enable real data access.')
 }
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+export const supabase = createClient(
+    supabaseUrl || 'https://placeholder.supabase.co',
+    supabaseAnonKey || 'placeholder-key'
+)
