@@ -8,13 +8,13 @@ import { auditLog } from '@/lib/logger';
 import { useStore } from '@/context/StoreContext';
 
 const STORES_MENU = [
-    { label: 'Усі', icon: '🌍' },
-    { label: 'Магазин "Садгора"', icon: '🏪' },
-    { label: 'Магазин "Компас"', icon: '🏙️' },
-    { label: 'Магазин "Руська"', icon: '🏛️' },
-    { label: 'Магазин "Хотинська"', icon: '🛣️' },
-    { label: 'Магазин "Білоруська"', icon: '🌳' },
-    { label: 'Магазин "Кварц"', icon: '⚛️' },
+    { label: 'Усі' },
+    { label: 'Магазин "Садгора"' },
+    { label: 'Магазин "Компас"' },
+    { label: 'Магазин "Руська"' },
+    { label: 'Магазин "Хотинська"' },
+    { label: 'Магазин "Білоруська"' },
+    { label: 'Магазин "Кварц"' },
 ];
 
 const storeGradients = [
@@ -40,9 +40,32 @@ export const Sidebar = () => {
                 <div className="absolute top-0 left-0 w-full h-96 bg-gradient-to-b from-[#4A7FA7]/10 to-transparent pointer-events-none" />
 
                 <div className="px-6 mb-8 z-10">
-                    <div className="flex items-center gap-3 text-[var(--foreground)]">
-                        <div className="w-8 h-8 rounded-lg bg-[var(--status-reserve)]/80 flex items-center justify-center font-black text-sm text-[#0A1931] shadow-lg shadow-blue-900/50">G</div>
-                        <span className="font-bold text-lg tracking-tight uppercase text-[var(--foreground)]">Graviton</span>
+                    <div
+                        className="flex items-center gap-4 p-4 rounded-xl"
+                        style={{
+                            background: 'rgba(20, 27, 45, 0.8)',
+                            backdropFilter: 'blur(20px)',
+                            border: '1px solid rgba(0, 212, 255, 0.2)',
+                            boxShadow: '0 0 30px rgba(0, 212, 255, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.1)',
+                        }}
+                    >
+                        {/* Premium Logo Icon */}
+                        <div
+                            className="w-10 h-10 rounded-xl flex items-center justify-center"
+                            style={{
+                                background: 'linear-gradient(135deg, #00D4FF 0%, #0088FF 100%)',
+                                boxShadow: '0 0 20px rgba(0, 212, 255, 0.5)',
+                            }}
+                        >
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                                <path d="M12 2C8 2 6 6 6 10C6 14 8 18 12 22C16 18 18 14 18 10C18 6 16 2 12 2Z" fill="white" opacity="0.9" />
+                                <path d="M12 6C10 6 9 8 9 10C9 12 10 14 12 16C14 14 15 12 15 10C15 8 14 6 12 6Z" fill="rgba(0,136,255,0.5)" />
+                            </svg>
+                        </div>
+                        <div>
+                            <h1 className="text-[16px] font-bold text-white tracking-wide uppercase">GRAVITON</h1>
+                            <p className="text-[10px] text-[#00D4FF] uppercase tracking-widest">Production Hub</p>
+                        </div>
                     </div>
                 </div>
 
@@ -102,8 +125,7 @@ export const Sidebar = () => {
                                     />
                                 )}
 
-                                <div className="flex items-center gap-3 relative z-10">
-                                    <span className="text-lg">{item.icon}</span>
+                                <div className="relative z-10">
                                     <span
                                         className={cn(
                                             "text-[12px] font-semibold uppercase tracking-wide transition-all duration-300",
@@ -146,12 +168,13 @@ export const Sidebar = () => {
                         key={i}
                         onClick={() => setSelectedStore(item.label)}
                         className={cn(
-                            "flex flex-col items-center gap-1",
-                            selectedStore === item.label ? "text-[var(--status-normal)]" : "text-[var(--text-muted)]"
+                            "flex flex-col items-center gap-1 px-2 py-1 rounded-lg transition-all",
+                            selectedStore === item.label
+                                ? "text-[#00D4FF] bg-[#00D4FF]/10"
+                                : "text-[var(--text-muted)]"
                         )}
                     >
-                        <span className="text-lg">{item.icon}</span>
-                        <span className="text-[8px] font-black uppercase tracking-tighter">{item.label}</span>
+                        <span className="text-[9px] font-bold uppercase tracking-tight text-center leading-tight">{item.label.replace('Магазин ', '')}</span>
                     </button>
                 ))}
             </div>
