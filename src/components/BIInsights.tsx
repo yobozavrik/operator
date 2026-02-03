@@ -6,8 +6,10 @@ import { AlertCircle, TrendingUp, MapPin, ChevronDown, ChevronRight } from 'luci
 import { cn } from '@/lib/utils';
 import { UI_TOKENS } from '@/lib/design-tokens';
 import { useStore } from '@/context/StoreContext';
+import { PersonnelCard } from './PersonnelCard';
 
 export const BIInsights = ({ queue }: { queue: ProductionTask[] }) => {
+
     const { selectedStore } = useStore();
     const [expandedStore, setExpandedStore] = useState<string | null>(null);
     const [hoveredStore, setHoveredStore] = useState<string | null>(null);
@@ -132,6 +134,9 @@ export const BIInsights = ({ queue }: { queue: ProductionTask[] }) => {
                     <span className="text-[10px] text-[#8B949E] font-bold uppercase tracking-widest relative z-10">Аналіз в реальному часі...</span>
                 </div>
             </div>
+
+            {/* Personnel Card */}
+            <PersonnelCard />
 
             {/* Actions */}
             <div className="bg-[#222325] border border-[#33343A] p-5 rounded-xl flex items-center justify-between gap-4 shadow-sm hover:border-[#1F2630] transition-colors">
