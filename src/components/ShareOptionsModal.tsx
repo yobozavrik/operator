@@ -83,10 +83,10 @@ export const ShareOptionsModal = ({ isOpen, items, orderData, onClose, onShare }
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
-            <div className="bg-[#1A1A1A] border border-[#3A3A3A] rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
+            <div className="bg-[#1A1A1A] border border-[#3A3A3A] rounded-2xl shadow-2xl w-full max-w-2xl max-h-[85vh] flex flex-col overflow-hidden animate-in fade-in zoom-in duration-300">
                 {/* Header */}
-                <div className="px-6 py-5 border-b border-[#3A3A3A] bg-[#111823] rounded-t-2xl">
+                <div className="flex-shrink-0 px-6 py-5 border-b border-[#3A3A3A] bg-[#111823]">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
                             <Send className="text-[#58A6FF]" size={24} />
@@ -104,7 +104,7 @@ export const ShareOptionsModal = ({ isOpen, items, orderData, onClose, onShare }
                 </div>
 
                 {/* Content */}
-                <div className="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-8">
+                <div className="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-6">
                     {/* Action Buttons */}
                     <div className="space-y-4">
                         <h3 className="text-[12px] font-bold uppercase text-[#8B949E] tracking-widest text-center mb-6">
@@ -115,22 +115,22 @@ export const ShareOptionsModal = ({ isOpen, items, orderData, onClose, onShare }
                             {/* Кнопка Поділитися */}
                             <button
                                 onClick={handleShareExcel}
-                                className="flex-1 flex items-center justify-center gap-3 px-6 py-5 rounded-2xl font-bold text-[14px] transition-all hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-blue-500/20"
+                                className="flex-1 flex items-center justify-center gap-2.5 px-6 py-3.5 rounded-xl font-bold text-[13px] transition-all hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-blue-500/20"
                                 style={{
                                     background: 'linear-gradient(135deg, #0088CC 0%, #0066AA 100%)',
                                     color: '#fff'
                                 }}
                             >
-                                <Send size={20} />
+                                <Send size={18} />
                                 Поділитися
                             </button>
 
                             {/* Кнопка Завантажити */}
                             <button
                                 onClick={handleDownloadExcel}
-                                className="flex-1 flex items-center justify-center gap-3 px-6 py-5 rounded-2xl font-bold text-[14px] transition-all hover:scale-[1.02] active:scale-[0.98] bg-white/5 border border-white/10 hover:bg-white/10 text-white"
+                                className="flex-1 flex items-center justify-center gap-2.5 px-6 py-3.5 rounded-xl font-bold text-[13px] transition-all hover:scale-[1.02] active:scale-[0.98] bg-white/5 border border-white/10 hover:bg-white/10 text-white"
                             >
-                                <Download size={20} className="text-[#58A6FF]" />
+                                <Download size={18} className="text-[#58A6FF]" />
                                 Завантажити
                             </button>
                         </div>
@@ -160,7 +160,7 @@ export const ShareOptionsModal = ({ isOpen, items, orderData, onClose, onShare }
                             </button>
                         </div>
 
-                        <div className="bg-[#0D1117] border border-[#3A3A3A] rounded-xl p-5 font-sans text-[13px] text-[#E6EDF3] leading-relaxed max-h-[400px] overflow-y-auto custom-scrollbar">
+                        <div className="bg-[#0D1117] border border-[#3A3A3A] rounded-xl p-5 font-sans text-[13px] text-[#E6EDF3] leading-relaxed max-h-[300px] overflow-y-auto custom-scrollbar">
                             <div className="space-y-4">
                                 {Object.entries(groupedByCategory).map(([category, data]: any) => (
                                     <div key={category} className="space-y-1">
@@ -186,13 +186,13 @@ export const ShareOptionsModal = ({ isOpen, items, orderData, onClose, onShare }
                 </div>
 
                 {/* Footer */}
-                <div className="px-6 py-4 border-t border-[#3A3A3A] bg-[#111823] rounded-b-2xl">
+                <div className="flex-shrink-0 px-6 py-4 border-t border-[#3A3A3A] bg-[#111823] z-10">
                     <div className="flex items-center justify-center">
                         <button
                             onClick={onClose}
-                            className="px-10 py-2.5 bg-[#252526] border border-[#3A3A3A] rounded-lg text-[12px] font-bold text-[#E6EDF3] hover:bg-[#2D2D2D] hover:border-[#44454A] transition-all"
+                            className="w-full px-10 py-3 bg-[#252526] border border-[#3A3A3A] rounded-xl text-[12px] font-bold text-[#E6EDF3] hover:bg-[#2D2D2D] hover:border-[#44454A] transition-all hover:scale-[1.01]"
                         >
-                            Закрити
+                            ЗАКРИТИ
                         </button>
                     </div>
                 </div>

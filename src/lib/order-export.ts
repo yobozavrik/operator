@@ -17,10 +17,14 @@ export const groupItemsByCategory = (items: any[]) => {
         const existingProduct = groups[cat].items.find(p => p.productName === item.productName);
         if (existingProduct) {
             existingProduct.kg = Number((existingProduct.kg + item.kg).toFixed(1));
+            existingProduct.minRequired = Number((existingProduct.minRequired + (item.minRequired || 0)).toFixed(1));
+            existingProduct.maxRecommended = Number((existingProduct.maxRecommended + (item.maxRecommended || 0)).toFixed(1));
         } else {
             groups[cat].items.push({
                 productName: item.productName,
-                kg: item.kg
+                kg: item.kg,
+                minRequired: item.minRequired || 0,
+                maxRecommended: item.maxRecommended || 0
             });
         }
     });
@@ -58,9 +62,14 @@ export const prepareWorkbook = async (orderData: any): Promise<ExcelJS.Workbook>
     worksheet.getCell('A5').value = 'Загальна вага:';
     worksheet.getCell('B5').value = `${orderData.totalKg} кг`;
 
+    worksheet.getCell('D4').value = '* ПЛАН (ВІД): критичний дефіцит';
+    worksheet.getCell('D4').font = { italic: true, size: 9, color: { argb: 'FF808080' } };
+    worksheet.getCell('D5').value = '* ПЛАН (ДО): рекомендована норма';
+    worksheet.getCell('D5').font = { italic: true, size: 9, color: { argb: 'FF808080' } };
+
     // Заголовок таблицы
     const headerRow = worksheet.getRow(7);
-    headerRow.values = ['КАТЕГОРІЯ', 'ТОВАР', 'ВАГА (КГ)'];
+    headerRow.values = ['КАТЕГОРІЯ', 'ТОВАР', 'ЗАМОВЛЕНО', 'ДІАПАЗОН (ВІД - ДО)'];
     headerRow.height = 25;
 
     const headerFill = {
@@ -71,7 +80,7 @@ export const prepareWorkbook = async (orderData: any): Promise<ExcelJS.Workbook>
     const headerFont = { bold: true, color: { argb: 'FFFFFFFF' } };
     const headerAlign = { horizontal: 'center', vertical: 'middle' } as ExcelJS.Alignment;
 
-    [1, 2, 3].forEach(col => {
+    [1, 2, 3, 4].forEach(col => {
         const cell = headerRow.getCell(col);
         cell.fill = headerFill;
         cell.font = headerFont;
@@ -93,7 +102,7 @@ export const prepareWorkbook = async (orderData: any): Promise<ExcelJS.Workbook>
 
     Object.entries(groupedByCategory).forEach(([category, data]: [string, any]) => {
         const categoryRow = worksheet.getRow(rowIndex);
-        categoryRow.values = [category, '', data.totalKg];
+        categoryRow.values = [category, '', data.totalKg, ''];
         categoryRow.font = { bold: true, size: 12 };
 
         const fillColor = {
@@ -102,17 +111,21 @@ export const prepareWorkbook = async (orderData: any): Promise<ExcelJS.Workbook>
             fgColor: { argb: categoryColors[category] || 'FFDDDDDD' }
         } as ExcelJS.Fill;
 
-        categoryRow.getCell(1).fill = fillColor;
-        categoryRow.getCell(2).fill = fillColor;
-        categoryRow.getCell(3).fill = fillColor;
+        [1, 2, 3, 4].forEach(col => {
+            categoryRow.getCell(col).fill = fillColor;
+        });
+
         categoryRow.alignment = { horizontal: 'left', vertical: 'middle' };
         categoryRow.getCell(3).alignment = { horizontal: 'right', vertical: 'middle' };
         rowIndex++;
 
         data.items.forEach((item: any) => {
             const itemRow = worksheet.getRow(rowIndex);
-            itemRow.values = ['', item.productName, item.kg];
+            const range = `${Math.round(item.minRequired)} - ${Math.round(item.maxRecommended)} кг`;
+            itemRow.values = ['', item.productName, `${item.kg} кг`, range];
             itemRow.getCell(3).alignment = { horizontal: 'right', vertical: 'middle' };
+            itemRow.getCell(4).alignment = { horizontal: 'center', vertical: 'middle' };
+            itemRow.getCell(4).font = { italic: true, color: { argb: 'FF595959' } };
             rowIndex++;
         });
 
@@ -121,7 +134,7 @@ export const prepareWorkbook = async (orderData: any): Promise<ExcelJS.Workbook>
 
     // ИТОГОВАЯ СТРОКА
     const totalRow = worksheet.getRow(rowIndex);
-    totalRow.values = ['ВСЬОГО:', '', orderData.totalKg];
+    totalRow.values = ['ВСЬОГО:', '', `${orderData.totalKg} кг`, ''];
     totalRow.font = { bold: true, size: 14, color: { argb: 'FFFFFFFF' } };
     const totalFillColor = {
         type: 'pattern',
@@ -129,23 +142,25 @@ export const prepareWorkbook = async (orderData: any): Promise<ExcelJS.Workbook>
         fgColor: { argb: 'FF203864' }
     } as ExcelJS.Fill;
 
-    totalRow.getCell(1).fill = totalFillColor;
-    totalRow.getCell(2).fill = totalFillColor;
-    totalRow.getCell(3).fill = totalFillColor;
+    [1, 2, 3, 4].forEach(col => {
+        totalRow.getCell(col).fill = totalFillColor;
+    });
+
     totalRow.alignment = { horizontal: 'center', vertical: 'middle' };
     totalRow.getCell(3).alignment = { horizontal: 'right', vertical: 'middle' };
     totalRow.height = 25;
 
     // Автоширина
     worksheet.columns = [
-        { width: 30 },
-        { width: 50 },
-        { width: 15 }
+        { width: 25 },
+        { width: 45 },
+        { width: 18 },
+        { width: 25 }
     ];
 
     // Границы
     worksheet.eachRow({ includeEmpty: false }, (row) => {
-        if (row.getCell(1).value || row.getCell(2).value || row.getCell(3).value) {
+        if (row.getCell(1).value || row.getCell(2).value || row.getCell(3).value || row.getCell(4).value) {
             row.eachCell((cell) => {
                 cell.border = {
                     top: { style: 'thin' },

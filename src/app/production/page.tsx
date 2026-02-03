@@ -9,6 +9,7 @@ import { transformDeficitData } from '@/lib/transformers';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { RotateCw, Globe } from 'lucide-react';
 import { UI_TOKENS } from '@/lib/design-tokens';
+import { useStore } from '@/context/StoreContext';
 
 const fetcher = (url: string) => fetch(url).then(r => r.json());
 
@@ -27,6 +28,7 @@ const LegendItem = ({ color, label }: { color: string; label: string }) => (
 );
 
 export default function ProductionPage() {
+    const { currentCapacity } = useStore();
     const { data: deficitData, error: deficitError, mutate: mutateDeficit } = useSWR<SupabaseDeficitRow[]>(
         '/api/graviton/deficit',
         fetcher,
@@ -97,7 +99,7 @@ export default function ProductionPage() {
     }
 
     return (
-        <DashboardLayout currentWeight={metrics.shopLoad} maxWeight={450}>
+        <DashboardLayout currentWeight={metrics.shopLoad} maxWeight={currentCapacity}>
             <div className="max-w-[1200px] mx-auto min-h-[calc(100vh-160px)]">
                 {/* Outer Panel like SVG */}
                 <div className="bg-[#0B0F14] rounded-[16px] border border-[#1F2630] p-6 lg:p-10 shadow-2xl h-full flex flex-col">
@@ -129,7 +131,7 @@ export default function ProductionPage() {
                         <div className="flex flex-wrap gap-3">
                             <HeaderKPI label="Дефіцит кг" value="1.2k кг" />
                             <HeaderKPI label="Критичні SKU" value={metrics.criticalSKU} />
-                            <HeaderKPI label="Завантаження" value={`${Math.round(metrics.shopLoad / 4.5)}%`} />
+                            <HeaderKPI label="Завантаження" value={`${Math.round(metrics.shopLoad / (currentCapacity / 100))}%`} />
                             <HeaderKPI label="Зміна / SLA" value="98%" />
                         </div>
                     </div>

@@ -1,34 +1,63 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Lock, Mail, Eye, EyeOff, AlertCircle } from 'lucide-react';
+import { createClient } from '@/utils/supabase/client';
+import { useRouter } from 'next/navigation';
 
 export default function LoginPage() {
+    const router = useRouter();
+    const supabase = createClient();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
+    const [particles, setParticles] = useState<any[]>([]);
+
+    useEffect(() => {
+        setParticles([...Array(20)].map((_, i) => ({
+            id: i,
+            left: `${Math.random() * 100}%`,
+            top: `${Math.random() * 100}%`,
+            duration: 3 + Math.random() * 2,
+            delay: Math.random() * 2,
+        })));
+    }, []);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError('');
         setLoading(true);
 
-        // TODO: Implement Supabase Auth
-        // For now, simulate login
-        await new Promise(resolve => setTimeout(resolve, 1500));
+        try {
+            // 🚧 ТИМЧАСОВИЙ ВХІД (TEMPORARY ADMIN)
+            if (email === 'admin@admin.ua' && password === 'admin') {
+                document.cookie = "bypass_auth=true; path=/; max-age=86400"; // 24 hours
+                router.refresh();
+                router.push('/bi');
+                return;
+            }
 
-        // Placeholder validation
-        if (!email || !password) {
-            setError('Заполните все поля');
+            const { error } = await supabase.auth.signInWithPassword({
+                email,
+                password,
+            });
+
+            if (error) {
+                setError('Невірний email або пароль');
+                setLoading(false);
+                return;
+            }
+
+            // Successful login
+            router.refresh(); // Refresh server components to recognize header/cookie changes
+            router.push('/bi');
+        } catch (err) {
+            setError('Сталася помилка при вході');
             setLoading(false);
-            return;
         }
-
-        // Redirect to dashboard on success
-        window.location.href = '/';
     };
 
     return (
@@ -39,22 +68,22 @@ export default function LoginPage() {
 
             {/* Animated background particles */}
             <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                {[...Array(20)].map((_, i) => (
+                {particles.map((particle) => (
                     <motion.div
-                        key={i}
+                        key={particle.id}
                         className="absolute w-1 h-1 bg-[#00D4FF]/30 rounded-full"
                         style={{
-                            left: `${Math.random() * 100}%`,
-                            top: `${Math.random() * 100}%`,
+                            left: particle.left,
+                            top: particle.top,
                         }}
                         animate={{
                             y: [0, -30, 0],
                             opacity: [0.3, 0.8, 0.3],
                         }}
                         transition={{
-                            duration: 3 + Math.random() * 2,
+                            duration: particle.duration,
                             repeat: Infinity,
-                            delay: Math.random() * 2,
+                            delay: particle.delay,
                         }}
                     />
                 ))}

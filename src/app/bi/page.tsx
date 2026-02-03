@@ -11,13 +11,25 @@ import { ProductionTask, BI_Metrics, SupabaseDeficitRow } from '@/types/bi';
 import { transformDeficitData } from '@/lib/transformers';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { Users, AlertTriangle, TrendingUp, RotateCw, Activity, RefreshCw, BarChart2 } from 'lucide-react';
+import { SyncOverlay } from '@/components/SyncOverlay';
 import { UI_TOKENS } from '@/lib/design-tokens';
 import { cn } from '@/lib/utils';
 import { useStore } from '@/context/StoreContext';
 
 import { supabase } from '@/lib/supabase';
 
-const fetcher = (url: string) => fetch(url).then(r => r.json());
+const fetcher = async (url: string) => {
+    const res = await fetch(url);
+    if (!res.ok) {
+        const error = new Error('An error occurred while fetching the data.');
+        // Attach extra info to the error object.
+        const info = await res.json().catch(() => ({}));
+        (error as any).info = info;
+        (error as any).status = res.status;
+        throw error;
+    }
+    return res.json();
+};
 
 export default function BIDashboard() {
     // Get store context
@@ -72,6 +84,26 @@ export default function BIDashboard() {
     const [isRefreshing, setIsRefreshing] = React.useState(false);
     const [currentTime, setCurrentTime] = React.useState<Date | null>(null);
     const [showBreakdownModal, setShowBreakdownModal] = React.useState(false);
+    const [showReserveModal, setShowReserveModal] = React.useState(false);
+    const [reserveItems, setReserveItems] = React.useState<any[]>([]);
+    const [lastManualRefresh, setLastManualRefresh] = React.useState<number | null>(null);
+
+    // Initial load of last refresh time
+    React.useEffect(() => {
+        const saved = localStorage.getItem('lastManualRefresh');
+        if (saved) setLastManualRefresh(parseInt(saved, 10));
+    }, []);
+
+    const minutesSinceLastRefresh = useMemo(() => {
+        if (!currentTime || !lastManualRefresh) return 0;
+        return Math.floor((currentTime.getTime() - lastManualRefresh) / 60000);
+    }, [currentTime, lastManualRefresh]);
+
+    const refreshUrgency = useMemo(() => {
+        if (!lastManualRefresh || minutesSinceLastRefresh < 45) return 'normal';
+        if (minutesSinceLastRefresh < 60) return 'warning';
+        return 'critical';
+    }, [lastManualRefresh, minutesSinceLastRefresh]);
 
     React.useEffect(() => {
         setCurrentTime(new Date());
@@ -101,18 +133,34 @@ export default function BIDashboard() {
     const handleRefresh = async () => {
         setIsRefreshing(true);
         try {
-            const response = await fetch('http://localhost:5678/webhook-test/operator', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ action: 'refresh_stock', timestamp: new Date().toISOString() })
-            });
+            // Trigger both webhooks in parallel
+            const results = await Promise.allSettled([
+                fetch('http://localhost:5678/webhook-test/operator', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'refresh_stock', timestamp: new Date().toISOString() })
+                }),
+                fetch('https://n8n.dmytrotovstytskyi.online/webhook/operator', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'refresh_stock', timestamp: new Date().toISOString() })
+                })
+            ]);
 
-            if (response.ok) {
-                // Ждем немного, чтобы n8n успел обработать (опционально)
-                await new Promise(resolve => setTimeout(resolve, 2000));
-                await Promise.all([mutateDeficit(), mutateMetrics()]);
+            // Check if at least one request was successful
+            const hasSuccess = results.some(r => r.status === 'fulfilled' && r.value.ok);
+
+            if (hasSuccess) {
+                // Ждем 4 секунды, чтобы пользователь насладился анимацией и данные успели обновиться
+                await new Promise(resolve => setTimeout(resolve, 4000));
+
+                const now = Date.now();
+                setLastManualRefresh(now);
+                localStorage.setItem('lastManualRefresh', now.toString());
+
+                await Promise.all([mutateDeficit(), mutateMetrics(), mutateAllProducts()]);
             } else {
-                console.error('Webhook failed:', response.statusText);
+                console.error('All webhooks failed');
             }
         } catch (err) {
             console.error('Refresh error:', err);
@@ -133,6 +181,20 @@ export default function BIDashboard() {
         return transformDeficitData(allProductsData);
     }, [allProductsData]);
 
+    const loadReserveItems = async () => {
+        try {
+            const response = await fetch('/api/graviton/deficit/reserve');
+            const data = await response.json();
+
+            console.log('Reserve items loaded:', data.length);
+
+            setReserveItems(data);
+            setShowReserveModal(true);
+        } catch (err) {
+            console.error('Failed to load reserve items:', err);
+        }
+    };
+
     if (deficitError || metricsError || allProductsError) {
         return (
             <div className="flex items-center justify-center min-h-screen bg-[var(--background)] text-[var(--status-critical)] font-bold uppercase tracking-widest" role="alert">
@@ -152,9 +214,10 @@ export default function BIDashboard() {
     return (
         <DashboardLayout
             currentWeight={metrics.shopLoad}
-            maxWeight={currentCapacity}
+            maxWeight={currentCapacity || 0}
             fullHeight={true}
         >
+            <SyncOverlay isVisible={isRefreshing} />
             {/* ========== SUPER DRAMATIC VISUAL EFFECTS ========== */}
 
             {/* MAIN CENTER GLOW - PULSATING */}
@@ -272,6 +335,69 @@ export default function BIDashboard() {
                         {/* Small KPI Strip */}
                         <div className="px-6 py-3 flex flex-wrap gap-4 items-center justify-between z-10 border-t border-white/5 mt-1">
                             <div className="flex gap-4">
+                                {/* 🔄 PREMIUM REFRESH BUTTON WITH URGENCY STATES */}
+                                <button
+                                    onClick={handleRefresh}
+                                    disabled={isRefreshing}
+                                    className={cn(
+                                        "group relative flex items-center gap-3 px-5 py-3 rounded-xl transition-all duration-300 hover:scale-105 overflow-hidden border active:scale-95 disabled:opacity-50",
+                                        refreshUrgency === 'critical'
+                                            ? "border-[#E74856]/50 shadow-[0_0_25px_rgba(231,72,86,0.3)] animate-pulse"
+                                            : refreshUrgency === 'warning'
+                                                ? "border-yellow-500/50 shadow-[0_0_20px_rgba(234,179,8,0.2)]"
+                                                : "border-[#00D4FF]/30 hover:shadow-[0_0_25px_rgba(0,212,255,0.2)]"
+                                    )}
+                                    style={{
+                                        background: refreshUrgency === 'critical'
+                                            ? 'linear-gradient(135deg, rgba(231, 72, 86, 0.15) 0%, rgba(196, 30, 58, 0.1) 100%)'
+                                            : refreshUrgency === 'warning'
+                                                ? 'linear-gradient(135deg, rgba(234, 179, 8, 0.15) 0%, rgba(202, 138, 4, 0.1) 100%)'
+                                                : 'linear-gradient(135deg, rgba(0, 212, 255, 0.1) 0%, rgba(0, 136, 255, 0.05) 100%)',
+                                        backdropFilter: 'blur(15px)',
+                                        WebkitBackdropFilter: 'blur(15px)',
+                                    }}
+                                >
+                                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:animate-shimmer pointer-events-none" />
+                                    <div className={cn(
+                                        "p-2.5 rounded-lg transition-colors shadow-inner",
+                                        refreshUrgency === 'critical' ? "bg-[#E74856]/20 group-hover:bg-[#E74856]/30" :
+                                            refreshUrgency === 'warning' ? "bg-yellow-500/20 group-hover:bg-yellow-500/30" :
+                                                "bg-[#00D4FF]/10 group-hover:bg-[#00D4FF]/20"
+                                    )}>
+                                        <RefreshCw size={16} className={cn(
+                                            "transition-transform duration-700",
+                                            isRefreshing ? "animate-spin" : "group-hover:rotate-180",
+                                            refreshUrgency === 'critical' ? "text-[#E74856]" :
+                                                refreshUrgency === 'warning' ? "text-yellow-400" :
+                                                    "text-[#00D4FF]"
+                                        )} />
+                                    </div>
+                                    <div className="flex flex-col text-left">
+                                        <span className={cn(
+                                            "text-[9px] font-bold uppercase tracking-[0.2em] leading-none mb-1.5",
+                                            refreshUrgency === 'critical' ? "text-[#E74856]" :
+                                                refreshUrgency === 'warning' ? "text-yellow-400" :
+                                                    "text-[#00D4FF]"
+                                        )}>
+                                            {refreshUrgency === 'critical' ? 'Дані застаріли' :
+                                                refreshUrgency === 'warning' ? 'Потребує уваги' :
+                                                    'Синхронізація'}
+                                        </span>
+                                        <span className="text-[13px] font-black text-white leading-none uppercase tracking-tight">
+                                            {refreshUrgency === 'critical' ? 'ТЕРМІНОВО ОНОВИТИ!' : 'Оновити залишки'}
+                                        </span>
+                                    </div>
+
+                                    {/* Urgency indicator light */}
+                                    <div className={cn(
+                                        "absolute top-2 right-2 w-1.5 h-1.5 rounded-full transition-shadow duration-300",
+                                        isRefreshing ? "bg-white shadow-[0_0_8px_white]" :
+                                            refreshUrgency === 'critical' ? "bg-[#E74856] shadow-[0_0_10px_#E74856]" :
+                                                refreshUrgency === 'warning' ? "bg-yellow-400 shadow-[0_0_8px_rgba(250,204,21,0.8)]" :
+                                                    "bg-[#00D4FF] shadow-[0_0_8px_rgba(0,212,255,0.6)]"
+                                    )} />
+                                </button>
+
                                 <button
                                     onClick={() => setShowBreakdownModal(true)}
                                     className="transition-transform hover:scale-105 active:scale-95"
@@ -279,20 +405,13 @@ export default function BIDashboard() {
                                     <SmallKPI label="Загалом кг" value={Math.round(metrics.shopLoad)} icon={Activity} color={UI_TOKENS.colors.priority.normal} />
                                 </button>
                                 <SmallKPI label="Критичні SKU" value={metrics.criticalSKU} icon={AlertTriangle} color={UI_TOKENS.colors.priority.critical} />
-                                <SmallKPI label="Потужність зміні" value={`${currentCapacity} кг`} icon={Users} color="#00D4FF" />
+                                <CapacityProgress current={metrics.shopLoad} total={currentCapacity || 0} />
                             </div>
 
-                            <div className="flex gap-4 items-center">
+                            <div className="flex gap-4 items-center pl-4 border-l border-white/10 ml-auto">
                                 <p className="text-[10px] text-white/40 uppercase tracking-widest font-bold">
-                                    Оновлено: {new Date(metrics.lastUpdate).toLocaleTimeString('uk-UA')}
+                                    Останнє оновлення: {lastManualRefresh ? new Date(lastManualRefresh).toLocaleTimeString('uk-UA') : '---'}
                                 </p>
-                                <button
-                                    onClick={handleRefresh}
-                                    disabled={isRefreshing}
-                                    className="p-2 bg-[var(--panel)] hover:bg-[var(--border)] text-[var(--text-muted)] hover:text-[var(--status-normal)] rounded-lg border border-[var(--border)] transition-all disabled:opacity-50 active:scale-95"
-                                >
-                                    <RotateCw size={14} className={isRefreshing ? "animate-spin" : ""} />
-                                </button>
                             </div>
                         </div>
                     </div>
@@ -316,8 +435,11 @@ export default function BIDashboard() {
                                 {selectedStore === 'Персонал' ? (
                                     <PersonnelView />
                                 ) : (
-                                    <BIPowerMatrix deficitQueue={deficitQueue} allProductsQueue={allProductsQueue} />
-                                )}
+                                    <BIPowerMatrix
+                                        deficitQueue={deficitQueue}
+                                        allProductsQueue={allProductsQueue}
+                                        refreshUrgency={refreshUrgency}
+                                    />)}
                             </ErrorBoundary>
                         </div>
 
@@ -404,10 +526,14 @@ export default function BIDashboard() {
                                 </div>
                             </div>
 
-                            <div className="mb-6 p-4 rounded-xl" style={{
-                                background: 'rgba(0, 188, 242, 0.1)',
-                                border: '1px solid rgba(0, 188, 242, 0.3)'
-                            }}>
+                            <button
+                                onClick={loadReserveItems}
+                                className="w-full text-left mb-6 p-4 rounded-xl transition-all hover:scale-[1.02] active:scale-[0.98]"
+                                style={{
+                                    background: 'rgba(0, 188, 242, 0.1)',
+                                    border: '1px solid rgba(0, 188, 242, 0.3)'
+                                }}
+                            >
                                 <div className="flex items-center justify-between mb-2">
                                     <span className="text-[14px] font-semibold text-[#00BCF2]">
                                         🔵 РЕЗЕРВ
@@ -417,9 +543,9 @@ export default function BIDashboard() {
                                     </span>
                                 </div>
                                 <div className="text-[11px] text-white/60">
-                                    нижче мінімального — {metrics.reserveSKU} SKU
+                                    товару нижче мінімального — {metrics.reserveSKU} SKU
                                 </div>
-                            </div>
+                            </button>
 
                             <div className="pt-4 border-t border-white/10">
                                 <div className="flex items-center justify-between">
@@ -444,10 +570,189 @@ export default function BIDashboard() {
                         </div>
                     </div>
                 )}
+
+                {/* 🔵 RESERVE DETAIL MODAL (Step 78) */}
+                {showReserveModal && (
+                    <div
+                        className="fixed inset-0 z-[120] flex items-center justify-center p-4"
+                        style={{
+                            background: 'rgba(0, 0, 0, 0.7)',
+                            backdropFilter: 'blur(8px)',
+                            WebkitBackdropFilter: 'blur(8px)'
+                        }}
+                        onClick={() => setShowReserveModal(false)}
+                    >
+                        <div
+                            className="relative w-full max-w-[800px] max-h-[80vh] flex flex-col rounded-2xl p-6 overflow-hidden"
+                            style={{
+                                background: 'rgba(26, 31, 58, 0.95)',
+                                backdropFilter: 'blur(20px)',
+                                WebkitBackdropFilter: 'blur(20px)',
+                                border: '1px solid rgba(255, 255, 255, 0.1)',
+                                boxShadow: '0 20px 60px rgba(0, 0, 0, 0.5)'
+                            }}
+                            onClick={(e) => e.stopPropagation()}
+                        >
+                            {/* Заголовок */}
+                            <div className="flex justify-between items-center mb-4">
+                                <div>
+                                    <h2 className="text-[18px] font-bold text-white">
+                                        🔵 РЕЗЕРВ — товари нижче мінімального
+                                    </h2>
+                                    <div className="text-[12px] text-white/60 mt-1">
+                                        {reserveItems.length} SKU — загалом {Math.round(metrics.reserveWeight)} кг
+                                    </div>
+                                </div>
+                                <button
+                                    onClick={() => setShowReserveModal(false)}
+                                    className="p-2 hover:bg-white/5 rounded-lg text-white/40 hover:text-white"
+                                >
+                                    <Activity size={20} className="rotate-45" /> {/* Close "X" placeholder if needed, using Activity rotated for now or just text */}
+                                </button>
+                            </div>
+
+                            {/* Таблица товаров */}
+                            <div className="flex-1 overflow-y-auto custom-scrollbar mb-6 pr-2">
+                                <table className="w-full text-[11px] border-collapse">
+                                    <thead className="sticky top-0 bg-[rgba(26,31,58,0.95)] z-10">
+                                        <tr className="border-b border-white/10 text-left">
+                                            <th className="py-3 px-2 text-white/60 font-medium">Категорія</th>
+                                            <th className="py-3 px-2 text-white/60 font-medium">Товар</th>
+                                            <th className="py-3 px-2 text-white/60 font-medium">Магазин</th>
+                                            <th className="py-3 px-2 text-white/60 font-medium text-right">Факт</th>
+                                            <th className="py-3 px-2 text-white/60 font-medium text-right">Мін</th>
+                                            <th className="py-3 px-2 text-white/60 font-medium text-right">Треба</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-white/5">
+                                        {reserveItems.map((item: any, idx: number) => (
+                                            <tr key={idx} className="hover:bg-white/5 transition-colors">
+                                                <td className="py-3 px-2 text-white/70">{item.category_name}</td>
+                                                <td className="py-3 px-2 text-white font-medium">{item.назва_продукту}</td>
+                                                <td className="py-3 px-2 text-white/50 text-[10px]">
+                                                    {item.назва_магазину?.replace('Магазин "', '').replace('"', '') || '—'}
+                                                </td>
+                                                <td className="py-3 px-2 text-right text-[#52E8FF] font-mono tabular-nums">
+                                                    {parseFloat(item.current_stock || 0).toFixed(1)}
+                                                </td>
+                                                <td className="py-3 px-2 text-right text-[#FFB84D] font-mono tabular-nums">
+                                                    {parseFloat(item.min_stock || 0).toFixed(1)}
+                                                </td>
+                                                <td className="py-3 px-2 text-right text-[#00BCF2] font-black tabular-nums text-[13px]">
+                                                    {item.recommended_kg}
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            {/* Кнопка закрыть */}
+                            <button
+                                onClick={() => setShowReserveModal(false)}
+                                className="w-full px-6 py-3 rounded-xl font-bold bg-white/5 border border-white/20 text-white hover:bg-white/10 transition-all active:scale-[0.98]"
+                            >
+                                Закрити
+                            </button>
+                        </div>
+                    </div>
+                )}
             </div>
         </DashboardLayout>
     );
 }
+
+const CapacityProgress = ({ current, total }: { current: number; total: number }) => {
+    const percentage = total > 0 ? Math.round((current / total) * 100) : 0;
+    const isOverload = percentage > 100;
+
+    // SVG Circle Math
+    const radius = 18;
+    const circumference = 2 * Math.PI * radius;
+    const offset = circumference - (Math.min(100, percentage) / 100) * circumference;
+
+    // Status Color
+    const getStatusColor = () => {
+        if (percentage > 100) return '#E74856'; // Red
+        if (percentage > 85) return '#FFC000';  // Yellow/Orange
+        return '#00D4FF';                       // Cyan/Blue
+    };
+
+    const color = getStatusColor();
+
+    return (
+        <div
+            className="group relative flex items-center gap-4 px-5 py-3 rounded-xl transition-all duration-300 hover:scale-105 hover:shadow-[0_0_20px_rgba(0,0,0,0.3)] overflow-hidden"
+            style={{
+                background: 'rgba(26, 31, 58, 0.6)',
+                backdropFilter: 'blur(10px)',
+                WebkitBackdropFilter: 'blur(10px)',
+                border: '1px solid rgba(255, 255, 255, 0.1)',
+                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)'
+            }}
+        >
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:animate-shimmer pointer-events-none" />
+
+            {/* Circular Progress SVG */}
+            <div className="relative w-12 h-12 flex items-center justify-center">
+                <svg className="w-full h-full transform -rotate-90">
+                    {/* Background Track */}
+                    <circle
+                        cx="24"
+                        cy="24"
+                        r={radius}
+                        stroke="rgba(255,255,255,0.05)"
+                        strokeWidth="3.5"
+                        fill="transparent"
+                    />
+                    {/* Progress Fill */}
+                    <circle
+                        cx="24"
+                        cy="24"
+                        r={radius}
+                        stroke={color}
+                        strokeWidth="3.5"
+                        fill="transparent"
+                        strokeDasharray={circumference}
+                        strokeDashoffset={offset}
+                        strokeLinecap="round"
+                        className="transition-all duration-1000 ease-out"
+                        style={{
+                            filter: `drop-shadow(0 0 4px ${color}80)`
+                        }}
+                    />
+                </svg>
+                <div className="absolute inset-0 flex items-center justify-center">
+                    <span className="text-[10px] font-black" style={{ color: color }}>
+                        {percentage}%
+                    </span>
+                </div>
+            </div>
+
+            <div className="flex flex-col">
+                <span className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest leading-none mb-1.5 line-clamp-1">
+                    {isOverload ? 'ПЕРЕВАНТАЖЕННЯ' : 'ЗАВАНТАЖЕННЯ'}
+                </span>
+                <div className="flex items-baseline gap-1.5">
+                    <span className="text-[16px] font-black text-white leading-none tracking-tight">
+                        {Math.round(current)}
+                    </span>
+                    <span className="text-[10px] font-bold text-white/40 uppercase">
+                        / {total} кг
+                    </span>
+                </div>
+            </div>
+
+            {/* Pulsing indicator if overloaded */}
+            {isOverload && (
+                <div className="absolute top-2 right-2 flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
+                </div>
+            )}
+        </div>
+    );
+};
 
 const SmallKPI = ({ label, value, icon: Icon, color }: { label: string; value: string | number; icon: React.ElementType; color: string }) => (
     <div

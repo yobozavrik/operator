@@ -4,9 +4,11 @@ import React, { useMemo } from 'react';
 import { DashboardLayout } from '@/components/layout';
 import { MatrixTable } from '@/components/MatrixTable';
 import { mockSKUs, getProductionQueue } from '@/lib/data';
+import { useStore } from '@/context/StoreContext';
 
 export default function AnalyticsPage() {
-    const MAX_WEIGHT = 450;
+    const { currentCapacity } = useStore();
+    const MAX_WEIGHT = currentCapacity;
     const queue = useMemo(() => getProductionQueue(mockSKUs), []);
     const currentWeight = useMemo(() => {
         return Number(queue.reduce((acc, item) => acc + item.recommendedQtyKg, 292).toFixed(0));

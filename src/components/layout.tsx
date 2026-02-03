@@ -85,7 +85,7 @@ export const Sidebar = () => {
                                 onMouseEnter={() => setHoveredStore(i)}
                                 onMouseLeave={() => setHoveredStore(null)}
                                 className={cn(
-                                    "w-full px-4 py-3.5 text-left rounded-xl transition-all duration-300 relative overflow-hidden group",
+                                    "w-full px-4 py-3.5 text-center rounded-xl transition-all duration-300 relative overflow-hidden group",
                                     isActive && "scale-[1.02]"
                                 )}
                                 style={{
@@ -155,7 +155,7 @@ export const Sidebar = () => {
                         onMouseEnter={() => setHoveredStore(100)}
                         onMouseLeave={() => setHoveredStore(null)}
                         className={cn(
-                            "w-full px-4 py-3.5 text-left rounded-xl transition-all duration-300 relative overflow-hidden group",
+                            "w-full px-4 py-3.5 text-center rounded-xl transition-all duration-300 relative overflow-hidden group",
                             selectedStore === 'Персонал' && "scale-[1.02]"
                         )}
                         style={{
@@ -195,7 +195,7 @@ export const Sidebar = () => {
                             />
                         )}
 
-                        <div className="flex items-center gap-3 relative z-10">
+                        <div className="flex items-center justify-center gap-3 relative z-10">
                             <div
                                 className="w-8 h-8 rounded-lg flex items-center justify-center"
                                 style={{
@@ -229,7 +229,7 @@ export const Sidebar = () => {
                             document.cookie = 'auth-token=; Max-Age=0; path=/';
                             window.location.href = '/login';
                         }}
-                        className="w-full flex items-center gap-3 px-4 py-2 rounded-lg text-[var(--text-muted)] hover:text-white hover:bg-[var(--panel)]/50 text-xs font-semibold uppercase transition-colors"
+                        className="w-full flex items-center justify-center gap-3 px-4 py-2 rounded-lg text-[var(--text-muted)] hover:text-white hover:bg-[var(--panel)]/50 text-xs font-semibold uppercase transition-colors"
                     >
                         <LogOut size={16} />
                         Вихід

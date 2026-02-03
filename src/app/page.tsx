@@ -7,6 +7,7 @@ import { SeniorProductionMatrix } from '@/components/SeniorProductionMatrix';
 import { SeniorAnalytics } from '@/components/SeniorAnalytics';
 import { transformSupabaseData } from '@/lib/data';
 import { SupabaseDeficitRow, BI_Metrics } from '@/types/bi';
+import { useStore } from '@/context/StoreContext';
 
 const fetcher = (url: string) => fetch(url).then(r => r.json());
 
@@ -21,7 +22,8 @@ export default function Dashboard() {
 
   const queue = useMemo(() => rawDeficit ? transformSupabaseData(rawDeficit) : [], [rawDeficit]);
 
-  const MAX_WEIGHT = 450;
+  const { currentCapacity } = useStore();
+  const MAX_WEIGHT = currentCapacity;
 
   const currentWeight = metrics?.shopLoad || 0;
   const lastUpdate = metrics?.lastUpdate ? new Date(metrics.lastUpdate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : 'Оновлення...';

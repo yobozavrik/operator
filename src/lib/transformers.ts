@@ -1,6 +1,12 @@
 import { SupabaseDeficitRow, ProductionTask, PriorityKey, SKUCategory } from '@/types/bi';
 
 export function calculatePriority(row: SupabaseDeficitRow): PriorityKey {
+    // 1. Trust Backend Priority (Defined in SQL View)
+    if (row.priority === 1) return 'critical';
+    if (row.priority === 2) return 'high';
+    if (row.priority === 3) return 'reserve';
+
+    // 2. Fallback: Re-calculate if priority is missing (legacy safety)
     const currentStock = Number(row.current_stock);
     const minStock = Number(row.min_stock);
     const avgSalesDay = Number(row.avg_sales_day);

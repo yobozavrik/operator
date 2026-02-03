@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
-import { ChevronDown, ChevronRight, CheckCircle2, Package } from 'lucide-react';
+import React, { useState, useMemo, useEffect } from 'react';
+import { ChevronDown, ChevronRight, CheckCircle2, Package, AlertTriangle, X } from 'lucide-react';
 import { ProductionTask, PriorityKey, SKUCategory, PriorityHierarchy, CategoryGroup } from '@/types/bi';
 import { cn } from '@/lib/utils';
 import { UI_TOKENS } from '@/lib/design-tokens';
@@ -19,10 +19,11 @@ const getEmoji = (category: string) => '';
 interface Props {
   deficitQueue: ProductionTask[];
   allProductsQueue: ProductionTask[];
+  refreshUrgency?: 'normal' | 'warning' | 'critical';
 }
 
-export const BIPowerMatrix = ({ deficitQueue, allProductsQueue }: Props) => {
-  const { selectedStore } = useStore();
+export const BIPowerMatrix = ({ deficitQueue, allProductsQueue, refreshUrgency = 'normal' }: Props) => {
+  const { selectedStore, currentCapacity } = useStore();
   const [expandedPriorities, setExpandedPriorities] = useState<Set<PriorityKey>>(
     new Set(['critical', 'high'] as PriorityKey[])
   );
@@ -30,11 +31,23 @@ export const BIPowerMatrix = ({ deficitQueue, allProductsQueue }: Props) => {
   const [expandedProducts, setExpandedProducts] = useState<Set<string>>(new Set());
   const [selectedStores, setSelectedStores] = useState<Map<string, boolean>>(new Map());
 
+  // Independent state for RESERVE (Step 89)
+  const [expandedReserve, setExpandedReserve] = useState(false);
+  const [expandedReserveCategories, setExpandedReserveCategories] = useState<Set<string>>(new Set());
+  const [expandedReserveProducts, setExpandedReserveProducts] = useState<Set<string>>(new Set());
+
   // Modal states
   const [isOrderModalOpen, setIsOrderModalOpen] = useState(false);
+  const [showShiftRestrictionModal, setShowShiftRestrictionModal] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
   const [orderData, setOrderData] = useState<any>(null);
   const [orderItems, setOrderItems] = useState<OrderItem[]>([]);
+  const [isOrderConfirmed, setIsOrderConfirmed] = useState(false);
+
+  // Reset confirmation when selection changes
+  useEffect(() => {
+    setIsOrderConfirmed(false);
+  }, [selectedStores]);
 
   // Вибираємо правильний датасет залежно від режиму
   const queue = selectedStore === 'Усі' ? deficitQueue : allProductsQueue;
@@ -58,6 +71,15 @@ export const BIPowerMatrix = ({ deficitQueue, allProductsQueue }: Props) => {
       .filter((item): item is ProductionTask => item !== null);
   }, [queue, selectedStore]);
 
+  // ДОДАЙ ЦЕЙ CONSOLE.LOG (Step 93):
+  console.log('📊 Статистика filteredQueue:', {
+    total: filteredQueue.length,
+    critical: filteredQueue.filter(i => i.priority === 'critical').length,
+    high: filteredQueue.filter(i => i.priority === 'high').length,
+    reserve: filteredQueue.filter(i => i.priority === 'reserve').length,
+    sample: filteredQueue.slice(0, 3).map(i => ({ name: i.name, priority: i.priority }))
+  });
+
   // ============================================================================
   // ALL HOOKS MUST BE CALLED UNCONDITIONALLY (Rules of Hooks)
   // ============================================================================
@@ -80,7 +102,10 @@ export const BIPowerMatrix = ({ deficitQueue, allProductsQueue }: Props) => {
     const priorityMap = new Map<PriorityKey, Map<SKUCategory, Map<string, ProductionTask[]>>>();
 
     filteredQueue.forEach(item => {
-      const priorityLabel = item.priority || 'reserve';
+      // Step 98: Merge high into critical
+      let priorityLabel = item.priority || 'reserve';
+      if (priorityLabel === 'high') priorityLabel = 'critical';
+
       const categoryName = item.category || 'Інше';
       const productId = item.productCode.toString();
 
@@ -105,19 +130,11 @@ export const BIPowerMatrix = ({ deficitQueue, allProductsQueue }: Props) => {
     const priorityConfigs = [
       {
         key: 'critical',
-        label: 'КРИТИЧНО (товару немає)',
+        label: 'КРИТИЧНО & ВАЖЛИВО',
         emoji: '🔴',
         color: '#E74856',
         colorDark: '#C41E3A',
         glow: '#FF6B6B'
-      },
-      {
-        key: 'high',
-        label: 'ВАЖЛИВО (ходовий товар)',
-        emoji: '🟠',
-        color: '#FFC000',
-        colorDark: '#FF8C00',
-        glow: '#FFD700'
       },
       {
         key: 'reserve',
@@ -181,6 +198,24 @@ export const BIPowerMatrix = ({ deficitQueue, allProductsQueue }: Props) => {
     }).filter((p): p is PriorityHierarchy => p !== null);
   }, [filteredQueue]);
 
+  // Замість reserveQueue, використовуй hierarchy (Step 92)
+  const reservePriority = useMemo(() => {
+    return hierarchy.find(p => p.key === 'reserve');
+  }, [hierarchy]);
+
+  const stats = useMemo(() => {
+    const criticalPriority = hierarchy.find(p => p.key === 'critical');
+    const recommendedWeight = Math.round(criticalPriority?.totalKg || 0);
+    const totalAllWeight = Math.round(recommendedWeight + (reservePriority?.totalKg || 0));
+
+    return {
+      recommendedWeight,
+      totalAllWeight
+    };
+  }, [hierarchy, reservePriority]);
+
+  const { recommendedWeight, totalAllWeight } = stats;
+
   const togglePriority = (key: PriorityKey) => {
     setExpandedPriorities((prev: Set<PriorityKey>) => {
       const next = new Set(prev);
@@ -243,10 +278,40 @@ export const BIPowerMatrix = ({ deficitQueue, allProductsQueue }: Props) => {
     });
   };
 
+  const toggleSelectAllByCategory = (category: CategoryGroup) => {
+    // Check if ALL items in this category are fully selected
+    const allItemsSelected = category.items.every(item =>
+      item.stores.every(store => {
+        const key = `${item.productCode}_${store.storeName}`;
+        return selectedStores.has(key);
+      })
+    );
+
+    setSelectedStores(prev => {
+      const next = new Map(prev);
+
+      category.items.forEach(item => {
+        item.stores.forEach(store => {
+          const key = `${item.productCode}_${store.storeName}`;
+          if (allItemsSelected) {
+            // Deselect all
+            next.delete(key);
+          } else {
+            // Select all
+            next.set(key, true);
+          }
+        });
+      });
+
+      return next;
+    });
+  };
+
   const selectRecommended = () => {
     const selection = new Map<string, boolean>();
 
     hierarchy.forEach((priority: PriorityHierarchy) => {
+      // Note: 'critical' now includes 'high' due to merge
       if (priority.key === 'critical') {
         priority.categories.forEach((category: CategoryGroup) => {
           category.items.forEach((item: ProductionTask) => {
@@ -262,14 +327,47 @@ export const BIPowerMatrix = ({ deficitQueue, allProductsQueue }: Props) => {
     setSelectedStores(selection);
   };
 
+  const selectAll = () => {
+    const selection = new Map<string, boolean>();
+
+    // Select ALL items from ALL priorities
+    hierarchy.forEach((priority: PriorityHierarchy) => {
+      priority.categories.forEach((category: CategoryGroup) => {
+        category.items.forEach((item: ProductionTask) => {
+          item.stores.forEach(store => {
+            const key = `${item.productCode}_${store.storeName}`;
+            selection.set(key, true);
+          });
+        });
+      });
+    });
+
+    // Also include reserve (which is handled separately in safeReserve)
+    const reserveItems = filteredQueue.filter(i => i.priority === 'reserve');
+    reserveItems.forEach(item => {
+      item.stores.forEach(store => {
+        const key = `${item.productCode}_${store.storeName}`;
+        selection.set(key, true);
+      });
+    });
+
+    setSelectedStores(selection);
+  };
+
   const clearSelection = () => {
     setSelectedStores(new Map());
   };
 
-  // 5. Функція відправки
+  // 2. Формування замовлення (Step 44-50)
   const handleFormOrder = () => {
-    const items: OrderItem[] = [];
+    // If no shift selected, show restriction modal
+    if (currentCapacity === null) {
+      setShowShiftRestrictionModal(true);
+      return;
+    }
 
+    const items: OrderItem[] = [];
+    let currentTotal = 0;
     hierarchy.forEach((priority: PriorityHierarchy) => {
       priority.categories.forEach((category: CategoryGroup) => {
         category.items.forEach((item: ProductionTask) => {
@@ -283,7 +381,9 @@ export const BIPowerMatrix = ({ deficitQueue, allProductsQueue }: Props) => {
                 category: item.category,
                 storeName: store.storeName,
                 quantity: store.recommendedKg,
-                kg: store.recommendedKg, // For user's Step 4
+                kg: store.recommendedKg,
+                minRequired: store.deficitKg,
+                maxRecommended: store.recommendedKg,
                 priority: item.priority
               });
             }
@@ -337,16 +437,6 @@ export const BIPowerMatrix = ({ deficitQueue, allProductsQueue }: Props) => {
     }
   };
 
-  const recommendedWeight = useMemo(() => {
-    let total = 0;
-    hierarchy.forEach((priority: PriorityHierarchy) => {
-      if (priority.key === 'critical') {
-        total += priority.totalKg;
-      }
-    });
-    return Math.round(total);
-  }, [hierarchy]);
-
   // Группировка по категориям
   const groupedByCategory = useMemo(() => {
     const groups = groupItemsByCategory(orderData?.items || []);
@@ -380,9 +470,9 @@ export const BIPowerMatrix = ({ deficitQueue, allProductsQueue }: Props) => {
           <div className="flex items-center gap-2">
             <div className="h-2 w-2 rounded-full bg-[#52e8ff] animate-pulse"></div>
             <span className="text-[11px] text-[#8b949e]">
-              Вибрано: <span className={`font-bold ${selectedWeight > 450 ? 'text-[#e74856]' : 'text-[#52e8ff]'}`}>
+              Вибрано: <span className={`font-bold ${selectedWeight > (currentCapacity || 0) ? 'text-[#e74856]' : 'text-[#52e8ff]'}`}>
                 {selectedWeight} кг
-              </span> / 450 кг
+              </span> / {currentCapacity ?? '—'} кг
             </span>
           </div>
         </div>
@@ -391,13 +481,16 @@ export const BIPowerMatrix = ({ deficitQueue, allProductsQueue }: Props) => {
       {/* Main Content (scrollable) */}
       <main className="flex-1 overflow-y-auto custom-scrollbar">
         {hierarchy.map((priority: PriorityHierarchy) => {
+          // Skip reserve in main loop (rendered separately at the end)
+          if (priority.key === 'reserve') return null;
+
           const isPriorityExpanded = expandedPriorities.has(priority.key);
 
           return (
             <div key={priority.key} className="border-b border-[var(--border)]/50 last:border-0">
               {/* Priority Header */}
               <div
-                className="priority-card m-3 px-5 py-4 rounded-xl cursor-pointer flex flex-col transition-all duration-300 hover:translate-y-[-2px] border-b border-white/5 hover:shadow-[0_8px_24px_var(--priority-shadow)]"
+                className="priority-card w-[90%] mx-auto my-2 px-4 py-3 rounded-xl cursor-pointer flex flex-col transition-all duration-300 hover:translate-y-[-2px] border-b border-white/5 hover:shadow-[0_8px_24px_var(--priority-shadow)]"
                 style={{
                   background: `linear-gradient(135deg, ${priority.color}66 0%, ${priority.colorDark}66 100%)`,
                   backdropFilter: 'blur(10px)',
@@ -414,41 +507,48 @@ export const BIPowerMatrix = ({ deficitQueue, allProductsQueue }: Props) => {
                 tabIndex={0}
                 onKeyDown={(e) => e.key === 'Enter' && togglePriority(priority.key)}
               >
-                <div className="flex items-center justify-between w-full">
-                  <div className="flex items-center gap-3">
+                <div className="relative flex items-center justify-center w-full">
+                  {/* Left: Arrow */}
+                  <div className="absolute left-0">
                     {isPriorityExpanded ?
                       <ChevronDown size={20} className="text-[var(--text-muted)]" /> :
                       <ChevronRight size={20} className="text-[var(--text-muted)]" />
                     }
+                  </div>
 
-                    <div className="flex items-center gap-2">
-                      <span className="text-[20px]">{priority.emoji}</span>
-                      <div>
-                        <div className="text-[11px] font-bold uppercase tracking-wider text-white">
-                          {priority.label.split('(')[0]}
-                        </div>
-                        <div className="text-[9px] text-white/70 mt-0.5">
-                          {priority.label.match(/\((.*?)\)/)?.[1] || ''}
-                        </div>
-                      </div>
+                  {/* Center: Title & Description */}
+                  <div className="flex flex-col items-center justify-center text-center">
+                    <div className="flex items-center gap-2 mb-0.5">
+                      <span className="text-[20px] filter drop-shadow-md">{priority.emoji}</span>
+                      <span className="text-[14px] font-black uppercase tracking-[0.15em] text-white"
+                        style={{ textShadow: `0 0 20px ${priority.color}` }}>
+                        {priority.label.split('(')[0]}
+                      </span>
                     </div>
 
-                    <span className="text-[10px] text-[var(--text-muted)] font-semibold ml-2">
-                      ({priority.categoriesCount} кат.)
-                    </span>
+                    {/* Explicit Description based on priority key */}
+                    <div className="text-[9px] font-extrabold text-[#ff6b6b] uppercase tracking-wider bg-black/30 px-3 py-0.5 rounded-full border border-[#ff6b6b]/20 mt-1 max-w-[95%] text-center whitespace-nowrap shadow-[0_0_10px_rgba(255,107,107,0.1)]">
+                      {priority.key === 'critical' && "⛔️ ТЕРМІНОВО ПОПОВНИТИ"}
+                    </div>
                   </div>
-                  {/* Weight removed from top right as it is now in stats */}
+
+                  {/* Right: Category Count Badge */}
+                  <div className="absolute right-0">
+                    <div className="px-2 py-0.5 rounded-lg bg-black/20 border border-white/5 backdrop-blur-sm">
+                      <span className="text-[10px] font-bold text-white/90">
+                        {priority.categoriesCount} <span className="text-white/50 text-[8px] uppercase">кат.</span>
+                      </span>
+                    </div>
+                  </div>
                 </div>
 
                 {/* Статистика (внизу карточки) */}
-                <div className="flex items-center gap-6 mt-3 pt-3 border-t border-white/20">
-                  <div className="flex items-center gap-2">
-                    <span className="text-[9px] text-white/60 uppercase tracking-wide">Вага:</span>
-                    <span className="text-[14px] font-bold text-white">{priority.totalKg} кг</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-[9px] text-white/60 uppercase tracking-wide">Категорії:</span>
-                    <span className="text-[12px] font-semibold text-white">{priority.categoriesCount}</span>
+                <div className="flex items-center justify-center gap-6 mt-2 pt-2 border-t border-white/10">
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-[9px] text-white/50 uppercase tracking-widest font-bold">Вага:</span>
+                    <span className="text-[13px] font-black text-[#52E8FF] tracking-wide" style={{ textShadow: '0 0 10px rgba(82,232,255,0.3)' }}>
+                      {priority.totalKg} кг
+                    </span>
                   </div>
                 </div>
               </div>
@@ -462,7 +562,7 @@ export const BIPowerMatrix = ({ deficitQueue, allProductsQueue }: Props) => {
                   <div key={categoryKey} className="border-b border-[var(--border)]/10 last:border-0">
                     {/* Category Row */}
                     <div
-                      className="mx-2 my-1 pl-8 pr-4 py-2.5 rounded-lg hover:bg-[#2a2f4a] cursor-pointer flex items-center justify-between transition-all duration-200"
+                      className="mx-2 my-1 pl-8 pr-4 py-2.5 rounded-lg hover:bg-[#2a2f4a] cursor-pointer flex items-center justify-between transition-all duration-200 group"
                       onClick={() => toggleCategory(priority.key, category.categoryName as SKUCategory)}
                       role="button"
                       aria-expanded={isCategoryExpanded}
@@ -474,6 +574,24 @@ export const BIPowerMatrix = ({ deficitQueue, allProductsQueue }: Props) => {
                           <ChevronDown size={14} className="text-[var(--text-muted)]" /> :
                           <ChevronRight size={14} className="text-[var(--text-muted)]" />
                         }
+
+                        {/* Select All Category Checkbox */}
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleSelectAllByCategory(category);
+                          }}
+                          className={cn(
+                            "ml-2 w-4 h-4 rounded border flex items-center justify-center transition-all opacity-0 group-hover:opacity-100 focus:opacity-100",
+                            category.items.every(item => item.stores.every(store => selectedStores.has(`${item.productCode}_${store.storeName}`)))
+                              ? "bg-[var(--status-normal)] border-[var(--status-normal)] opacity-100"
+                              : "border-[var(--text-muted)] hover:border-[var(--status-normal)]"
+                          )}
+                          title="Обрати всю категорію"
+                        >
+                          <CheckCircle2 size={10} className="text-white" />
+                        </button>
+
                         <span className="text-[12px] font-bold text-[var(--foreground)]">
                           {category.categoryName}
                         </span>
@@ -612,172 +730,392 @@ export const BIPowerMatrix = ({ deficitQueue, allProductsQueue }: Props) => {
             </div>
           );
         })}
+
+        {/* 🔵 РЕЗЕРВ КАРТОЧКА (Step 89/92) - Always Visible */}
+        {(() => {
+          const reserveFromHierarchy = hierarchy.find(h => h.key === 'reserve');
+          const safeReserve = reserveFromHierarchy || {
+            key: 'reserve',
+            label: 'РЕКОМЕНДОВАНО (зробити наперед)',
+            emoji: '🔵',
+            color: '#007BA7',
+            totalKg: 0,
+            categoriesCount: 0,
+            glow: '#00BCF2',
+            categories: []
+          } as PriorityHierarchy;
+
+          return (
+            <div className="mb-4">
+              <div
+                className="priority-card w-[90%] mx-auto my-2 px-4 py-3 rounded-xl cursor-pointer flex flex-col transition-all duration-300 hover:translate-y-[-2px] border-b border-white/5 hover:shadow-[0_8px_24px_rgba(0,188,242,0.3)]"
+                style={{
+                  background: 'linear-gradient(135deg, rgba(0,123,167,0.4) 0%, rgba(0,95,140,0.4) 100%)',
+                  backdropFilter: 'blur(10px)',
+                  WebkitBackdropFilter: 'blur(10px)',
+                  borderLeft: '4px solid #00BCF2',
+                  border: '1px solid rgba(255, 255, 255, 0.1)',
+                  boxShadow: '0 8px 24px rgba(0, 0, 0, 0.4)'
+                }}
+                onClick={() => setExpandedReserve(!expandedReserve)}
+              >
+                <div className="relative flex items-center justify-center w-full">
+                  {/* Left: Arrow */}
+                  <div className="absolute left-0">
+                    {expandedReserve ?
+                      <ChevronDown size={20} className="text-white/70" /> :
+                      <ChevronRight size={20} className="text-white/70" />
+                    }
+                  </div>
+
+                  {/* Center: Title & Description */}
+                  <div className="flex flex-col items-center justify-center text-center">
+                    <div className="flex items-center gap-2 mb-0.5">
+                      <span className="text-[20px] filter drop-shadow-md">🔵</span>
+                      <span className="text-[14px] font-black uppercase tracking-[0.15em] text-white"
+                        style={{ textShadow: '0 0 20px #00BCF2' }}>
+                        РЕЗЕРВ
+                      </span>
+                    </div>
+
+                    {/* Explicit Description for Reserve */}
+                    <div className="text-[9px] font-bold text-white/70 uppercase tracking-wide bg-black/20 px-2 py-0.5 rounded-full border border-white/5 mt-0.5 max-w-[95%] text-center whitespace-nowrap">
+                      ТОВАРУ НИЖЧЕ МІНІМАЛЬНОГО
+                    </div>
+                  </div>
+
+                  {/* Right: Category Count Badge */}
+                  <div className="absolute right-0">
+                    <div className="px-2 py-0.5 rounded-lg bg-black/20 border border-white/5 backdrop-blur-sm">
+                      <span className="text-[10px] font-bold text-white/90">
+                        {safeReserve.categoriesCount} <span className="text-white/50 text-[8px] uppercase">кат.</span>
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Статистика */}
+                <div className="flex items-center justify-center gap-6 mt-2 pt-2 border-t border-white/10">
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-[9px] text-white/50 uppercase tracking-widest font-bold">Вага:</span>
+                    <span className="text-[13px] font-black text-[#52E8FF] tracking-wide" style={{ textShadow: '0 0 10px rgba(82,232,255,0.3)' }}>
+                      {safeReserve.totalKg} кг
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* РЕЗЕРВ РОЗГОРНУТО */}
+              {expandedReserve && (
+                <div className="mx-3 mb-4">
+                  {safeReserve.categories.map((category) => {
+                    const { categoryName, itemsCount, totalKg, items: products } = category;
+                    const isCategoryExpanded = expandedReserveCategories.has(categoryName);
+
+                    return (
+                      <div key={categoryName} className="mb-2">
+                        {/* Категорія */}
+                        <div
+                          className="px-4 py-3 bg-white/[0.03] hover:bg-white/[0.05] rounded-lg cursor-pointer transition-colors flex items-center justify-between border border-white/5 group"
+                          onClick={() => {
+                            const newSet = new Set(expandedReserveCategories);
+                            if (newSet.has(categoryName)) {
+                              newSet.delete(categoryName);
+                            } else {
+                              newSet.add(categoryName);
+                            }
+                            setExpandedReserveCategories(newSet);
+                          }}
+                        >
+                          <div className="flex items-center gap-2">
+                            {isCategoryExpanded ?
+                              <ChevronDown size={14} className="text-white/50" /> :
+                              <ChevronRight size={14} className="text-white/50" />
+                            }
+
+                            {/* Select All Reserve Category Checkbox */}
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                toggleSelectAllByCategory(category);
+                              }}
+                              className={cn(
+                                "ml-2 w-4 h-4 rounded border flex items-center justify-center transition-all opacity-0 group-hover:opacity-100 focus:opacity-100",
+                                category.items.every(item => item.stores.every(store => selectedStores.has(`${item.productCode}_${store.storeName}`)))
+                                  ? "bg-[#00BCF2] border-[#00BCF2] opacity-100 placeholder:shadow-[0_0_10px_rgba(0,188,242,0.5)]"
+                                  : "border-white/20 hover:border-[#00BCF2]"
+                              )}
+                              title="Обрати всю категорію"
+                            >
+                              <CheckCircle2 size={10} className="text-white" />
+                            </button>
+
+                            <span className="text-[13px] font-semibold text-white/90">
+                              {categoryName}
+                            </span>
+                            <span className="text-[10px] text-white/50">
+                              ({itemsCount} поз.)
+                            </span>
+                          </div>
+                          <span className="text-[12px] font-bold text-[#00BCF2]">
+                            {Math.round(totalKg)} кг
+                          </span>
+                        </div>
+
+                        {/* Товари категорії */}
+                        {isCategoryExpanded && (
+                          <div className="ml-6 mt-1 space-y-1">
+                            {products.map(item => {
+                              const productId = item.productCode.toString();
+                              const isProductExpanded = expandedReserveProducts.has(productId);
+                              const productTotalKg = item.stores.reduce((sum, s) => sum + s.recommendedKg, 0);
+
+                              return (
+                                <div key={productId}>
+                                  {/* Товар */}
+                                  <div
+                                    className="px-4 py-2 bg-white/[0.02] hover:bg-white/[0.04] rounded cursor-pointer transition-colors flex items-center justify-between"
+                                    onClick={() => {
+                                      const newSet = new Set(expandedReserveProducts);
+                                      if (newSet.has(productId)) {
+                                        newSet.delete(productId);
+                                      } else {
+                                        newSet.add(productId);
+                                      }
+                                      setExpandedReserveProducts(newSet);
+                                    }}
+                                  >
+                                    <div className="flex items-center gap-2">
+                                      {isProductExpanded ?
+                                        <ChevronDown size={12} className="text-white/40" /> :
+                                        <ChevronRight size={12} className="text-white/40" />
+                                      }
+                                      <span className="text-[11px] text-white/80">
+                                        {item.name}
+                                      </span>
+                                      <span className="text-[9px] text-white/40">
+                                        ({item.stores.length} маг.)
+                                      </span>
+                                    </div>
+                                    <span className="text-[11px] font-bold text-[#58a6ff]">
+                                      {Math.round(productTotalKg)} кг
+                                    </span>
+                                  </div>
+
+                                  {/* Магазини */}
+                                  {isProductExpanded && (
+                                    <div className="ml-6 mt-1 space-y-1">
+                                      {item.stores.map(store => {
+                                        const storeKey = `${item.productCode}_${store.storeName}`;
+                                        const isSelected = selectedStores.has(storeKey);
+
+                                        return (
+                                          <div
+                                            key={storeKey}
+                                            className="px-4 py-2 bg-white/[0.01] hover:bg-white/[0.03] rounded transition-colors flex items-center justify-between"
+                                          >
+                                            <div className="flex items-center gap-2">
+                                              <button
+                                                onClick={(e) => {
+                                                  e.stopPropagation();
+                                                  toggleStoreSelection(item.productCode, store.storeName);
+                                                }}
+                                                className={cn(
+                                                  "w-3.5 h-3.5 rounded border flex items-center justify-center transition-all",
+                                                  isSelected
+                                                    ? "bg-[#3FB950] border-[#3FB950]"
+                                                    : "border-[#3e3e42] hover:border-[#3FB950]"
+                                                )}
+                                              >
+                                                {isSelected && <CheckCircle2 size={8} className="text-white" />}
+                                              </button>
+
+                                              <div className="flex items-center justify-between text-[10px] flex-1">
+                                                <span className="text-white/50">🏪 {store.storeName}</span>
+                                                <div className="font-mono">
+                                                  <span className="text-white/60">факт:</span>{' '}
+                                                  <span className={store.currentStock < 0 ? 'text-[#FF6B6B]' : 'text-[#52E8FF]'}>
+                                                    {store.currentStock.toFixed(1)}
+                                                  </span>
+                                                  <span className="text-white/30 mx-1">→</span>
+                                                  <span className="text-white/60">мін:</span>{' '}
+                                                  <span className="text-[#FFB84D]">{store.minStock.toFixed(1)}</span>
+                                                  <span className="text-white/30 mx-1">→</span>
+                                                  <span className="text-white/60">треба:</span>{' '}
+                                                  <span className="text-[#3FB950] font-bold">{store.recommendedKg}</span> кг
+                                                </div>
+                                              </div>
+                                            </div>
+                                          </div>
+                                        );
+                                      })}
+                                    </div>
+                                  )}
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          );
+        })()}
       </main>
 
-      {/* Footer (Fixed) */}
-      <footer className="flex-shrink-0 px-6 py-4 border-t border-[var(--border)] bg-[var(--background)]/80">
-        <div className="flex gap-2">
+      <footer className="flex-shrink-0 px-4 py-5 border-t border-white/10 bg-[#0d1117]/90 backdrop-blur-xl">
+        <div className="flex gap-3 items-center h-16 max-w-5xl mx-auto">
+          {/* Button 1: SELECT ALL EVERYTHING */}
           <button
-            onClick={selectRecommended}
-            className="flex-1 px-6 py-3 rounded-xl font-black text-[10px] uppercase tracking-wider transition-all duration-300 flex items-center justify-center gap-2"
-            style={{
-              background: 'rgba(63, 185, 80, 0.3)',
-              backdropFilter: 'blur(10px)',
-              WebkitBackdropFilter: 'blur(10px)',
-              border: '1px solid rgba(63, 185, 80, 0.4)',
-              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)',
-              color: '#3FB950'
-            }}
+            onClick={selectAll}
+            className="flex-1 h-full px-4 rounded-xl font-black text-[10px] uppercase tracking-wider transition-all border border-[#52E8FF]/20 bg-[#52E8FF]/5 text-[#52E8FF] hover:bg-[#52E8FF]/10 hover:border-[#52E8FF]/40 flex flex-col items-center justify-center gap-1 group"
           >
-            <CheckCircle2 size={14} />
-            ВИБРАТИ КРИТИЧНІ
-            <span className="font-bold ml-1">{recommendedWeight} КГ</span>
+            <span className="opacity-60 group-hover:opacity-100 italic">Все дерево</span>
+            <span className="text-[13px]">Вибрати все</span>
+            <span className="text-[10px] font-black opacity-80">{totalAllWeight} кг</span>
           </button>
+
+          {/* Button 2: CONFIRM MANUAL PICK (ВИБРАТИ ОБРАНЕ) */}
           <button
-            onClick={clearSelection}
-            className="px-4 py-2.5 bg-black/20 border border-[var(--border)] hover:bg-black/30 text-[var(--text-muted)] hover:text-white text-[10px] font-black uppercase tracking-wider rounded-lg transition-all"
-          >
-            Очистити
-          </button>
-        </div>
-        <div className="flex items-center gap-2 mt-2">
-          <button
-            onClick={handleFormOrder}
-            disabled={selectedStores.size === 0}
+            onClick={() => setIsOrderConfirmed(true)}
+            disabled={selectedStores.size === 0 || isOrderConfirmed}
             className={cn(
-              "flex-1 px-4 py-2.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all flex items-center justify-center gap-2",
-              selectedStores.size > 0
-                ? "bg-[var(--status-normal)] hover:brightness-110 text-white shadow-lg shadow-emerald-500/20"
-                : "bg-[#252526] text-[var(--text-muted)] cursor-not-allowed"
+              "flex-1 h-full px-4 rounded-xl font-black text-[10px] uppercase tracking-wider transition-all border flex flex-col items-center justify-center gap-1 group",
+              selectedStores.size > 0 && !isOrderConfirmed
+                ? "border-[#3FB950]/50 bg-[#3FB950]/10 text-[#3FB950] hover:bg-[#3FB950]/20 shadow-[0_0_20px_rgba(63,185,80,0.1)]"
+                : isOrderConfirmed
+                  ? "border-[#3FB950] bg-[#3FB950] text-[#0d1117] shadow-[0_0_30px_rgba(63,185,80,0.3)]"
+                  : "border-white/5 bg-white/5 text-white/10 cursor-not-allowed"
             )}
           >
-            <Package size={14} />
-            Сформувати
+            <span className={cn("text-[9px] italic", isOrderConfirmed ? "opacity-90" : "opacity-60")}>
+              {isOrderConfirmed ? "ВИБІР ПІДТВЕРДЖЕНО" : "ТІЛЬКИ ОБРАНЕ"}
+            </span>
+            <span className="text-[13px]">Вибрати обране</span>
+            <span className="text-[10px] font-black">{selectedWeight} кг</span>
+          </button>
+
+          {/* Button 3: FORM REQUEST (PRIMARY) */}
+          <button
+            onClick={handleFormOrder}
+            disabled={!isOrderConfirmed}
+            className={cn(
+              "flex-[1.5] h-full px-6 rounded-xl font-black text-[14px] uppercase tracking-[0.15em] transition-all duration-300 flex items-center justify-center gap-3 relative overflow-hidden group",
+              isOrderConfirmed
+                ? "bg-gradient-to-r from-[#00D4FF] to-[#0099FF] text-white shadow-[0_0_30px_rgba(0,212,255,0.3)] hover:shadow-[0_0_50px_rgba(0,212,255,0.5)] hover:scale-[1.02] active:scale-[0.98]"
+                : "bg-white/5 text-white/5 cursor-not-allowed border border-white/5"
+            )}
+          >
+            {isOrderConfirmed && (
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:animate-shimmer pointer-events-none" />
+            )}
+            <Package size={22} className={cn(isOrderConfirmed ? "text-white animate-bounce" : "text-white/5")} />
+            <span className="drop-shadow-md text-center">Сформувати заявку</span>
+          </button>
+
+          {/* Button 4: CLEAR */}
+          <button
+            onClick={clearSelection}
+            className="flex-1 h-full px-4 rounded-xl font-black text-[10px] uppercase tracking-wider transition-all border border-[#F85149]/20 bg-[#F85149]/5 text-[#F85149] hover:bg-[#F85149]/10 hover:border-[#F85149]/40 flex flex-col items-center justify-center gap-1 group"
+          >
+            <span className="opacity-60 group-hover:opacity-100 italic">Скинути вибір</span>
+            <span className="text-[13px]">Очистити</span>
+            <span className="text-[10px] font-black opacity-80">{selectedWeight} кг</span>
           </button>
         </div>
       </footer>
 
       {/* Modals */}
-      {
-        isOrderModalOpen && (
-          <div
-            className="fixed inset-0 z-50 flex items-center justify-center"
-            style={{
-              background: 'rgba(0, 0, 0, 0.7)',
-              backdropFilter: 'blur(8px)'
-            }}
-            onClick={() => setIsOrderModalOpen(false)}
-          >
-            {/* Модальное окно */}
-            <div
-              className="relative w-[90vw] max-w-[600px] max-h-[80vh] flex flex-col rounded-2xl"
-              style={{
-                background: 'rgba(26, 31, 58, 0.95)',
-                backdropFilter: 'blur(20px)',
-                WebkitBackdropFilter: 'blur(20px)',
-                border: '1px solid rgba(255, 255, 255, 0.1)',
-                boxShadow: '0 20px 60px rgba(0, 0, 0, 0.5)'
-              }}
-              onClick={(e) => e.stopPropagation()}
-            >
-              {/* Header (фиксированный) */}
-              <div className="flex-shrink-0 p-6 pb-4">
-                <h2 className="text-[20px] font-bold text-white mb-2">
-                  ✓ Підтвердження замовлення
-                </h2>
-                <p className="text-[12px] text-white/60">
-                  Перевірте деталі перед відправкою в виробництво
-                </p>
-              </div>
+      {/* Data Stale Modal (Highest Priority) */}
+      {refreshUrgency === 'critical' && (
+        <div
+          className="fixed inset-0 z-[200] flex items-center justify-center bg-black/60 backdrop-blur-md"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div className="w-[450px] bg-[#161b22] border border-[#f85149] rounded-2xl shadow-[0_0_100px_rgba(248,81,73,0.2)] p-8 text-center relative overflow-hidden animate-in zoom-in duration-300">
+            {/* Pulse Effect */}
+            <div className="absolute inset-0 bg-[#f85149]/5 animate-pulse pointer-events-none" />
 
-              {/* Scrollable content */}
-              <div className="flex-1 overflow-y-auto px-6 custom-scrollbar">
-                {/* Информация о заказе */}
-                <div className="mb-6 p-4 rounded-xl" style={{
-                  background: 'rgba(0, 0, 0, 0.2)',
-                  border: '1px solid rgba(255, 255, 255, 0.05)'
-                }}>
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-[11px] text-white/60 uppercase">Дата:</span>
-                    <span className="text-[13px] font-semibold text-white">{orderData?.date}</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-[11px] text-white/60 uppercase">Загальна вага:</span>
-                    <span className="text-[16px] font-bold text-[#52E8FF]">{orderData?.totalKg} кг</span>
-                  </div>
-                </div>
+            <div className="w-20 h-20 bg-[#f85149]/10 rounded-full flex items-center justify-center mx-auto mb-6 border border-[#f85149]/20">
+              <AlertTriangle size={40} className="text-[#f85149]" />
+            </div>
 
-                {/* Список товаров */}
-                <div className="mb-6">
-                  <h3 className="text-[12px] font-semibold text-white/80 uppercase mb-3">
-                    Товари до виробництва:
-                  </h3>
+            <h3 className="text-2xl font-black text-white uppercase mb-2">
+              Дані застаріли
+            </h3>
 
-                  {/* Группировка по категориям */}
-                  {Object.entries(groupedByCategory).map(([categoryName, categoryData]: any) => (
-                    <div key={categoryName} className="mb-4">
-                      {/* Категория + общий вес */}
-                      <div className="flex items-center justify-between mb-2 pb-2 border-b border-white/10">
-                        <div className="text-[13px] font-bold text-white">
-                          {categoryData.emoji} {categoryName}
-                        </div>
-                        <div className="text-[14px] font-bold text-[#52E8FF]">
-                          {categoryData.totalKg} кг
-                        </div>
-                      </div>
+            <p className="text-[#8b949e] mb-8 leading-relaxed">
+              Інформація не оновлювалась більше 15 хвилин.
+              <br />
+              Для продовження роботи необхідно оновити дані.
+            </p>
 
-                      {/* Товары внутри категории */}
-                      <div className="ml-4 space-y-2">
-                        {categoryData.items.map((item: any, idx: number) => (
-                          <div key={idx} className="flex items-center justify-between py-1.5 text-[11px]">
-                            <span className="text-white/70">• {item.productName}</span>
-                            <span className="font-semibold text-[#52E8FF]">{item.kg} кг</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Footer (фиксированный) */}
-              <div className="flex-shrink-0 p-8 border-t border-white/10">
-                <div className="flex items-center gap-3">
-                  {/* Кнопка СКАСУВАТИ */}
-                  <button
-                    className="flex-1 px-6 py-3 rounded-xl font-semibold transition-all duration-300 hover:bg-white/[0.1]"
-                    style={{
-                      background: 'rgba(255, 255, 255, 0.05)',
-                      border: '1px solid rgba(255, 255, 255, 0.1)',
-                      color: '#fff'
-                    }}
-                    onClick={() => setIsOrderModalOpen(false)}
-                  >
-                    ✕ СКАСУВАТИ
-                  </button>
-
-                  {/* Кнопка ПІДТВЕРДИТИ */}
-                  <button
-                    className="flex-1 px-6 py-3 rounded-xl font-semibold transition-all duration-300 hover:brightness-110 active:scale-[0.98]"
-                    style={{
-                      background: 'linear-gradient(135deg, #3FB950 0%, #2EA043 100%)',
-                      border: '1px solid rgba(63, 185, 80, 0.3)',
-                      color: '#fff',
-                      boxShadow: '0 4px 12px rgba(63, 185, 80, 0.3)'
-                    }}
-                    onClick={() => {
-                      console.log('Заказ подтверждён:', orderData);
-                      handleConfirmOrder(orderData?.items || []);
-                    }}
-                  >
-                    ✓ ПІДТВЕРДИТИ
-                  </button>
-                </div>
-              </div>
+            <div className="animate-bounce">
+              <span className="text-[#f85149] text-xs font-bold uppercase tracking-widest">
+                ☝️ Натисніть "Оновити" в меню зліва
+              </span>
             </div>
           </div>
-        )
-      }
+        </div>
+      )}
+
+      {/* Shift Restriction Modal */}
+      {showShiftRestrictionModal && refreshUrgency !== 'critical' && (
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center"
+          style={{ background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(8px)' }}
+          onClick={() => setShowShiftRestrictionModal(false)}
+        >
+          <div
+            className="w-[400px] bg-[#161b22] border border-[#f85149]/30 rounded-2xl shadow-[0_0_50px_rgba(248,81,73,0.15)] p-6 space-y-4 animate-in zoom-in duration-300 relative overflow-hidden"
+            onClick={e => e.stopPropagation()}
+          >
+            {/* Background glow effect */}
+            <div className="absolute top-0 right-0 w-64 h-64 bg-[#f85149]/5 blur-[80px] rounded-full pointer-events-none -translate-y-1/2 translate-x-1/2" />
+
+            {/* Icon */}
+            <div className="flex items-center justify-center mb-6">
+              <div className="w-16 h-16 rounded-2xl bg-[#f85149]/10 flex items-center justify-center border border-[#f85149]/20 shadow-[0_0_20px_rgba(248,81,73,0.1)]">
+                <AlertTriangle size={32} className="text-[#f85149] animate-pulse" />
+              </div>
+            </div>
+
+            {/* Text */}
+            <div className="text-center space-y-2 relative z-10">
+              <h3 className="text-xl font-black text-[#e6edf3] uppercase tracking-wide">
+                Зміна не обрана
+              </h3>
+              <p className="text-[13px] text-[#8b949e] leading-relaxed">
+                Неможливо сформувати замовлення без активної зміни.
+                <br />
+                Будь ласка, перейдіть у розділ <span className="text-[#00D4FF] font-bold">Персонал</span> та оберіть зміну і кількість працівників.
+              </p>
+            </div>
+
+            {/* Actions */}
+            <div className="pt-4 relative z-10">
+              <button
+                onClick={() => setShowShiftRestrictionModal(false)}
+                className="w-full py-3 bg-[#238636] hover:bg-[#2ea043] text-white font-bold rounded-xl transition-all shadow-lg shadow-green-900/20 active:scale-[0.98]"
+              >
+                ЗРОЗУМІЛО
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Confirmation Modal */}
+      <OrderConfirmationModal
+        isOpen={isOrderModalOpen}
+        onClose={() => setIsOrderModalOpen(false)}
+        items={orderItems}
+        onConfirm={handleConfirmOrder}
+      />
+
 
       <ShareOptionsModal
         isOpen={showShareModal}

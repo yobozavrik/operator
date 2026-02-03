@@ -9,6 +9,8 @@ export interface OrderItem {
     quantity: number;
     kg: number;
     priority: PriorityKey;
+    minRequired?: number;
+    maxRecommended?: number;
 }
 
 export interface SavedOrder {
