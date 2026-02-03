@@ -7,7 +7,8 @@
  *   await auditLog('LOGIN', 'auth', { email: user.email });
  */
 
-import { supabase } from './supabase';
+import { supabase as clientSupabase } from './supabase';
+import { createClient as createServerSupabase } from '@/utils/supabase/server';
 
 export type AuditAction =
     | 'LOGIN'
@@ -56,7 +57,7 @@ export async function auditLog(
     const timestamp = new Date().toISOString();
 
     try {
-        const { error } = await supabase
+        const { error } = await clientSupabase
             .from('audit_logs')
             .insert({
                 ...entry,
@@ -99,14 +100,15 @@ export async function serverAuditLog(
     };
 
     try {
+        const supabase = await createServerSupabase();
         const { error } = await supabase.from('audit_logs').insert(entry);
 
         if (error) {
-            console.warn('[ServerAuditLog] Supabase insert failed:', error.message);
+            console.warn('[ServerAuditLog] Supabase insert failed:', error.message || error.code || JSON.stringify(error));
             console.log('[ServerAuditLog]', entry);
         }
-    } catch (err) {
-        console.error('[ServerAuditLog] Exception:', err);
+    } catch (err: any) {
+        console.error('[ServerAuditLog] Exception:', err.message || err);
         console.log('[ServerAuditLog]', entry);
     }
 }
