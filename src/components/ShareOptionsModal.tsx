@@ -4,10 +4,8 @@ import React, { useState, useMemo } from 'react';
 import { X, Send, Download, Copy, Check } from 'lucide-react';
 import { OrderItem, SharePlatform } from '@/types/order';
 import { formatOrderMessage } from '@/lib/messageFormatter';
-import { cn } from '@/lib/utils';
 import { groupItemsByCategory, generateExcel, prepareWorkbook } from '@/lib/order-export';
 import { auditLog } from '@/lib/logger';
-import ExcelJS from 'exceljs';
 
 interface ShareOptionsModalProps {
     isOpen: boolean;
@@ -63,28 +61,33 @@ export const ShareOptionsModal = ({ isOpen, items, orderData, onClose, onShare }
                 window.URL.revokeObjectURL(url);
             };
 
-            if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+            const hasShareApi = typeof navigator !== 'undefined' && typeof navigator.share === 'function';
+            const canShareFiles = hasShareApi
+                && typeof navigator.canShare === 'function'
+                && navigator.canShare({ files: [file] });
+
+            if (canShareFiles) {
                 await navigator.share({
                     files: [file],
                     title: 'Виробниче замовлення',
                     text: shareText
                 });
                 return;
-            } else {
-                if (navigator.share) {
-                    try {
-                        await navigator.share({
-                            title: 'Виробниче замовлення',
-                            text: shareText
-                        });
-                    } catch (shareError) {
-                        console.warn('Text share failed:', shareError);
-                    }
-                }
-
-                downloadFile();
-                alert('Ваш браузер не підтримує надсилання файлів. Файл завантажено, додайте його в Telegram/WhatsApp/Viber вручну.');
             }
+
+            if (hasShareApi) {
+                try {
+                    await navigator.share({
+                        title: 'Виробниче замовлення',
+                        text: shareText
+                    });
+                } catch (shareError) {
+                    console.warn('Text share failed:', shareError);
+                }
+            }
+
+            downloadFile();
+            alert('Ваш браузер не підтримує надсилання файлів. Файл завантажено, додайте його в Telegram/WhatsApp/Viber вручну.');
         } catch (error) {
             console.error('Помилка при поділитися:', error);
             await auditLog('ERROR', 'ShareOptionsModal', { error: String(error) });
