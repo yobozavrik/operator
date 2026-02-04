@@ -1,9 +1,7 @@
-'use client';
-
 import React from 'react';
 import { ArrowRight } from 'lucide-react';
 import { ProductionTask } from '@/types/bi';
-import { STORES } from '@/lib/transformers';
+import { useStore } from '@/context/StoreContext';
 import { cn } from '@/lib/utils';
 
 interface TaskCardProps {
@@ -19,6 +17,9 @@ const getStatusColor = (stock: number, threshold: number) => {
 };
 
 export const TaskCard = ({ task, onStatusChange }: TaskCardProps) => {
+    const { currentCapacity } = useStore();
+    const isShiftSelected = currentCapacity !== null;
+
     return (
         <div className="bg-[#0F1622] border border-[#1E2A3A] rounded-xl p-5 group transition-all hover:border-[#58A6FF]/30 hover:shadow-lg shadow-black/20">
             <div className="flex justify-between items-start mb-4">
@@ -63,10 +64,17 @@ export const TaskCard = ({ task, onStatusChange }: TaskCardProps) => {
                 </div>
 
                 <button
-                    onClick={() => onStatusChange(task.id, 'in-progress')}
-                    className="flex items-center gap-2 px-4 py-2 bg-[#1A1A1A] hover:bg-[#252526] border border-[#1E2A3A] rounded-lg text-[10px] font-black text-[#E6EDF3] uppercase tracking-tighter transition-all"
+                    onClick={() => isShiftSelected && onStatusChange(task.id, 'in-progress')}
+                    disabled={!isShiftSelected}
+                    className={cn(
+                        "flex items-center gap-2 px-4 py-2 border rounded-lg text-[10px] font-black uppercase tracking-tighter transition-all",
+                        isShiftSelected
+                            ? "bg-[#1A1A1A] hover:bg-[#252526] border-[#1E2A3A] text-[#E6EDF3]"
+                            : "bg-[#1A1A1A]/50 border-[#1E2A3A]/50 text-[#8B949E] cursor-not-allowed opacity-50"
+                    )}
+                    title={!isShiftSelected ? "Оберіть зміну в меню 'Персонал'" : ""}
                 >
-                    Дія <ArrowRight size={12} className="text-[#58A6FF]" />
+                    Дія <ArrowRight size={12} className={isShiftSelected ? "text-[#58A6FF]" : "text-[#8B949E]"} />
                 </button>
             </div>
         </div>

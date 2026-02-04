@@ -33,7 +33,7 @@ const fetcher = async (url: string) => {
 
 export default function BIDashboard() {
   // Get store context
-  const { selectedStore, currentCapacity } = useStore();
+  const { selectedStore, setSelectedStore, currentCapacity } = useStore();
 
   // ⚡ REALTIME ARCHITECTURE: No more polling!
   // We fetch initially, then listen for DB events to re-fetch.
@@ -340,71 +340,116 @@ export default function BIDashboard() {
                   onClick={handleRefresh}
                   disabled={isRefreshing}
                   className={cn(
-                    "group relative flex items-center gap-3 px-5 py-3 rounded-xl transition-all duration-300 hover:scale-105 overflow-hidden border active:scale-95 disabled:opacity-50",
+                    "group relative flex items-center gap-4 px-5 py-3 rounded-xl transition-all duration-500 hover:scale-[1.03] overflow-hidden border active:scale-95 disabled:opacity-50",
                     refreshUrgency === 'critical'
-                      ? "border-[#E74856]/50 shadow-[0_0_25px_rgba(231,72,86,0.3)] animate-pulse"
+                      ? "border-[#E74856]/40 shadow-[0_0_30px_rgba(231,72,86,0.25)]"
                       : refreshUrgency === 'warning'
-                        ? "border-yellow-500/50 shadow-[0_0_20px_rgba(234,179,8,0.2)]"
-                        : "border-[#00D4FF]/30 hover:shadow-[0_0_25px_rgba(0,212,255,0.2)]"
+                        ? "border-yellow-500/40 shadow-[0_0_25px_rgba(234,179,8,0.2)]"
+                        : "border-[#00D4FF]/20 hover:border-[#00D4FF]/50 hover:shadow-[0_0_30px_rgba(0,212,255,0.2)]"
                   )}
                   style={{
                     background: refreshUrgency === 'critical'
-                      ? 'linear-gradient(135deg, rgba(231, 72, 86, 0.15) 0%, rgba(196, 30, 58, 0.1) 100%)'
+                      ? 'linear-gradient(135deg, rgba(231, 72, 86, 0.12) 0%, rgba(10, 14, 26, 0.8) 100%)'
                       : refreshUrgency === 'warning'
-                        ? 'linear-gradient(135deg, rgba(234, 179, 8, 0.15) 0%, rgba(202, 138, 4, 0.1) 100%)'
-                        : 'linear-gradient(135deg, rgba(0, 212, 255, 0.1) 0%, rgba(0, 136, 255, 0.05) 100%)',
-                    backdropFilter: 'blur(15px)',
-                    WebkitBackdropFilter: 'blur(15px)',
+                        ? 'linear-gradient(135deg, rgba(234, 179, 8, 0.12) 0%, rgba(10, 14, 26, 0.8) 100%)'
+                        : 'linear-gradient(135deg, rgba(0, 212, 255, 0.08) 0%, rgba(10, 14, 26, 0.8) 100%)',
+                    backdropFilter: 'blur(12px)',
+                    WebkitBackdropFilter: 'blur(12px)',
                   }}
                 >
                   <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:animate-shimmer pointer-events-none" />
+
                   <div className={cn(
-                    "p-2.5 rounded-lg transition-colors shadow-inner",
-                    refreshUrgency === 'critical' ? "bg-[#E74856]/20 group-hover:bg-[#E74856]/30" :
-                      refreshUrgency === 'warning' ? "bg-yellow-500/20 group-hover:bg-yellow-500/30" :
-                        "bg-[#00D4FF]/10 group-hover:bg-[#00D4FF]/20"
+                    "p-2.5 rounded-lg transition-all duration-500 flex items-center justify-center",
+                    refreshUrgency === 'critical' ? "bg-[#E74856]/20 shadow-[0_0_15px_rgba(231,72,86,0.3)]" :
+                      refreshUrgency === 'warning' ? "bg-yellow-500/20 shadow-[0_0_15px_rgba(234,179,8,0.3)]" :
+                        "bg-[#00D4FF]/10 group-hover:bg-[#00D4FF]/20 shadow-[inset_0_0_10px_rgba(0,212,255,0.1)]"
                   )}>
-                    <RefreshCw size={16} className={cn(
-                      "transition-transform duration-700",
+                    <RefreshCw size={18} className={cn(
+                      "transition-all duration-700",
                       isRefreshing ? "animate-spin" : "group-hover:rotate-180",
                       refreshUrgency === 'critical' ? "text-[#E74856]" :
                         refreshUrgency === 'warning' ? "text-yellow-400" :
                           "text-[#00D4FF]"
                     )} />
                   </div>
+
                   <div className="flex flex-col text-left">
                     <span className={cn(
-                      "text-[9px] font-bold uppercase tracking-[0.2em] leading-none mb-1.5",
-                      refreshUrgency === 'critical' ? "text-[#E74856]" :
+                      "text-[10px] font-black uppercase tracking-[0.25em] leading-none mb-1.5",
+                      refreshUrgency === 'critical' ? "text-[#E74856] text-glow" :
                         refreshUrgency === 'warning' ? "text-yellow-400" :
                           "text-[#00D4FF]"
                     )}>
-                      {refreshUrgency === 'critical' ? 'Дані застаріли' :
-                        refreshUrgency === 'warning' ? 'Потребує уваги' :
-                          'Синхронізація'}
+                      {refreshUrgency === 'critical' ? 'КРИТИЧНО' :
+                        refreshUrgency === 'warning' ? 'УВАГА' :
+                          'СИНХРОНІЗАЦІЯ'}
                     </span>
-                    <span className="text-[13px] font-black text-white leading-none uppercase tracking-tight">
-                      {refreshUrgency === 'critical' ? 'ТЕРМІНОВО ОНОВИТИ!' : 'Оновити залишки'}
+                    <span className="text-[14px] font-black text-white leading-none uppercase tracking-tight">
+                      {isRefreshing ? 'ОНОВЛЕННЯ...' : refreshUrgency === 'critical' ? 'ОНОВИТИ ЗАРАЗ' : 'ОНОВИТИ ЗАЛИШКИ'}
                     </span>
                   </div>
 
-                  {/* Urgency indicator light */}
+                  {/* Urgency status dot */}
                   <div className={cn(
-                    "absolute top-2 right-2 w-1.5 h-1.5 rounded-full transition-shadow duration-300",
-                    isRefreshing ? "bg-white shadow-[0_0_8px_white]" :
+                    "absolute top-3 right-3 w-1.5 h-1.5 rounded-full transition-all duration-500",
+                    isRefreshing ? "bg-white shadow-[0_0_12px_white] animate-pulse" :
                       refreshUrgency === 'critical' ? "bg-[#E74856] shadow-[0_0_10px_#E74856]" :
                         refreshUrgency === 'warning' ? "bg-yellow-400 shadow-[0_0_8px_rgba(250,204,21,0.8)]" :
                           "bg-[#00D4FF] shadow-[0_0_8px_rgba(0,212,255,0.6)]"
                   )} />
                 </button>
 
+                {/* 👥 PERSONNEL ACCESS IN HEADER */}
+                <button
+                  onClick={() => {
+                    setSelectedStore('Персонал');
+                    localStorage.setItem('activeView', 'Персонал');
+                  }}
+                  className={cn(
+                    "group relative flex items-center gap-4 px-5 py-3 rounded-xl transition-all duration-500 hover:scale-[1.03] overflow-hidden border active:scale-95",
+                    selectedStore === 'Персонал'
+                      ? "border-[#00D4FF]/40 shadow-[0_0_30px_rgba(0,212,255,0.25)] bg-[rgba(0,212,255,0.12)]"
+                      : "border-white/10 bg-white/5 hover:bg-white/10 hover:border-white/20"
+                  )}
+                  style={{ backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)' }}
+                >
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:animate-shimmer pointer-events-none" />
+
+                  <div className={cn(
+                    "p-2.5 rounded-lg transition-all duration-500 flex items-center justify-center",
+                    selectedStore === 'Персонал' ? "bg-[#00D4FF]/20 shadow-[0_0_15px_rgba(0,212,255,0.3)]" : "bg-white/5 group-hover:bg-white/10 shadow-[inset_0_0_10px_rgba(255,255,255,0.05)]"
+                  )}>
+                    <Users size={18} className={cn(
+                      "transition-all duration-500",
+                      selectedStore === 'Персонал' ? "text-[#00D4FF] scale-110" : "text-white/40 group-hover:text-white/80"
+                    )} />
+                  </div>
+
+                  <div className="flex flex-col text-left">
+                    <span className={cn(
+                      "text-[10px] font-black uppercase tracking-[0.25em] leading-none mb-1.5",
+                      selectedStore === 'Персонал' ? "text-[#00D4FF] text-glow" : "text-white/40 group-hover:text-white/60"
+                    )}>УПРАВЛІННЯ</span>
+                    <span className={cn(
+                      "text-[14px] font-black leading-none uppercase tracking-tight transition-colors",
+                      selectedStore === 'Персонал' ? "text-white" : "text-white/80 group-hover:text-white"
+                    )}>Персонал</span>
+                  </div>
+
+                  {selectedStore === 'Персонал' && (
+                    <div className="absolute top-3 right-3 w-1.5 h-1.5 rounded-full bg-[#00D4FF] shadow-[0_0_10px_#00D4FF]" />
+                  )}
+                </button>
+
                 <button
                   onClick={() => setShowBreakdownModal(true)}
-                  className="transition-transform hover:scale-105 active:scale-95"
+                  className="transition-transform hover:scale-[1.03] active:scale-95"
                 >
                   <SmallKPI label="Загалом кг" value={Math.round(metrics.shopLoad)} icon={Activity} color={UI_TOKENS.colors.priority.normal} />
                 </button>
                 <SmallKPI label="Критичні SKU" value={metrics.criticalSKU} icon={AlertTriangle} color={UI_TOKENS.colors.priority.critical} />
+
                 <CapacityProgress current={metrics.shopLoad} total={currentCapacity || 0} />
               </div>
 
