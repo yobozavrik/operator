@@ -1,9 +1,9 @@
 import { NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase';
-import { SupabaseDeficitRow } from '@/types/bi';
+import { createClient } from '@/utils/supabase/server';
 
 export async function GET() {
     try {
+        const supabase = await createClient();
         const { data, error } = await supabase
             .from('dashboard_deficit')
             .select('*')
