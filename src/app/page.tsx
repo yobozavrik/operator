@@ -10,7 +10,7 @@ import { PersonnelView } from '@/components/PersonnelView';
 import { ProductionTask, BI_Metrics, SupabaseDeficitRow } from '@/types/bi';
 import { transformDeficitData } from '@/lib/transformers';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
-import { Users, AlertTriangle, TrendingUp, RotateCw, Activity, RefreshCw, BarChart2 } from 'lucide-react';
+import { Users, AlertTriangle, Activity, RefreshCw, BarChart2 } from 'lucide-react';
 import { SyncOverlay } from '@/components/SyncOverlay';
 import { UI_TOKENS } from '@/lib/design-tokens';
 import { cn } from '@/lib/utils';
@@ -33,7 +33,7 @@ const fetcher = async (url: string) => {
 
 export default function BIDashboard() {
   // Get store context
-  const { selectedStore, currentCapacity } = useStore();
+  const { selectedStore, setSelectedStore, currentCapacity } = useStore();
   const [realtimeEnabled, setRealtimeEnabled] = React.useState(true);
   const refreshInterval = realtimeEnabled ? 0 : 30000;
 
@@ -350,7 +350,7 @@ export default function BIDashboard() {
                   onClick={handleRefresh}
                   disabled={isRefreshing}
                   className={cn(
-                    "group relative flex items-center gap-3 px-5 py-3 rounded-xl transition-all duration-300 hover:scale-105 overflow-hidden border active:scale-95 disabled:opacity-50",
+                    "group relative flex items-center gap-3 px-5 py-3 rounded-xl transition-all duration-300 hover:scale-[1.03] overflow-hidden border active:scale-95 disabled:opacity-50",
                     refreshUrgency === 'critical'
                       ? "border-[#E74856]/50 shadow-[0_0_25px_rgba(231,72,86,0.3)] animate-pulse"
                       : refreshUrgency === 'warning'
@@ -359,12 +359,13 @@ export default function BIDashboard() {
                   )}
                   style={{
                     background: refreshUrgency === 'critical'
-                      ? 'linear-gradient(135deg, rgba(231, 72, 86, 0.15) 0%, rgba(196, 30, 58, 0.1) 100%)'
+                      ? 'radial-gradient(circle at top left, rgba(231, 72, 86, 0.35), transparent 60%), linear-gradient(135deg, rgba(231, 72, 86, 0.15) 0%, rgba(196, 30, 58, 0.1) 100%)'
                       : refreshUrgency === 'warning'
-                        ? 'linear-gradient(135deg, rgba(234, 179, 8, 0.15) 0%, rgba(202, 138, 4, 0.1) 100%)'
-                        : 'linear-gradient(135deg, rgba(0, 212, 255, 0.1) 0%, rgba(0, 136, 255, 0.05) 100%)',
+                        ? 'radial-gradient(circle at top left, rgba(234, 179, 8, 0.35), transparent 60%), linear-gradient(135deg, rgba(234, 179, 8, 0.15) 0%, rgba(202, 138, 4, 0.1) 100%)'
+                        : 'radial-gradient(circle at top left, rgba(0, 212, 255, 0.35), transparent 60%), linear-gradient(135deg, rgba(0, 212, 255, 0.1) 0%, rgba(0, 136, 255, 0.05) 100%)',
                     backdropFilter: 'blur(15px)',
                     WebkitBackdropFilter: 'blur(15px)',
+                    boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 12px 24px rgba(0, 0, 0, 0.35)',
                   }}
                 >
                   <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:animate-shimmer pointer-events-none" />
@@ -384,7 +385,7 @@ export default function BIDashboard() {
                   </div>
                   <div className="flex flex-col text-left">
                     <span className={cn(
-                      "text-[9px] font-bold uppercase tracking-[0.2em] leading-none mb-1.5",
+                      "text-[9px] font-black uppercase tracking-widest leading-none mb-1.5",
                       refreshUrgency === 'critical' ? "text-[#E74856]" :
                         refreshUrgency === 'warning' ? "text-yellow-400" :
                           "text-[#00D4FF]"
@@ -393,7 +394,7 @@ export default function BIDashboard() {
                         refreshUrgency === 'warning' ? 'Потребує уваги' :
                           'Синхронізація'}
                     </span>
-                    <span className="text-[13px] font-black text-white leading-none uppercase tracking-tight">
+                    <span className="text-[13px] font-black text-white leading-none uppercase tracking-wider">
                       {refreshUrgency === 'critical' ? 'ТЕРМІНОВО ОНОВИТИ!' : 'Оновити залишки'}
                     </span>
                   </div>
@@ -408,6 +409,50 @@ export default function BIDashboard() {
                   )} />
                 </button>
 
+                <button
+                  onClick={() => {
+                    setSelectedStore('Персонал');
+                    localStorage.setItem('activeView', 'Персонал');
+                  }}
+                  className={cn(
+                    "group relative flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all duration-300 hover:scale-[1.03] border overflow-hidden",
+                    selectedStore === 'Персонал'
+                      ? "border-[#00D4FF]/40 shadow-[0_0_20px_rgba(0,212,255,0.25)]"
+                      : "border-white/10 hover:border-[#00D4FF]/30"
+                  )}
+                  style={{
+                    background: selectedStore === 'Персонал'
+                      ? 'linear-gradient(135deg, rgba(0, 212, 255, 0.18) 0%, rgba(0, 136, 255, 0.08) 100%)'
+                      : 'linear-gradient(135deg, rgba(15, 23, 42, 0.6) 0%, rgba(15, 23, 42, 0.35) 100%)',
+                    backdropFilter: 'blur(12px)',
+                    WebkitBackdropFilter: 'blur(12px)',
+                  }}
+                >
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:animate-shimmer pointer-events-none" />
+                  <div
+                    className={cn(
+                      "p-2 rounded-lg transition-all shadow-inner",
+                      selectedStore === 'Персонал'
+                        ? "bg-[#00D4FF]/20"
+                        : "bg-white/5 group-hover:bg-[#00D4FF]/10"
+                    )}
+                  >
+                    <Users size={14} className={cn(
+                      selectedStore === 'Персонал' ? "text-[#00D4FF]" : "text-white/70"
+                    )} />
+                  </div>
+                  <div className="flex flex-col text-left">
+                    <span className="text-[9px] font-black uppercase tracking-widest text-white/60">
+                      Контроль
+                    </span>
+                    <span className={cn(
+                      "text-[12px] font-black uppercase tracking-wider",
+                      selectedStore === 'Персонал' ? "text-[#00D4FF]" : "text-white"
+                    )}>
+                      Персонал
+                    </span>
+                  </div>
+                </button>
                 <button
                   onClick={() => setShowBreakdownModal(true)}
                   className="transition-transform hover:scale-105 active:scale-95"

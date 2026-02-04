@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { LogOut, Users } from 'lucide-react';
+import { LogOut } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { auditLog } from '@/lib/logger';
 
@@ -144,83 +144,6 @@ export const Sidebar = () => {
                     })}
                 </div>
 
-                {/* Personnel Section */}
-                <div className="px-4 mt-4 z-10">
-                    <p className="px-2 text-[11px] font-semibold text-[#00D4FF] uppercase tracking-widest mb-3">Управління</p>
-                    <button
-                        onClick={() => {
-                            setSelectedStore('Персонал');
-                            auditLog('VIEW_PERSONNEL', 'Sidebar', { timestamp: new Date().toISOString() });
-                        }}
-                        onMouseEnter={() => setHoveredStore(100)}
-                        onMouseLeave={() => setHoveredStore(null)}
-                        className={cn(
-                            "w-full px-4 py-3.5 text-center rounded-xl transition-all duration-300 relative overflow-hidden group",
-                            selectedStore === 'Персонал' && "scale-[1.02]"
-                        )}
-                        style={{
-                            background: selectedStore === 'Персонал'
-                                ? 'rgba(0, 212, 255, 0.1)'
-                                : 'rgba(20, 27, 45, 0.7)',
-                            backdropFilter: 'blur(20px)',
-                            WebkitBackdropFilter: 'blur(20px)',
-                            border: selectedStore === 'Персонал'
-                                ? '1px solid rgba(0, 212, 255, 0.5)'
-                                : hoveredStore === 100
-                                    ? '1px solid rgba(0, 212, 255, 0.3)'
-                                    : '1px solid rgba(255, 255, 255, 0.08)',
-                            boxShadow: selectedStore === 'Персонал'
-                                ? '0 0 30px rgba(0, 212, 255, 0.3), 0 8px 32px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1)'
-                                : hoveredStore === 100
-                                    ? '0 0 20px rgba(0, 212, 255, 0.15), 0 8px 24px rgba(0, 0, 0, 0.3)'
-                                    : '0 4px 16px rgba(0, 0, 0, 0.2)',
-                        }}
-                    >
-                        {/* Shimmer effect on hover */}
-                        <div
-                            className={cn(
-                                "absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full transition-transform duration-700",
-                                hoveredStore === 100 && "translate-x-full"
-                            )}
-                        />
-
-                        {/* Active glow indicator */}
-                        {selectedStore === 'Персонал' && (
-                            <div
-                                className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 rounded-r-full"
-                                style={{
-                                    background: 'linear-gradient(180deg, #00D4FF 0%, #0088FF 100%)',
-                                    boxShadow: '0 0 12px rgba(0, 212, 255, 0.8)',
-                                }}
-                            />
-                        )}
-
-                        <div className="flex items-center justify-center gap-3 relative z-10">
-                            <div
-                                className="w-8 h-8 rounded-lg flex items-center justify-center"
-                                style={{
-                                    background: 'linear-gradient(135deg, #00D4FF 0%, #0088FF 100%)',
-                                    boxShadow: '0 0 12px rgba(0, 212, 255, 0.4)',
-                                }}
-                            >
-                                <Users size={14} className="text-white" />
-                            </div>
-                            <span
-                                className={cn(
-                                    "text-[12px] font-semibold uppercase tracking-wide transition-all duration-300",
-                                    selectedStore === 'Персонал'
-                                        ? "text-[#00D4FF]"
-                                        : hoveredStore === 100
-                                            ? "text-white"
-                                            : "text-gray-400"
-                                )}
-                            >
-                                Персонал
-                            </span>
-                        </div>
-                    </button>
-                </div>
-
                 <div className="px-4 mt-6 pt-4 border-t border-[var(--border)] z-10">
                     <button
                         onClick={async () => {
@@ -332,4 +255,3 @@ export const DashboardLayout = ({
         </div>
     );
 };
-

@@ -33,25 +33,35 @@ export async function GET(request: NextRequest) {
         });
     }
 
-    const totalKg = data.total_kg ?? 0;
+    const totalKg = Number(data?.total_kg) || 0;
+    const criticalSKU = Number(data?.critical_sku_count) || 0;
+    const highSKU = Number(data?.high_sku_count) || 0;
+    const reserveSKU = Number(data?.reserve_sku_count) || 0;
+    const criticalWeight = Number(data?.critical_kg) || 0;
+    const highWeight = Number(data?.high_kg) || 0;
+    const reserveWeight = Number(data?.reserve_kg) || 0;
+    const totalSKU = Number(data?.total_sku_count) || 0;
+    const loadPercentage = totalKg
+        ? Math.min(100, Math.round((totalKg / 662) * 100))
+        : 0;
 
     return NextResponse.json({
         shopLoad: totalKg,
-        criticalSKU: data.critical_sku_count || 0,
-        highSKU: data.high_sku_count || 0,
-        reserveSKU: data.reserve_sku_count || 0,
-        criticalWeight: data.critical_kg || 0,
-        highWeight: data.high_kg || 0,
-        reserveWeight: data.reserve_kg || 0,
-        totalSKU: data.total_sku_count || 0,
-        loadPercentage: Math.min(100, Math.round((totalKg / 662) * 100)),
+        criticalSKU,
+        highSKU,
+        reserveSKU,
+        criticalWeight,
+        highWeight,
+        reserveWeight,
+        totalSKU,
+        loadPercentage,
         staffCount: 0,
         aiEfficiency: 98,
         lastUpdate: new Date().toISOString(),
         breakdown: {
-            critical: data.critical_kg,
-            high: data.high_kg,
-            reserve: data.reserve_kg
+            critical: criticalWeight,
+            high: highWeight,
+            reserve: reserveWeight
         }
     });
 }
