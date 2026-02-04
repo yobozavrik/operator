@@ -4,10 +4,8 @@ import React, { useState, useMemo } from 'react';
 import { X, Send, Download, Copy, Check } from 'lucide-react';
 import { OrderItem, SharePlatform } from '@/types/order';
 import { formatOrderMessage } from '@/lib/messageFormatter';
-import { cn } from '@/lib/utils';
 import { groupItemsByCategory, generateExcel, prepareWorkbook } from '@/lib/order-export';
 import { auditLog } from '@/lib/logger';
-import ExcelJS from 'exceljs';
 
 interface ShareOptionsModalProps {
     isOpen: boolean;
@@ -43,21 +41,53 @@ export const ShareOptionsModal = ({ isOpen, items, orderData, onClose, onShare }
 
             const workbook = await prepareWorkbook(orderData);
             const buffer = await workbook.xlsx.writeBuffer();
+            const fileName = `Graviton_${orderData.date.replace(/\./g, '-')}.xlsx`;
+            const shareText = `Замовлення GRAVITON на ${orderData.date}\nЗагальна вага: ${orderData.totalKg} кг`;
             const file = new File(
                 [buffer],
-                `Graviton_${orderData.date.replace(/\./g, '-')}.xlsx`,
+                fileName,
                 { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }
             );
 
-            if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+            const downloadFile = () => {
+                const blob = new Blob([buffer], {
+                    type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+                });
+                const url = window.URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = fileName;
+                link.click();
+                window.URL.revokeObjectURL(url);
+            };
+
+            const hasShareApi = typeof navigator !== 'undefined' && typeof navigator.share === 'function';
+            const canShareFiles = hasShareApi
+                && typeof navigator.canShare === 'function'
+                && navigator.canShare({ files: [file] });
+
+            if (canShareFiles) {
                 await navigator.share({
                     files: [file],
                     title: 'Виробниче замовлення',
-                    text: `Замовлення GRAVITON на ${orderData.date}\nЗагальна вага: ${orderData.totalKg} кг`
+                    text: shareText
                 });
-            } else {
-                alert('Ваш браузер не підтримує функцію поділитися. Використайте кнопку "Завантажити".');
+                return;
             }
+
+            if (hasShareApi) {
+                try {
+                    await navigator.share({
+                        title: 'Виробниче замовлення',
+                        text: shareText
+                    });
+                } catch (shareError) {
+                    console.warn('Text share failed:', shareError);
+                }
+            }
+
+            downloadFile();
+            alert('Ваш браузер не підтримує надсилання файлів. Файл завантажено, додайте його в Telegram/WhatsApp/Viber вручну.');
         } catch (error) {
             console.error('Помилка при поділитися:', error);
             await auditLog('ERROR', 'ShareOptionsModal', { error: String(error) });
