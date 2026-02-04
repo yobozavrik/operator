@@ -54,37 +54,21 @@ export const ShareOptionsModal = ({ isOpen, items, orderData, onClose, onShare }
             const downloadFile = () => {
                 const blob = new Blob([buffer], {
                     type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-                });
-                const url = window.URL.createObjectURL(blob);
-                const link = document.createElement('a');
-                link.href = url;
-                link.download = fileName;
-                link.click();
-                window.URL.revokeObjectURL(url);
-            };
-
-            if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
-                await navigator.share({
-                    files: [file],
-                    title: 'Виробниче замовлення',
-                    text: shareText
-                });
-                return;
-            } else {
-                if (navigator.share) {
-                    try {
-                        await navigator.share({
-                            title: 'Виробниче замовлення',
-                            text: shareText
-                        });
-                    } catch (shareError) {
-                        console.warn('Text share failed:', shareError);
-                    }
-                }
-
-                downloadFile();
-                alert('Ваш браузер не підтримує надсилання файлів. Файл завантажено, додайте його в Telegram/WhatsApp/Viber вручну.');
             }
+
+            if (navigator.share) {
+                try {
+                    await navigator.share({
+                        title: 'Виробниче замовлення',
+                        text: shareText
+                    });
+                } catch (shareError) {
+                    console.warn('Text share failed:', shareError);
+                }
+            }
+
+            downloadFile();
+            alert('Не вдалося надіслати файл напряму. Файл завантажено, додайте його в Telegram/WhatsApp/Viber вручну.');
         } catch (error) {
             console.error('Помилка при поділитися:', error);
             await auditLog('ERROR', 'ShareOptionsModal', { error: String(error) });
