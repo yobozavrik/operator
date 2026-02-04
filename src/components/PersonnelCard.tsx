@@ -7,6 +7,8 @@ import { cn } from '@/lib/utils';
 
 interface Props {
     className?: string;
+    isActive?: boolean;
+    onSelect?: () => void;
 }
 
 const getPositionIcon = (position: Employee['position']) => {
@@ -20,7 +22,7 @@ const getPositionIcon = (position: Employee['position']) => {
     }
 };
 
-export const PersonnelCard = ({ className }: Props) => {
+export const PersonnelCard = ({ className, isActive = false, onSelect }: Props) => {
     const [isExpanded, setIsExpanded] = useState(false);
     const [expandedShift, setExpandedShift] = useState<number | null>(null);
 
@@ -37,21 +39,24 @@ export const PersonnelCard = ({ className }: Props) => {
         <div className={cn("", className)}>
             {/* Main Personnel Button - like store button */}
             <button
-                onClick={() => setIsExpanded(!isExpanded)}
+                onClick={() => {
+                    onSelect?.();
+                    setIsExpanded(!isExpanded);
+                }}
                 className={cn(
                     "w-full px-4 py-3.5 text-left rounded-xl transition-all duration-300 relative overflow-hidden group",
-                    isExpanded && "scale-[1.02]"
+                    (isExpanded || isActive) && "scale-[1.02]"
                 )}
                 style={{
-                    background: isExpanded
+                    background: (isExpanded || isActive)
                         ? 'rgba(0, 212, 255, 0.1)'
                         : 'rgba(20, 27, 45, 0.7)',
                     backdropFilter: 'blur(20px)',
                     WebkitBackdropFilter: 'blur(20px)',
-                    border: isExpanded
+                    border: (isExpanded || isActive)
                         ? '1px solid rgba(0, 212, 255, 0.5)'
                         : '1px solid rgba(255, 255, 255, 0.08)',
-                    boxShadow: isExpanded
+                    boxShadow: (isExpanded || isActive)
                         ? '0 0 30px rgba(0, 212, 255, 0.3), 0 8px 32px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1)'
                         : '0 4px 16px rgba(0, 0, 0, 0.2)',
                 }}
@@ -64,7 +69,7 @@ export const PersonnelCard = ({ className }: Props) => {
                 />
 
                 {/* Active glow indicator */}
-                {isExpanded && (
+                {(isExpanded || isActive) && (
                     <div
                         className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 rounded-r-full"
                         style={{
@@ -89,7 +94,7 @@ export const PersonnelCard = ({ className }: Props) => {
                             <span
                                 className={cn(
                                     "text-[12px] font-semibold uppercase tracking-wide transition-all duration-300",
-                                    isExpanded ? "text-[#00D4FF]" : "text-gray-400"
+                                    (isExpanded || isActive) ? "text-[#00D4FF]" : "text-gray-400"
                                 )}
                             >
                                 Персонал
