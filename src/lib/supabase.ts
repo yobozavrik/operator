@@ -11,9 +11,6 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     db: {
         schema: 'graviton'
     },
-    realtime: {
-        enabled: false
-    },
     auth: {
         persistSession: false
     }
