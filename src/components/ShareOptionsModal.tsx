@@ -43,21 +43,55 @@ export const ShareOptionsModal = ({ isOpen, items, orderData, onClose, onShare }
 
             const workbook = await prepareWorkbook(orderData);
             const buffer = await workbook.xlsx.writeBuffer();
+            const fileName = `Graviton_${orderData.date.replace(/\./g, '-')}.xlsx`;
+            const shareText = `Замовлення GRAVITON на ${orderData.date}\nЗагальна вага: ${orderData.totalKg} кг`;
             const file = new File(
                 [buffer],
-                `Graviton_${orderData.date.replace(/\./g, '-')}.xlsx`,
+                fileName,
                 { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }
             );
 
-            if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
-                await navigator.share({
-                    files: [file],
-                    title: 'Виробниче замовлення',
-                    text: `Замовлення GRAVITON на ${orderData.date}\nЗагальна вага: ${orderData.totalKg} кг`
+            const downloadFile = () => {
+                const blob = new Blob([buffer], {
+                    type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
                 });
-            } else {
-                alert('Ваш браузер не підтримує функцію поділитися. Використайте кнопку "Завантажити".');
+                const url = window.URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = fileName;
+                link.click();
+                window.URL.revokeObjectURL(url);
+            };
+
+            if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+                try {
+                    await navigator.share({
+                        files: [file],
+                        title: 'Виробниче замовлення',
+                        text: shareText
+                    });
+                    return;
+                } catch (shareError) {
+                    if (shareError instanceof DOMException && shareError.name === 'AbortError') {
+                        return;
+                    }
+                    console.warn('File share failed, falling back to download:', shareError);
+                }
             }
+
+            if (navigator.share) {
+                try {
+                    await navigator.share({
+                        title: 'Виробниче замовлення',
+                        text: shareText
+                    });
+                } catch (shareError) {
+                    console.warn('Text share failed:', shareError);
+                }
+            }
+
+            downloadFile();
+            alert('Не вдалося надіслати файл напряму. Файл завантажено, додайте його в Telegram/WhatsApp/Viber вручну.');
         } catch (error) {
             console.error('Помилка при поділитися:', error);
             await auditLog('ERROR', 'ShareOptionsModal', { error: String(error) });
