@@ -410,9 +410,10 @@ export default function BIDashboard() {
                   )} />
                 </button>
 
-                <div className="min-w-[240px] max-w-[300px]">
+                <div className="min-w-[180px] max-w-[210px]">
                   <PersonnelCard
                     isActive={selectedStore === 'Персонал'}
+                    variant="compact"
                     onSelect={() => {
                       setSelectedStore('Персонал');
                       localStorage.setItem('activeView', 'Персонал');

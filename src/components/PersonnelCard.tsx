@@ -9,6 +9,7 @@ interface Props {
     className?: string;
     isActive?: boolean;
     onSelect?: () => void;
+    variant?: 'default' | 'compact';
 }
 
 const getPositionIcon = (position: Employee['position']) => {
@@ -22,7 +23,7 @@ const getPositionIcon = (position: Employee['position']) => {
     }
 };
 
-export const PersonnelCard = ({ className, isActive = false, onSelect }: Props) => {
+export const PersonnelCard = ({ className, isActive = false, onSelect, variant = 'default' }: Props) => {
     const [isExpanded, setIsExpanded] = useState(false);
     const [expandedShift, setExpandedShift] = useState<number | null>(null);
 
@@ -35,6 +36,8 @@ export const PersonnelCard = ({ className, isActive = false, onSelect }: Props) 
         setExpandedShift(prev => prev === shiftId ? null : shiftId);
     };
 
+    const isCompact = variant === 'compact';
+
     return (
         <div className={cn("", className)}>
             {/* Main Personnel Button - like store button */}
@@ -44,7 +47,8 @@ export const PersonnelCard = ({ className, isActive = false, onSelect }: Props) 
                     setIsExpanded(!isExpanded);
                 }}
                 className={cn(
-                    "w-full px-4 py-3.5 text-left rounded-xl transition-all duration-300 relative overflow-hidden group",
+                    "w-full text-left rounded-xl transition-all duration-300 relative overflow-hidden group",
+                    isCompact ? "px-3 py-2.5" : "px-4 py-3.5",
                     (isExpanded || isActive) && "scale-[1.02]"
                 )}
                 style={{
@@ -80,33 +84,43 @@ export const PersonnelCard = ({ className, isActive = false, onSelect }: Props) 
                 )}
 
                 <div className="flex items-center justify-between relative z-10">
-                    <div className="flex items-center gap-3">
+                    <div className={cn("flex items-center gap-3", isCompact && "gap-2")}>
                         <div
-                            className="w-8 h-8 rounded-lg flex items-center justify-center"
+                            className={cn(
+                                "rounded-lg flex items-center justify-center",
+                                isCompact ? "w-7 h-7" : "w-8 h-8"
+                            )}
                             style={{
                                 background: 'linear-gradient(135deg, #00D4FF 0%, #0088FF 100%)',
                                 boxShadow: '0 0 12px rgba(0, 212, 255, 0.4)',
                             }}
                         >
-                            <Users size={16} className="text-white" />
+                            <Users size={isCompact ? 14 : 16} className="text-white" />
                         </div>
                         <div>
                             <span
                                 className={cn(
-                                    "text-[12px] font-semibold uppercase tracking-wide transition-all duration-300",
+                                    isCompact ? "text-[10px] font-semibold uppercase tracking-wider transition-all duration-300" : "text-[12px] font-semibold uppercase tracking-wide transition-all duration-300",
                                     (isExpanded || isActive) ? "text-[#00D4FF]" : "text-gray-400"
                                 )}
                             >
                                 Персонал
                             </span>
-                            <div className="text-[9px] text-gray-500">
-                                {totalEmployees} осіб • ~{totalCapacity} кг/день
-                            </div>
+                            {!isCompact && (
+                                <div className="text-[9px] text-gray-500">
+                                    {totalEmployees} осіб • ~{totalCapacity} кг/день
+                                </div>
+                            )}
+                            {isCompact && (
+                                <div className="text-[8px] text-gray-500">
+                                    {totalEmployees} осіб
+                                </div>
+                            )}
                         </div>
                     </div>
                     {isExpanded ?
-                        <ChevronDown size={16} className="text-[#00D4FF]" /> :
-                        <ChevronRight size={16} className="text-gray-400" />
+                        <ChevronDown size={isCompact ? 14 : 16} className="text-[#00D4FF]" /> :
+                        <ChevronRight size={isCompact ? 14 : 16} className="text-gray-400" />
                     }
                 </div>
             </button>
