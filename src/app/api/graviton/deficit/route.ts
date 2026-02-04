@@ -23,5 +23,13 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    return NextResponse.json(data);
+    // Нормалізація для фронтенду
+    const mappedData = (data || []).map(row => ({
+        ...row,
+        priority: row.priority_number === 1 ? 'critical' :
+            row.priority_number === 2 ? 'high' :
+                row.priority_number === 3 ? 'reserve' : 'normal'
+    }));
+
+    return NextResponse.json(mappedData);
 }

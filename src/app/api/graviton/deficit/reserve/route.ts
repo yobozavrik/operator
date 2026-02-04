@@ -11,7 +11,7 @@ export async function GET(request: NextRequest) {
     const { data, error } = await supabase
         .from('dashboard_deficit')
         .select('*')
-        .eq('priority', 3)  // Тільки РЕЗЕРВ
+        .eq('priority_number', 3)  // Тільки РЕЗЕРВ
         .order('deficit_percent', { ascending: false });
 
     if (error) {

@@ -19,9 +19,9 @@ export async function GET() {
         // Приводимо типи та нормалізуємо дані для фронтенду
         const mappedData = (data || []).map((row) => ({
             ...row,
-            priority_label: row.priority === 1 ? 'critical' :
-                row.priority === 2 ? 'high' :
-                    row.priority === 3 ? 'reserve' : 'normal'
+            priority_label: row.priority_number === 1 ? 'critical' :
+                row.priority_number === 2 ? 'high' :
+                    row.priority_number === 3 ? 'reserve' : 'normal'
         }));
 
         return NextResponse.json(mappedData);
