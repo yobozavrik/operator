@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase';
 import { serverAuditLog } from '@/lib/logger.server';
+import { createClient } from '@/utils/supabase/server';
 
 export async function GET(request: NextRequest) {
+    const supabase = await createClient();
     // Логуємо звернення до API
     await serverAuditLog('VIEW_RESERVE_DEFICIT', '/api/graviton/deficit/reserve', request, {
         timestamp: new Date().toISOString()

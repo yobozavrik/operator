@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase';
 import { SupabaseDeficitRow } from '@/types/bi';
 import { serverAuditLog } from '@/lib/logger.server';
+import { createClient } from '@/utils/supabase/server';
 
 export async function GET(request: NextRequest) {
+    const supabase = await createClient();
     // Log API access
     await serverAuditLog('VIEW_DEFICIT', '/api/graviton/deficit', request, {
         timestamp: new Date().toISOString()
@@ -27,7 +28,7 @@ export async function GET(request: NextRequest) {
         }
 
         // Маппінг priority для фронтенду
-        const mappedData = (data || []).map((row) => ({
+        const mappedData = (data || []).map((row: SupabaseDeficitRow) => ({
             ...row,
             priority: row.priority === 1 ? 'critical' :
                 row.priority === 2 ? 'high' :

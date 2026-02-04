@@ -7,22 +7,30 @@ export async function createClient() {
 
     let supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
     const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+    const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+    const supabaseKey = supabaseServiceRoleKey || supabaseAnonKey
 
-    // 🔐 AUTO-FIX: Force HTTP if using self-signed VPS domain to bypass Vercel SSL rejection
-    if (supabaseUrl?.includes('dmytrotovstytskyi.online') && supabaseUrl.startsWith('https://')) {
+    const allowInsecureHttp = process.env.SUPABASE_ALLOW_INSECURE_HTTP === 'true'
+
+    // 🔐 Optional HTTP downgrade for self-signed VPS environments
+    if (allowInsecureHttp && supabaseUrl?.includes('dmytrotovstytskyi.online') && supabaseUrl.startsWith('https://')) {
         supabaseUrl = supabaseUrl.replace('https://', 'http://');
         console.log('🔄 Protocol downgraded to HTTP for SSL bypass:', supabaseUrl);
     }
 
-    // 🔐 Bypass SSL verification for self-hosted Supabase with self-signed certs
-    if (supabaseUrl?.includes('dmytrotovstytskyi.online')) {
+    // 🔐 Optional TLS bypass for self-signed certs
+    if (allowInsecureHttp && supabaseUrl?.includes('dmytrotovstytskyi.online')) {
         process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
         console.log('🔓 SSL Verification disabled for:', supabaseUrl);
     }
 
+    if (!supabaseUrl || !supabaseKey) {
+        console.error('❌ CRITICAL ERROR [Server]: Supabase environment variables are missing!')
+    }
+
     return createServerClient(
         supabaseUrl || 'http://missing-server-url.supabase.co',
-        supabaseAnonKey || 'missing-server-key',
+        supabaseKey || 'missing-server-key',
         {
             cookies: {
                 getAll() {

@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase';
 import { SupabaseDeficitRow } from '@/types/bi';
+import { createClient } from '@/utils/supabase/server';
 
 export async function GET() {
+    const supabase = await createClient();
     try {
         const { data, error } = await supabase
             .from('dashboard_deficit')
@@ -17,7 +18,7 @@ export async function GET() {
         }
 
         // Приводимо типи та нормалізуємо дані для фронтенду
-        const mappedData = (data || []).map((row) => ({
+        const mappedData = (data || []).map((row: SupabaseDeficitRow) => ({
             ...row,
             priority_label: row.priority === 1 ? 'critical' :
                 row.priority === 2 ? 'high' :
