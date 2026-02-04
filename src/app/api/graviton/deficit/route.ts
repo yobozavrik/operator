@@ -27,7 +27,7 @@ export async function GET(request: NextRequest) {
         }
 
         // Маппінг priority для фронтенду
-        const mappedData = (data || []).map((row) => ({
+        const mappedData = (data || []).map((row: SupabaseDeficitRow) => ({
             ...row,
             priority: row.priority === 1 ? 'critical' :
                 row.priority === 2 ? 'high' :
