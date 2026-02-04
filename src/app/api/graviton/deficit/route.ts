@@ -1,48 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
-import { SupabaseDeficitRow } from '@/types/bi';
-import { serverAuditLog } from '@/lib/logger.server';
 
 export async function GET(request: NextRequest) {
-    // Log API access
-    await serverAuditLog('VIEW_DEFICIT', '/api/graviton/deficit', request, {
-        timestamp: new Date().toISOString()
-    });
+    const { data, error } = await supabase
+        .from('dashboard_deficit')
+        .select('*')
+        .in('priority_number', [1, 2, 3])  // ✅ Змінено на priority_number
+        .order('priority_number', { ascending: true })  // ✅ Змінено
+        .order('deficit_percent', { ascending: false })
+        .limit(1000);
 
-    try {
-        const { data, error } = await supabase
-            .from('dashboard_deficit')  // ✅ Без схеми, використовує db.schema
-            .select('*')
-            .in('priority', [1, 2, 3])
-            .order('priority', { ascending: true })
-            .order('deficit_percent', { ascending: false })
-            .limit(1000);
-
-        if (error) {
-            console.error('Supabase error:', error);
-            await serverAuditLog('ERROR', '/api/graviton/deficit', request, {
-                error: error.message
-            });
-            return NextResponse.json({ error: error.message, details: error }, { status: 500 });
-        }
-
-        // Маппінг priority для фронтенду
-        const mappedData = (data || []).map((row) => ({
-            ...row,
-            priority: row.priority === 1 ? 'critical' :
-                row.priority === 2 ? 'high' :
-                    row.priority === 3 ? 'reserve' : 'normal',
-            priority_number: row.priority
-        }));
-
-        return NextResponse.json(mappedData);
-
-    } catch (err: any) {
-        console.error('Critical API Error:', err);
-        return NextResponse.json({
-            error: 'Internal Server Error',
-            message: err.message,
-            stack: err.stack
-        }, { status: 500 });
+    if (error) {
+        console.error('Supabase error:', error);
+        return NextResponse.json({ error: error.message }, { status: 500 });
     }
+
+    return NextResponse.json(data);
 }
