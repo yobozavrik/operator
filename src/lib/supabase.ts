@@ -1,36 +1,21 @@
-import { createClient, SupabaseClient } from '@supabase/supabase-js'
+import { createClient } from '@supabase/supabase-js'
+import type { Database } from '@/types/supabase'
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
-
-console.log('🔧 Supabase Config:', {
-    url: supabaseUrl,
-    keyLength: supabaseAnonKey?.length,
-    hasUrl: !!supabaseUrl,
-    hasKey: !!supabaseAnonKey
-})
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 
 if (!supabaseUrl || !supabaseAnonKey) {
-    throw new Error('Missing Supabase credentials! Check .env.local')
+    throw new Error('Missing Supabase credentials! Check environment variables')
 }
 
-let supabaseInstance: SupabaseClient | undefined
-
-const getSupabaseClient = (): SupabaseClient => {
-    if (!supabaseInstance) {
-        supabaseInstance = createClient(supabaseUrl, supabaseAnonKey, {
-            db: {
-                schema: 'graviton'
-            },
-            realtime: {
-                enabled: false
-            },
-            auth: {
-                persistSession: false
-            }
-        })
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+    db: {
+        schema: 'graviton'
+    },
+    realtime: {
+        enabled: false
+    },
+    auth: {
+        persistSession: false
     }
-    return supabaseInstance
-}
-
-export const supabase = getSupabaseClient()
+})
