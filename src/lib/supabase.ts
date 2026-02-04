@@ -14,9 +14,9 @@ if (!supabaseUrl || !supabaseAnonKey) {
     throw new Error('Missing Supabase credentials! Check .env.local')
 }
 
-let supabaseInstance: SupabaseClient | null = null
+let supabaseInstance: SupabaseClient | undefined
 
-export const supabase = (() => {
+const getSupabaseClient = (): SupabaseClient => {
     if (!supabaseInstance) {
         supabaseInstance = createClient(supabaseUrl, supabaseAnonKey, {
             db: {
@@ -31,4 +31,6 @@ export const supabase = (() => {
         })
     }
     return supabaseInstance
-})()
+}
+
+export const supabase = getSupabaseClient()
