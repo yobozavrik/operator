@@ -7,10 +7,11 @@ import { BIGauge, BIStatCard } from '@/components/BIPanels';
 import { BIPowerMatrix } from '@/components/BIPowerMatrix';
 import { BIInsights } from '@/components/BIInsights';
 import { PersonnelView } from '@/components/PersonnelView';
+import { PersonnelCard } from '@/components/PersonnelCard';
 import { ProductionTask, BI_Metrics, SupabaseDeficitRow } from '@/types/bi';
 import { transformDeficitData } from '@/lib/transformers';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
-import { Users, AlertTriangle, Activity, RefreshCw, BarChart2 } from 'lucide-react';
+import { AlertTriangle, Activity, RefreshCw, BarChart2 } from 'lucide-react';
 import { SyncOverlay } from '@/components/SyncOverlay';
 import { UI_TOKENS } from '@/lib/design-tokens';
 import { cn } from '@/lib/utils';
@@ -409,50 +410,15 @@ export default function BIDashboard() {
                   )} />
                 </button>
 
-                <button
-                  onClick={() => {
-                    setSelectedStore('Персонал');
-                    localStorage.setItem('activeView', 'Персонал');
-                  }}
-                  className={cn(
-                    "group relative flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all duration-300 hover:scale-[1.03] border overflow-hidden",
-                    selectedStore === 'Персонал'
-                      ? "border-[#00D4FF]/40 shadow-[0_0_20px_rgba(0,212,255,0.25)]"
-                      : "border-white/10 hover:border-[#00D4FF]/30"
-                  )}
-                  style={{
-                    background: selectedStore === 'Персонал'
-                      ? 'linear-gradient(135deg, rgba(0, 212, 255, 0.18) 0%, rgba(0, 136, 255, 0.08) 100%)'
-                      : 'linear-gradient(135deg, rgba(15, 23, 42, 0.6) 0%, rgba(15, 23, 42, 0.35) 100%)',
-                    backdropFilter: 'blur(12px)',
-                    WebkitBackdropFilter: 'blur(12px)',
-                  }}
-                >
-                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:animate-shimmer pointer-events-none" />
-                  <div
-                    className={cn(
-                      "p-2 rounded-lg transition-all shadow-inner",
-                      selectedStore === 'Персонал'
-                        ? "bg-[#00D4FF]/20"
-                        : "bg-white/5 group-hover:bg-[#00D4FF]/10"
-                    )}
-                  >
-                    <Users size={14} className={cn(
-                      selectedStore === 'Персонал' ? "text-[#00D4FF]" : "text-white/70"
-                    )} />
-                  </div>
-                  <div className="flex flex-col text-left">
-                    <span className="text-[9px] font-black uppercase tracking-widest text-white/60">
-                      Контроль
-                    </span>
-                    <span className={cn(
-                      "text-[12px] font-black uppercase tracking-wider",
-                      selectedStore === 'Персонал' ? "text-[#00D4FF]" : "text-white"
-                    )}>
-                      Персонал
-                    </span>
-                  </div>
-                </button>
+                <div className="min-w-[240px] max-w-[300px]">
+                  <PersonnelCard
+                    isActive={selectedStore === 'Персонал'}
+                    onSelect={() => {
+                      setSelectedStore('Персонал');
+                      localStorage.setItem('activeView', 'Персонал');
+                    }}
+                  />
+                </div>
                 <button
                   onClick={() => setShowBreakdownModal(true)}
                   className="transition-transform hover:scale-105 active:scale-95"
