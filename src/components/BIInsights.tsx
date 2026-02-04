@@ -2,8 +2,7 @@
 
 import React, { useMemo, useState } from 'react';
 import { ProductionTask } from '@/types/bi';
-import { AlertCircle, TrendingUp, MapPin, ChevronDown, ChevronRight } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { AlertCircle, TrendingUp, ChevronDown, ChevronRight } from 'lucide-react';
 import { UI_TOKENS } from '@/lib/design-tokens';
 import { useStore } from '@/context/StoreContext';
 
@@ -44,23 +43,20 @@ export const BIInsights = ({ queue }: { queue: ProductionTask[] }) => {
     };
 
     return (
-        <div className="flex flex-col gap-6 h-full font-sans">
-            {/* Main Header */}
-            <div className="flex items-center justify-center mb-0">
-                <h3 className="text-[14px] font-bold text-[#E74856] uppercase tracking-wider flex items-center gap-2">
-                    ⚠️ ЗВЕРНУТИ УВАГУ
-                </h3>
-            </div>
-
+        <div className="flex flex-col gap-3 h-full font-sans">
             {/* Top risk stores */}
-            <div className="bg-[#0a0e27] border border-[#3e4362] p-4 rounded-xl shadow-sm">
-                <div className="flex items-center gap-2 px-2 mb-3">
-                    <span className="text-[16px]">⚠️</span>
-                    <h4 className="text-[10px] font-semibold text-[#E6EDF3] uppercase tracking-wide">
-                        {selectedStore === 'Усі' ? 'Магазини з ризиком OOS' : `Ризики: ${selectedStore}`}
-                    </h4>
+            <div className="glass-panel-premium rounded-xl p-3 animate-in fade-in slide-in-from-top-2 duration-500">
+                <div className="flex items-center justify-center mb-2">
+                    <span className="px-2.5 py-1 text-[9px] font-black uppercase tracking-widest text-[#E74856] bg-[#E74856]/10 border border-[#E74856]/30 rounded-full">
+                        ⚠️ Звернути увагу
+                    </span>
                 </div>
-                <div className="space-y-3">
+                <div className="flex items-center justify-center gap-2 mb-2">
+                    <span className="text-[9px] font-semibold text-[#E6EDF3]/80 uppercase tracking-widest text-center">
+                        {selectedStore === 'Усі' ? 'Магазини з дефіцитом' : `Ризики: ${selectedStore}`}
+                    </span>
+                </div>
+                <div className="space-y-2">
                     {insights.topRiskStores.map(({ store, count, items }) => (
                         <div key={store} className="relative group/card">
                             <button
@@ -68,45 +64,43 @@ export const BIInsights = ({ queue }: { queue: ProductionTask[] }) => {
                                 onMouseEnter={() => setHoveredStore(store)}
                                 onMouseLeave={() => setHoveredStore(null)}
                                 aria-expanded={expandedStore === store}
-                                className="w-full px-5 py-4 mb-3 text-left rounded-xl transition-all duration-300 hover:translate-x-[2px] relative overflow-hidden"
+                                className="w-full px-3.5 py-2.5 mb-2 text-left rounded-lg transition-all duration-300 hover:translate-x-[2px] relative overflow-hidden"
                                 style={{
-                                    background: 'rgba(37, 45, 69, 0.6)',
+                                    background: 'rgba(37, 45, 69, 0.55)',
                                     backdropFilter: 'blur(10px)',
                                     WebkitBackdropFilter: 'blur(10px)',
-                                    border: '1px solid rgba(255, 255, 255, 0.05)',
+                                    border: '1px solid rgba(255, 255, 255, 0.06)',
                                     boxShadow: (expandedStore === store || hoveredStore === store)
-                                        ? '0 8px 24px rgba(0, 0, 0, 0.6), 0 0 20px rgba(231, 72, 86, 0.4)'
-                                        : '0 4px 12px rgba(0, 0, 0, 0.4)'
+                                        ? '0 8px 18px rgba(0, 0, 0, 0.5), 0 0 16px rgba(231, 72, 86, 0.3)'
+                                        : '0 4px 10px rgba(0, 0, 0, 0.35)'
                                 }}
                             >
                                 <div
-                                    className="absolute left-0 top-0 bottom-0 w-1 rounded-l-xl z-20"
+                                    className="absolute left-0 top-0 bottom-0 w-0.5 rounded-l-lg z-20"
                                     style={{
                                         background: 'linear-gradient(135deg, #E74856 0%, #C41E3A 100%)'
                                     }}
                                 />
                                 <div className="flex items-center justify-between relative z-10">
+                                    <span className="text-[10px] font-semibold text-[#E6EDF3] uppercase tracking-wide">
+                                        {store}
+                                    </span>
                                     <div className="flex items-center gap-2">
-                                        <span className="text-[11px] font-semibold text-[#E6EDF3] uppercase tracking-wide">
-                                            {store}
-                                        </span>
-                                    </div>
-                                    <div className="flex items-center gap-3">
-                                        <span className="text-[13px] font-bold text-[#FF4B4B] drop-shadow-[0_0_8px_rgba(255,75,75,0.4)]">
-                                            {count} OOS
+                                        <span className="text-[10px] font-black text-[#FF4B4B] drop-shadow-[0_0_6px_rgba(255,75,75,0.4)]">
+                                            {count} ДЕФІЦИТ
                                         </span>
                                         {expandedStore === store ?
-                                            <ChevronDown size={14} className="text-white/40" /> :
-                                            <ChevronRight size={14} className="text-white/40" />
+                                            <ChevronDown size={12} className="text-white/40" /> :
+                                            <ChevronRight size={12} className="text-white/40" />
                                         }
                                     </div>
                                 </div>
                             </button>
 
                             {expandedStore === store && (
-                                <div className="px-8 pb-3 pt-1 space-y-1 bg-black/10 border-t border-[#2B2B2B]/30 max-h-[150px] overflow-y-auto custom-scrollbar">
+                                <div className="px-5 pb-2 pt-1 space-y-1 bg-black/10 border-t border-[#2B2B2B]/30 max-h-[120px] overflow-y-auto custom-scrollbar">
                                     {items.map((item, idx) => (
-                                        <div key={idx} className="text-[10px] text-[#E6EDF3]/70 py-1 border-b border-[#2B2B2B]/20 last:border-b-0 flex items-center gap-2">
+                                        <div key={idx} className="text-[9px] text-[#E6EDF3]/70 py-1 border-b border-[#2B2B2B]/20 last:border-b-0 flex items-center gap-2">
                                             <div className="w-1 h-1 rounded-full opacity-50" style={{ backgroundColor: UI_TOKENS.colors.priority.critical }} />
                                             {item}
                                         </div>
@@ -119,30 +113,30 @@ export const BIInsights = ({ queue }: { queue: ProductionTask[] }) => {
             </div>
 
             {/* Forecast sparkline */}
-            <div className="bg-[#222325] border border-[#33343A] p-6 rounded-xl shadow-sm">
-                <div className="flex items-center gap-3 mb-5">
-                    <TrendingUp className="text-[#3FB950]" size={16} />
-                    <h4 className="text-[12px] font-bold text-[#E6EDF3] tracking-tight">Прогноз Системи</h4>
+            <div className="glass-panel-premium rounded-xl p-3 animate-in fade-in slide-in-from-top-2 duration-500 delay-100">
+                <div className="flex items-center justify-center gap-2 mb-2">
+                    <TrendingUp className="text-[#3FB950]" size={12} />
+                    <h4 className="text-[10px] font-black text-[#E6EDF3] uppercase tracking-widest text-center">Прогноз системи</h4>
                 </div>
-                <div className="h-24 bg-[#1A1A1A] rounded-lg border border-[#2B2B2B] flex items-center justify-center relative overflow-hidden">
-                    <div className="absolute inset-0 flex items-center justify-center opacity-20">
+                <div className="h-16 bg-[#0F172A]/60 rounded-lg border border-white/10 flex items-center justify-center relative overflow-hidden">
+                    <div className="absolute inset-0 flex items-center justify-center opacity-25">
                         <svg className="w-full h-full" overflow="visible" viewBox="0 0 100 100" preserveAspectRatio="none">
-                            <path d="M0,80 Q10,20 20,40 T40,60 T60,30 T80,50 100,20" fill="none" stroke="#58A6FF" strokeWidth="2" />
+                            <path d="M0,80 Q10,20 20,40 T40,60 T60,30 T80,50 100,20" fill="none" stroke="#58A6FF" strokeWidth="1.5" />
                         </svg>
                     </div>
-                    <span className="text-[10px] text-[#8B949E] font-bold uppercase tracking-widest relative z-10">Аналіз в реальному часі...</span>
+                    <span className="text-[9px] text-[#8B949E] font-bold uppercase tracking-widest relative z-10">Аналіз в реальному часі...</span>
                 </div>
             </div>
 
             {/* Actions */}
-            <div className="bg-[#222325] border border-[#33343A] p-5 rounded-xl flex items-center justify-between gap-4 shadow-sm hover:border-[#1F2630] transition-colors">
-                <div className="flex items-center gap-3">
-                    <AlertCircle className="text-[#F6C343]" size={16} />
-                    <span className="text-[12px] font-bold text-[#E6EDF3] uppercase tracking-widest">Швидкі Дії</span>
+            <div className="glass-panel-premium rounded-xl p-3 flex items-center justify-between gap-3 animate-in fade-in slide-in-from-top-2 duration-500 delay-200">
+                <div className="flex items-center gap-2">
+                    <AlertCircle className="text-[#F6C343]" size={12} />
+                    <span className="text-[10px] font-black text-[#E6EDF3] uppercase tracking-widest">Швидкі дії</span>
                 </div>
                 <button
-                    className="px-5 py-2.5 text-white text-[10px] font-black uppercase rounded-lg shadow-lg hover:brightness-110 active:scale-[0.98] transition-all"
-                    style={{ backgroundColor: UI_TOKENS.colors.priority.critical, boxShadow: `0 4px 12px ${UI_TOKENS.colors.priority.critical}20` }}
+                    className="px-3 py-1.5 text-white text-[9px] font-black uppercase rounded-lg shadow-lg hover:brightness-110 active:scale-[0.98] transition-all"
+                    style={{ backgroundColor: UI_TOKENS.colors.priority.critical, boxShadow: `0 4px 10px ${UI_TOKENS.colors.priority.critical}20` }}
                 >
                     Згенерувати
                 </button>
