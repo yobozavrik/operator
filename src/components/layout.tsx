@@ -34,7 +34,10 @@ export const Sidebar = () => {
     return (
         <>
             {/* Desktop Sidebar */}
-            <aside className="hidden lg:flex w-64 border-r border-[var(--border)] bg-[#0a0e27] h-screen sticky top-0 flex-col py-6 relative overflow-hidden">
+            <aside
+                className="hidden lg:flex border-r border-[var(--border)] bg-[#0a0e27] h-screen sticky top-0 flex-col py-6 relative overflow-hidden"
+                style={{ width: 'var(--sidebar-width)' }}
+            >
 
                 {/* Optional: Subtle Wave Gradient/Glow to mimic the reference image vibe */}
                 <div className="absolute top-0 left-0 w-full h-96 bg-gradient-to-b from-[#4A7FA7]/10 to-transparent pointer-events-none" />

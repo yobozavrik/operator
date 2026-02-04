@@ -22,6 +22,31 @@
   --radius-panel: 16px;
   --page-margin: 40px;
   --gutter: 24px;
+
+  /* 📐 RESPONSIVE TYPOGRAPHY with clamp() */
+  /* Format: clamp(min, preferred, max) */
+  --text-2xs: clamp(8px, 0.5vw + 5px, 10px);
+  --text-xs: clamp(9px, 0.55vw + 6px, 11px);
+  --text-sm: clamp(10px, 0.6vw + 7px, 13px);
+  --text-base: clamp(12px, 0.7vw + 8px, 16px);
+  --text-lg: clamp(14px, 0.9vw + 9px, 20px);
+  --text-xl: clamp(18px, 1.1vw + 11px, 28px);
+  --text-2xl: clamp(22px, 1.4vw + 14px, 36px);
+
+  /* 📐 RESPONSIVE SPACING with clamp() */
+  --space-xs: clamp(4px, 0.3vw + 2px, 8px);
+  --space-sm: clamp(6px, 0.5vw + 4px, 12px);
+  --space-md: clamp(10px, 0.8vw + 6px, 20px);
+  --space-lg: clamp(16px, 1.2vw + 8px, 32px);
+  --space-xl: clamp(24px, 1.8vw + 12px, 48px);
+
+  /* 📐 RESPONSIVE COMPONENTS */
+  --sidebar-width: clamp(180px, 15vw, 256px);
+  --card-padding: clamp(12px, 1vw + 8px, 24px);
+  --button-padding-x: clamp(12px, 0.8vw + 8px, 20px);
+  --button-padding-y: clamp(8px, 0.5vw + 5px, 14px);
+  --icon-size: clamp(14px, 1vw + 10px, 20px);
+  --kpi-value-size: clamp(14px, 1vw + 10px, 20px);
 }
 
 @layer base {
@@ -231,14 +256,23 @@
   right: 0;
   bottom: 0;
   background: radial-gradient(ellipse at 20% 20%, rgba(0, 212, 255, 0.08) 0%, transparent 50%),
-              radial-gradient(ellipse at 80% 80%, rgba(0, 136, 255, 0.05) 0%, transparent 50%);
+    radial-gradient(ellipse at 80% 80%, rgba(0, 136, 255, 0.05) 0%, transparent 50%);
   pointer-events: none;
 }
 
 /* Floating particles animation */
 @keyframes float-particle {
-  0%, 100% { transform: translateY(0) translateX(0); opacity: 0.3; }
-  50% { transform: translateY(-20px) translateX(10px); opacity: 0.8; }
+
+  0%,
+  100% {
+    transform: translateY(0) translateX(0);
+    opacity: 0.3;
+  }
+
+  50% {
+    transform: translateY(-20px) translateX(10px);
+    opacity: 0.8;
+  }
 }
 
 .particle-grid {
@@ -267,7 +301,7 @@
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 
+  box-shadow:
     0 25px 50px -12px rgba(0, 0, 0, 0.5),
     inset 0 1px 0 rgba(255, 255, 255, 0.1);
   border-radius: 16px;
@@ -326,8 +360,13 @@
 }
 
 @keyframes border-flow {
-  0% { transform: translateX(-100%); }
-  100% { transform: translateX(100%); }
+  0% {
+    transform: translateX(-100%);
+  }
+
+  100% {
+    transform: translateX(100%);
+  }
 }
 
 /* Premium button */
@@ -348,6 +387,240 @@
 }
 
 @keyframes pulse-glow {
-  0%, 100% { box-shadow: 0 0 5px currentColor; }
-  50% { box-shadow: 0 0 20px currentColor, 0 0 30px currentColor; }
+
+  0%,
+  100% {
+    box-shadow: 0 0 5px currentColor;
+  }
+
+  50% {
+    box-shadow: 0 0 20px currentColor, 0 0 30px currentColor;
+  }
+}
+
+/* ========================================
+   📱 RESPONSIVE MEDIA QUERIES
+   ======================================== */
+
+/* 🖥️ Extra Large Monitors (27"+, 2560px+) */
+@media (min-width: 2560px) {
+  :root {
+    --page-margin: 60px;
+    --gutter: 32px;
+    --sidebar-width: 280px;
+  }
+}
+
+/* 💻 Standard Laptops (15-17", 1440-1920px) - DEFAULT */
+/* No changes needed, variables already optimized */
+
+/* 📓 Small Laptops (13-14", 1024-1400px) */
+@media (max-width: 1400px) {
+  :root {
+    --page-margin: 16px;
+    --gutter: 12px;
+    --sidebar-width: 200px;
+    --card-padding: clamp(8px, 0.8vw + 4px, 16px);
+  }
+}
+
+/* 📱 Tablets and Small Screens */
+@media (max-width: 1024px) {
+  :root {
+    --page-margin: 12px;
+    --gutter: 8px;
+    --sidebar-width: 0px;
+    /* Hidden, uses mobile nav */
+  }
+}
+
+/* ========================================
+   🎨 RESPONSIVE UTILITY CLASSES
+   ======================================== */
+
+/* Responsive text sizes using CSS variables */
+.r-text-2xs {
+  font-size: var(--text-2xs);
+}
+
+.r-text-xs {
+  font-size: var(--text-xs);
+}
+
+.r-text-sm {
+  font-size: var(--text-sm);
+}
+
+.r-text-base {
+  font-size: var(--text-base);
+}
+
+.r-text-lg {
+  font-size: var(--text-lg);
+}
+
+.r-text-xl {
+  font-size: var(--text-xl);
+}
+
+.r-text-2xl {
+  font-size: var(--text-2xl);
+}
+
+/* Responsive spacing */
+.r-p-xs {
+  padding: var(--space-xs);
+}
+
+.r-p-sm {
+  padding: var(--space-sm);
+}
+
+.r-p-md {
+  padding: var(--space-md);
+}
+
+.r-p-lg {
+  padding: var(--space-lg);
+}
+
+.r-p-xl {
+  padding: var(--space-xl);
+}
+
+.r-gap-xs {
+  gap: var(--space-xs);
+}
+
+.r-gap-sm {
+  gap: var(--space-sm);
+}
+
+.r-gap-md {
+  gap: var(--space-md);
+}
+
+.r-gap-lg {
+  gap: var(--space-lg);
+}
+
+/* Responsive card padding */
+.r-card-padding {
+  padding: var(--card-padding);
+}
+
+/* Responsive button padding */
+.r-btn-padding {
+  padding: var(--button-padding-y) var(--button-padding-x);
+}
+
+/* ========================================
+   🔧 COMPACT MODE OVERRIDES (for 13" screens)
+   ======================================== */
+@media (max-width: 1400px) {
+
+  /* Компактніші карточки */
+  .glass-card,
+  .glass-panel-premium {
+    padding: 12px !important;
+  }
+
+  /* Менші кнопки в header */
+  header .px-5 {
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+  }
+
+  header .py-3 {
+    padding-top: 8px !important;
+    padding-bottom: 8px !important;
+  }
+
+  header .gap-4 {
+    gap: 8px !important;
+  }
+
+  /* Компактніший header */
+  header .text-\[24px\] {
+    font-size: 18px !important;
+  }
+
+  header .text-\[20px\] {
+    font-size: 16px !important;
+  }
+
+  header .text-\[16px\] {
+    font-size: 14px !important;
+  }
+
+  header .text-\[14px\] {
+    font-size: 12px !important;
+  }
+
+  header .text-\[13px\] {
+    font-size: 11px !important;
+  }
+
+  header .text-\[11px\] {
+    font-size: 10px !important;
+  }
+
+  header .text-\[10px\] {
+    font-size: 9px !important;
+  }
+
+  /* Sidebar компактність */
+  aside.w-64 {
+    width: var(--sidebar-width) !important;
+  }
+
+  aside .px-6 {
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+  }
+
+  aside .py-6 {
+    padding-top: 12px !important;
+    padding-bottom: 12px !important;
+  }
+
+  aside .mb-8 {
+    margin-bottom: 16px !important;
+  }
+
+  aside .text-\[16px\] {
+    font-size: 14px !important;
+  }
+
+  aside .text-\[12px\] {
+    font-size: 11px !important;
+  }
+
+  aside .text-\[11px\] {
+    font-size: 10px !important;
+  }
+
+  /* Таблиці компактніші */
+  table .text-\[12px\],
+  table .text-\[13px\] {
+    font-size: 11px !important;
+  }
+
+  table .text-\[11px\] {
+    font-size: 10px !important;
+  }
+
+  table .py-3 {
+    padding-top: 6px !important;
+    padding-bottom: 6px !important;
+  }
+
+  /* Модалки */
+  .max-w-\[500px\] {
+    max-width: 400px !important;
+  }
+
+  .max-w-\[800px\] {
+    max-width: 650px !important;
+  }
 }
