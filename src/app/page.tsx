@@ -34,23 +34,28 @@ const fetcher = async (url: string) => {
 export default function BIDashboard() {
   // Get store context
   const { selectedStore, currentCapacity } = useStore();
+  const [realtimeEnabled, setRealtimeEnabled] = React.useState(true);
+  const refreshInterval = realtimeEnabled ? 0 : 30000;
 
   // ⚡ REALTIME ARCHITECTURE: No more polling!
   // We fetch initially, then listen for DB events to re-fetch.
   const { data: deficitData, error: deficitError, mutate: mutateDeficit } = useSWR<SupabaseDeficitRow[]>(
     '/api/graviton/deficit',
-    fetcher
+    fetcher,
+    { refreshInterval }
   );
 
   const { data: metrics, error: metricsError, mutate: mutateMetrics } = useSWR<BI_Metrics>(
     '/api/graviton/metrics',
-    fetcher
+    fetcher,
+    { refreshInterval }
   );
 
   // Для режиму "Конкретний магазин" потрібні ВСІ товари
   const { data: allProductsData, error: allProductsError, mutate: mutateAllProducts } = useSWR<SupabaseDeficitRow[]>(
     '/api/graviton/all-products',
-    fetcher
+    fetcher,
+    { refreshInterval }
   );
 
   // 🔄 EVENT-DRIVEN UPDATES
@@ -73,6 +78,11 @@ export default function BIDashboard() {
       .subscribe((status) => {
         if (status === 'SUBSCRIBED') {
           console.log('✅ Connected to Realtime stream');
+        }
+
+        if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED') {
+          console.warn('⚠️ Realtime unavailable, falling back to polling.', status);
+          setRealtimeEnabled(false);
         }
       });
 
