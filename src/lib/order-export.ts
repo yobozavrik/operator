@@ -1,7 +1,18 @@
 import ExcelJS from 'exceljs';
+import { OrderItem, ProductionOrder } from '@/types/order';
 
-export const groupItemsByCategory = (items: any[]) => {
-    const groups: Record<string, { totalKg: number; items: any[] }> = {};
+export interface CategoryGroup {
+    totalKg: number;
+    items: Array<{
+        productName: string;
+        kg: number;
+        minRequired: number;
+        maxRecommended: number;
+    }>;
+}
+
+export const groupItemsByCategory = (items: OrderItem[]) => {
+    const groups: Record<string, CategoryGroup> = {};
 
     items.filter(item => item.kg > 0).forEach(item => {
         const cat = item.category || 'Інше';
@@ -37,7 +48,7 @@ export const groupItemsByCategory = (items: any[]) => {
     return groups;
 };
 
-export const prepareWorkbook = async (orderData: any): Promise<ExcelJS.Workbook> => {
+export const prepareWorkbook = async (orderData: ProductionOrder): Promise<ExcelJS.Workbook> => {
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet('Замовлення');
 
@@ -100,7 +111,7 @@ export const prepareWorkbook = async (orderData: any): Promise<ExcelJS.Workbook>
         'ГОЛУБЦІ': 'FFB7DEE8'
     };
 
-    Object.entries(groupedByCategory).forEach(([category, data]: [string, any]) => {
+    Object.entries(groupedByCategory).forEach(([category, data]: [string, CategoryGroup]) => {
         const categoryRow = worksheet.getRow(rowIndex);
         categoryRow.values = [category, '', data.totalKg, ''];
         categoryRow.font = { bold: true, size: 12 };
@@ -119,7 +130,7 @@ export const prepareWorkbook = async (orderData: any): Promise<ExcelJS.Workbook>
         categoryRow.getCell(3).alignment = { horizontal: 'right', vertical: 'middle' };
         rowIndex++;
 
-        data.items.forEach((item: any) => {
+        data.items.forEach((item) => {
             const itemRow = worksheet.getRow(rowIndex);
             const range = `${Math.round(item.minRequired)} - ${Math.round(item.maxRecommended)} кг`;
             itemRow.values = ['', item.productName, `${item.kg} кг`, range];
@@ -159,9 +170,9 @@ export const prepareWorkbook = async (orderData: any): Promise<ExcelJS.Workbook>
     ];
 
     // Границы
-    worksheet.eachRow({ includeEmpty: false }, (row) => {
+    worksheet.eachRow({ includeEmpty: false }, (row: ExcelJS.Row) => {
         if (row.getCell(1).value || row.getCell(2).value || row.getCell(3).value || row.getCell(4).value) {
-            row.eachCell((cell) => {
+            row.eachCell((cell: ExcelJS.Cell) => {
                 cell.border = {
                     top: { style: 'thin' },
                     left: { style: 'thin' },
@@ -175,7 +186,7 @@ export const prepareWorkbook = async (orderData: any): Promise<ExcelJS.Workbook>
     return workbook;
 };
 
-export const generateExcel = async (orderData: any) => {
+export const generateExcel = async (orderData: ProductionOrder) => {
     const workbook = await prepareWorkbook(orderData);
     const buffer = await workbook.xlsx.writeBuffer();
     const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });

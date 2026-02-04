@@ -3,7 +3,7 @@
 import React from 'react';
 import { ArrowRight } from 'lucide-react';
 import { ProductionTask } from '@/types/bi';
-import { STORES } from '@/lib/data';
+import { STORES } from '@/lib/transformers';
 import { cn } from '@/lib/utils';
 
 interface TaskCardProps {

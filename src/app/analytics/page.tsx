@@ -3,7 +3,7 @@
 import React, { useMemo } from 'react';
 import { DashboardLayout } from '@/components/layout';
 import { MatrixTable } from '@/components/MatrixTable';
-import { mockSKUs, getProductionQueue } from '@/lib/data';
+import { mockSKUs, getProductionQueue } from '@/lib/transformers';
 import { useStore } from '@/context/StoreContext';
 
 export default function AnalyticsPage() {

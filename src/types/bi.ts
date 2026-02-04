@@ -14,11 +14,11 @@ export interface SupabaseDeficitRow {
     current_stock: number;
     min_stock: number;
     deficit_kg: number;
+    recommended_kg: number;
     avg_sales_day: number;
     deficit_percent: number;
-    priority: number;
-    priority_label?: PriorityKey;
-    recommended_kg: number;
+    priority: 'critical' | 'high' | 'reserve' | 'normal';  // ✅ String type
+    priority_number: 1 | 2 | 3 | 4;  // ✅ Original number
 }
 
 export interface Store {

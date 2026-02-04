@@ -5,7 +5,7 @@ import useSWR from 'swr';
 import { DashboardLayout } from '@/components/layout';
 import { SeniorProductionMatrix } from '@/components/SeniorProductionMatrix';
 import { SeniorAnalytics } from '@/components/SeniorAnalytics';
-import { transformSupabaseData } from '@/lib/data';
+import { transformSupabaseData } from '@/lib/transformers';
 import { SupabaseDeficitRow, BI_Metrics } from '@/types/bi';
 import { useStore } from '@/context/StoreContext';
 

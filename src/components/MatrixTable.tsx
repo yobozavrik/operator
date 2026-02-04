@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
-import { STORES } from '@/lib/data';
+import { STORES } from '@/lib/transformers';
 import { ProductionTask, SKUCategory, PriorityKey } from '@/types/bi';
 import { cn } from '@/lib/utils';
 import { Search, Filter, ChevronDown } from 'lucide-react';

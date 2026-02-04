@@ -23,6 +23,12 @@ export interface SavedOrder {
     createdBy: string;
 }
 
+export interface ProductionOrder {
+    date: string;
+    totalKg: number;
+    items: OrderItem[];
+}
+
 export interface SharePlatform {
     id: 'telegram' | 'viber' | 'whatsapp' | 'download';
     label: string;
