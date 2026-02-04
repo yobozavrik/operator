@@ -7,10 +7,11 @@ import { BIGauge, BIStatCard } from '@/components/BIPanels';
 import { BIPowerMatrix } from '@/components/BIPowerMatrix';
 import { BIInsights } from '@/components/BIInsights';
 import { PersonnelView } from '@/components/PersonnelView';
+import { PersonnelCard } from '@/components/PersonnelCard';
 import { ProductionTask, BI_Metrics, SupabaseDeficitRow } from '@/types/bi';
 import { transformDeficitData } from '@/lib/transformers';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
-import { Users, AlertTriangle, TrendingUp, RotateCw, Activity, RefreshCw, BarChart2 } from 'lucide-react';
+import { AlertTriangle, Activity, RefreshCw, BarChart2, Users } from 'lucide-react';
 import { SyncOverlay } from '@/components/SyncOverlay';
 import { UI_TOKENS } from '@/lib/design-tokens';
 import { cn } from '@/lib/utils';
@@ -34,23 +35,28 @@ const fetcher = async (url: string) => {
 export default function BIDashboard() {
   // Get store context
   const { selectedStore, setSelectedStore, currentCapacity } = useStore();
+  const [realtimeEnabled, setRealtimeEnabled] = React.useState(true);
+  const refreshInterval = realtimeEnabled ? 0 : 30000;
 
   // ⚡ REALTIME ARCHITECTURE: No more polling!
   // We fetch initially, then listen for DB events to re-fetch.
   const { data: deficitData, error: deficitError, mutate: mutateDeficit } = useSWR<SupabaseDeficitRow[]>(
     '/api/graviton/deficit',
-    fetcher
+    fetcher,
+    { refreshInterval }
   );
 
   const { data: metrics, error: metricsError, mutate: mutateMetrics } = useSWR<BI_Metrics>(
     '/api/graviton/metrics',
-    fetcher
+    fetcher,
+    { refreshInterval }
   );
 
   // Для режиму "Конкретний магазин" потрібні ВСІ товари
   const { data: allProductsData, error: allProductsError, mutate: mutateAllProducts } = useSWR<SupabaseDeficitRow[]>(
     '/api/graviton/all-products',
-    fetcher
+    fetcher,
+    { refreshInterval }
   );
 
   // 🔄 EVENT-DRIVEN UPDATES
@@ -73,6 +79,11 @@ export default function BIDashboard() {
       .subscribe((status) => {
         if (status === 'SUBSCRIBED') {
           console.log('✅ Connected to Realtime stream');
+        }
+
+        if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED') {
+          console.warn('⚠️ Realtime unavailable, falling back to polling.', status);
+          setRealtimeEnabled(false);
         }
       });
 
@@ -340,7 +351,7 @@ export default function BIDashboard() {
                   onClick={handleRefresh}
                   disabled={isRefreshing}
                   className={cn(
-                    "group relative flex items-center gap-4 px-5 py-3 rounded-xl transition-all duration-500 hover:scale-[1.03] overflow-hidden border active:scale-95 disabled:opacity-50",
+                    "group relative flex items-center gap-3 px-5 py-3 rounded-xl transition-all duration-300 hover:scale-[1.03] overflow-hidden border active:scale-95 disabled:opacity-50",
                     refreshUrgency === 'critical'
                       ? "border-[#E74856]/40 shadow-[0_0_30px_rgba(231,72,86,0.25)]"
                       : refreshUrgency === 'warning'
@@ -349,12 +360,13 @@ export default function BIDashboard() {
                   )}
                   style={{
                     background: refreshUrgency === 'critical'
-                      ? 'linear-gradient(135deg, rgba(231, 72, 86, 0.12) 0%, rgba(10, 14, 26, 0.8) 100%)'
+                      ? 'radial-gradient(circle at top left, rgba(231, 72, 86, 0.35), transparent 60%), linear-gradient(135deg, rgba(231, 72, 86, 0.15) 0%, rgba(196, 30, 58, 0.1) 100%)'
                       : refreshUrgency === 'warning'
-                        ? 'linear-gradient(135deg, rgba(234, 179, 8, 0.12) 0%, rgba(10, 14, 26, 0.8) 100%)'
-                        : 'linear-gradient(135deg, rgba(0, 212, 255, 0.08) 0%, rgba(10, 14, 26, 0.8) 100%)',
-                    backdropFilter: 'blur(12px)',
-                    WebkitBackdropFilter: 'blur(12px)',
+                        ? 'radial-gradient(circle at top left, rgba(234, 179, 8, 0.35), transparent 60%), linear-gradient(135deg, rgba(234, 179, 8, 0.15) 0%, rgba(202, 138, 4, 0.1) 100%)'
+                        : 'radial-gradient(circle at top left, rgba(0, 212, 255, 0.35), transparent 60%), linear-gradient(135deg, rgba(0, 212, 255, 0.1) 0%, rgba(0, 136, 255, 0.05) 100%)',
+                    backdropFilter: 'blur(15px)',
+                    WebkitBackdropFilter: 'blur(15px)',
+                    boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 12px 24px rgba(0, 0, 0, 0.35)',
                   }}
                 >
                   <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:animate-shimmer pointer-events-none" />
@@ -376,8 +388,8 @@ export default function BIDashboard() {
 
                   <div className="flex flex-col text-left">
                     <span className={cn(
-                      "text-[10px] font-black uppercase tracking-[0.25em] leading-none mb-1.5",
-                      refreshUrgency === 'critical' ? "text-[#E74856] text-glow" :
+                      "text-[9px] font-black uppercase tracking-widest leading-none mb-1.5",
+                      refreshUrgency === 'critical' ? "text-[#E74856]" :
                         refreshUrgency === 'warning' ? "text-yellow-400" :
                           "text-[#00D4FF]"
                     )}>
@@ -385,8 +397,8 @@ export default function BIDashboard() {
                         refreshUrgency === 'warning' ? 'УВАГА' :
                           'СИНХРОНІЗАЦІЯ'}
                     </span>
-                    <span className="text-[14px] font-black text-white leading-none uppercase tracking-tight">
-                      {isRefreshing ? 'ОНОВЛЕННЯ...' : refreshUrgency === 'critical' ? 'ОНОВИТИ ЗАРАЗ' : 'ОНОВИТИ ЗАЛИШКИ'}
+                    <span className="text-[13px] font-black text-white leading-none uppercase tracking-wider">
+                      {isRefreshing ? 'ОНОВЛЕННЯ...' : refreshUrgency === 'critical' ? 'ТЕРМІНОВО ОНОВИТИ!' : 'Оновити залишки'}
                     </span>
                   </div>
 
@@ -441,7 +453,6 @@ export default function BIDashboard() {
                     <div className="absolute top-3 right-3 w-1.5 h-1.5 rounded-full bg-[#00D4FF] shadow-[0_0_10px_#00D4FF]" />
                   )}
                 </button>
-
                 <button
                   onClick={() => setShowBreakdownModal(true)}
                   className="transition-transform hover:scale-[1.03] active:scale-95"
@@ -512,196 +523,200 @@ export default function BIDashboard() {
         </main>
 
         {/* Breakdown Modal */}
-        {showBreakdownModal && (
-          <div
-            className="fixed inset-0 z-[100] flex items-center justify-center p-4"
-            style={{
-              background: 'rgba(0, 0, 0, 0.7)',
-              backdropFilter: 'blur(8px)',
-              WebkitBackdropFilter: 'blur(8px)'
-            }}
-            onClick={() => setShowBreakdownModal(false)}
-          >
+        {
+          showBreakdownModal && (
             <div
-              className="relative w-full max-w-[500px] max-h-[90vh] flex flex-col rounded-2xl p-6 overflow-y-auto custom-scrollbar"
+              className="fixed inset-0 z-[100] flex items-center justify-center p-4"
               style={{
-                background: 'rgba(26, 31, 58, 0.95)',
-                backdropFilter: 'blur(20px)',
-                WebkitBackdropFilter: 'blur(20px)',
-                border: '1px solid rgba(255, 255, 255, 0.1)',
-                boxShadow: '0 20px 60px rgba(0, 0, 0, 0.5)'
+                background: 'rgba(0, 0, 0, 0.7)',
+                backdropFilter: 'blur(8px)',
+                WebkitBackdropFilter: 'blur(8px)'
               }}
-              onClick={(e) => e.stopPropagation()}
+              onClick={() => setShowBreakdownModal(false)}
             >
-              <h2 className="text-[18px] font-bold text-white mb-6">
-                📊 Розбивка по пріоритетам
-              </h2>
-
-              <div className="mb-4 p-4 rounded-xl" style={{
-                background: 'rgba(231, 72, 86, 0.1)',
-                border: '1px solid rgba(231, 72, 86, 0.3)'
-              }}>
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-[14px] font-semibold text-[#E74856]">
-                    🔴 КРИТИЧНО
-                  </span>
-                  <span className="text-[16px] font-bold text-[#E74856]">
-                    {Math.round(metrics.criticalWeight)} кг
-                  </span>
-                </div>
-                <div className="text-[11px] text-white/60">
-                  товару немає — {metrics.criticalSKU} SKU
-                </div>
-              </div>
-
-              <div className="mb-4 p-4 rounded-xl" style={{
-                background: 'rgba(255, 192, 0, 0.1)',
-                border: '1px solid rgba(255, 192, 0, 0.3)'
-              }}>
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-[14px] font-semibold text-[#FFC000]">
-                    🟠 ВИСОКИЙ
-                  </span>
-                  <span className="text-[16px] font-bold text-[#FFC000]">
-                    {Math.round(metrics.highWeight)} кг
-                  </span>
-                </div>
-                <div className="text-[11px] text-white/60">
-                  майже закінчилось — {metrics.highSKU} SKU
-                </div>
-              </div>
-
-              <button
-                onClick={loadReserveItems}
-                className="w-full text-left mb-6 p-4 rounded-xl transition-all hover:scale-[1.02] active:scale-[0.98]"
+              <div
+                className="relative w-full max-w-[500px] max-h-[90vh] flex flex-col rounded-2xl p-6 overflow-y-auto custom-scrollbar"
                 style={{
-                  background: 'rgba(0, 188, 242, 0.1)',
-                  border: '1px solid rgba(0, 188, 242, 0.3)'
+                  background: 'rgba(26, 31, 58, 0.95)',
+                  backdropFilter: 'blur(20px)',
+                  WebkitBackdropFilter: 'blur(20px)',
+                  border: '1px solid rgba(255, 255, 255, 0.1)',
+                  boxShadow: '0 20px 60px rgba(0, 0, 0, 0.5)'
                 }}
+                onClick={(e) => e.stopPropagation()}
               >
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-[14px] font-semibold text-[#00BCF2]">
-                    🔵 РЕЗЕРВ
-                  </span>
-                  <span className="text-[16px] font-bold text-[#00BCF2]">
-                    {Math.round(metrics.reserveWeight)} кг
-                  </span>
-                </div>
-                <div className="text-[11px] text-white/60">
-                  товару нижче мінімального — {metrics.reserveSKU} SKU
-                </div>
-              </button>
+                <h2 className="text-[18px] font-bold text-white mb-6">
+                  📊 Розбивка по пріоритетам
+                </h2>
 
-              <div className="pt-4 border-t border-white/10">
-                <div className="flex items-center justify-between">
-                  <span className="text-[14px] font-bold text-white">
-                    ВСЬОГО:
-                  </span>
-                  <span className="text-[20px] font-bold text-[#52E8FF]">
-                    {Math.round(metrics.shopLoad)} кг
-                  </span>
-                </div>
-                <div className="text-[11px] text-white/50 text-right mt-1">
-                  {metrics.totalSKU} SKU
-                </div>
-              </div>
-
-              <button
-                onClick={() => setShowBreakdownModal(false)}
-                className="mt-6 w-full px-6 py-3 rounded-xl font-semibold bg-white/5 border border-white/20 text-white hover:bg-white/10 transition-all"
-              >
-                Закрити
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* 🔵 RESERVE DETAIL MODAL (Step 78) */}
-        {showReserveModal && (
-          <div
-            className="fixed inset-0 z-[120] flex items-center justify-center p-4"
-            style={{
-              background: 'rgba(0, 0, 0, 0.7)',
-              backdropFilter: 'blur(8px)',
-              WebkitBackdropFilter: 'blur(8px)'
-            }}
-            onClick={() => setShowReserveModal(false)}
-          >
-            <div
-              className="relative w-full max-w-[800px] max-h-[80vh] flex flex-col rounded-2xl p-6 overflow-hidden"
-              style={{
-                background: 'rgba(26, 31, 58, 0.95)',
-                backdropFilter: 'blur(20px)',
-                WebkitBackdropFilter: 'blur(20px)',
-                border: '1px solid rgba(255, 255, 255, 0.1)',
-                boxShadow: '0 20px 60px rgba(0, 0, 0, 0.5)'
-              }}
-              onClick={(e) => e.stopPropagation()}
-            >
-              {/* Заголовок */}
-              <div className="flex justify-between items-center mb-4">
-                <div>
-                  <h2 className="text-[18px] font-bold text-white">
-                    🔵 РЕЗЕРВ — товари нижче мінімального
-                  </h2>
-                  <div className="text-[12px] text-white/60 mt-1">
-                    {reserveItems.length} SKU — загалом {Math.round(metrics.reserveWeight)} кг
+                <div className="mb-4 p-4 rounded-xl" style={{
+                  background: 'rgba(231, 72, 86, 0.1)',
+                  border: '1px solid rgba(231, 72, 86, 0.3)'
+                }}>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-[14px] font-semibold text-[#E74856]">
+                      🔴 КРИТИЧНО
+                    </span>
+                    <span className="text-[16px] font-bold text-[#E74856]">
+                      {Math.round(metrics.criticalWeight)} кг
+                    </span>
+                  </div>
+                  <div className="text-[11px] text-white/60">
+                    товару немає — {metrics.criticalSKU} SKU
                   </div>
                 </div>
+
+                <div className="mb-4 p-4 rounded-xl" style={{
+                  background: 'rgba(255, 192, 0, 0.1)',
+                  border: '1px solid rgba(255, 192, 0, 0.3)'
+                }}>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-[14px] font-semibold text-[#FFC000]">
+                      🟠 ВИСОКИЙ
+                    </span>
+                    <span className="text-[16px] font-bold text-[#FFC000]">
+                      {Math.round(metrics.highWeight)} кг
+                    </span>
+                  </div>
+                  <div className="text-[11px] text-white/60">
+                    майже закінчилось — {metrics.highSKU} SKU
+                  </div>
+                </div>
+
                 <button
-                  onClick={() => setShowReserveModal(false)}
-                  className="p-2 hover:bg-white/5 rounded-lg text-white/40 hover:text-white"
+                  onClick={loadReserveItems}
+                  className="w-full text-left mb-6 p-4 rounded-xl transition-all hover:scale-[1.02] active:scale-[0.98]"
+                  style={{
+                    background: 'rgba(0, 188, 242, 0.1)',
+                    border: '1px solid rgba(0, 188, 242, 0.3)'
+                  }}
                 >
-                  <Activity size={20} className="rotate-45" /> {/* Close "X" placeholder if needed, using Activity rotated for now or just text */}
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-[14px] font-semibold text-[#00BCF2]">
+                      🔵 РЕЗЕРВ
+                    </span>
+                    <span className="text-[16px] font-bold text-[#00BCF2]">
+                      {Math.round(metrics.reserveWeight)} кг
+                    </span>
+                  </div>
+                  <div className="text-[11px] text-white/60">
+                    товару нижче мінімального — {metrics.reserveSKU} SKU
+                  </div>
+                </button>
+
+                <div className="pt-4 border-t border-white/10">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[14px] font-bold text-white">
+                      ВСЬОГО:
+                    </span>
+                    <span className="text-[20px] font-bold text-[#52E8FF]">
+                      {Math.round(metrics.shopLoad)} кг
+                    </span>
+                  </div>
+                  <div className="text-[11px] text-white/50 text-right mt-1">
+                    {metrics.totalSKU} SKU
+                  </div>
+                </div>
+
+                <button
+                  onClick={() => setShowBreakdownModal(false)}
+                  className="mt-6 w-full px-6 py-3 rounded-xl font-semibold bg-white/5 border border-white/20 text-white hover:bg-white/10 transition-all"
+                >
+                  Закрити
                 </button>
               </div>
-
-              {/* Таблица товаров */}
-              <div className="flex-1 overflow-y-auto custom-scrollbar mb-6 pr-2">
-                <table className="w-full text-[11px] border-collapse">
-                  <thead className="sticky top-0 bg-[rgba(26,31,58,0.95)] z-10">
-                    <tr className="border-b border-white/10 text-left">
-                      <th className="py-3 px-2 text-white/60 font-medium">Категорія</th>
-                      <th className="py-3 px-2 text-white/60 font-medium">Товар</th>
-                      <th className="py-3 px-2 text-white/60 font-medium">Магазин</th>
-                      <th className="py-3 px-2 text-white/60 font-medium text-right">Факт</th>
-                      <th className="py-3 px-2 text-white/60 font-medium text-right">Мін</th>
-                      <th className="py-3 px-2 text-white/60 font-medium text-right">Треба</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-white/5">
-                    {reserveItems.map((item: any, idx: number) => (
-                      <tr key={idx} className="hover:bg-white/5 transition-colors">
-                        <td className="py-3 px-2 text-white/70">{item.category_name}</td>
-                        <td className="py-3 px-2 text-white font-medium">{item.назва_продукту}</td>
-                        <td className="py-3 px-2 text-white/50 text-[10px]">
-                          {item.назва_магазину?.replace('Магазин "', '').replace('"', '') || '—'}
-                        </td>
-                        <td className="py-3 px-2 text-right text-[#52E8FF] font-mono tabular-nums">
-                          {parseFloat(item.current_stock || 0).toFixed(1)}
-                        </td>
-                        <td className="py-3 px-2 text-right text-[#FFB84D] font-mono tabular-nums">
-                          {parseFloat(item.min_stock || 0).toFixed(1)}
-                        </td>
-                        <td className="py-3 px-2 text-right text-[#00BCF2] font-black tabular-nums text-[13px]">
-                          {item.recommended_kg}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-
-              {/* Кнопка закрыть */}
-              <button
-                onClick={() => setShowReserveModal(false)}
-                className="w-full px-6 py-3 rounded-xl font-bold bg-white/5 border border-white/20 text-white hover:bg-white/10 transition-all active:scale-[0.98]"
-              >
-                Закрити
-              </button>
             </div>
-          </div>
-        )}
+          )
+        }
+
+        {/* 🔵 RESERVE DETAIL MODAL (Step 78) */}
+        {
+          showReserveModal && (
+            <div
+              className="fixed inset-0 z-[120] flex items-center justify-center p-4"
+              style={{
+                background: 'rgba(0, 0, 0, 0.7)',
+                backdropFilter: 'blur(8px)',
+                WebkitBackdropFilter: 'blur(8px)'
+              }}
+              onClick={() => setShowReserveModal(false)}
+            >
+              <div
+                className="relative w-full max-w-[800px] max-h-[80vh] flex flex-col rounded-2xl p-6 overflow-hidden"
+                style={{
+                  background: 'rgba(26, 31, 58, 0.95)',
+                  backdropFilter: 'blur(20px)',
+                  WebkitBackdropFilter: 'blur(20px)',
+                  border: '1px solid rgba(255, 255, 255, 0.1)',
+                  boxShadow: '0 20px 60px rgba(0, 0, 0, 0.5)'
+                }}
+                onClick={(e) => e.stopPropagation()}
+              >
+                {/* Заголовок */}
+                <div className="flex justify-between items-center mb-4">
+                  <div>
+                    <h2 className="text-[18px] font-bold text-white">
+                      🔵 РЕЗЕРВ — товари нижче мінімального
+                    </h2>
+                    <div className="text-[12px] text-white/60 mt-1">
+                      {reserveItems.length} SKU — загалом {Math.round(metrics.reserveWeight)} кг
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setShowReserveModal(false)}
+                    className="p-2 hover:bg-white/5 rounded-lg text-white/40 hover:text-white"
+                  >
+                    <Activity size={20} className="rotate-45" /> {/* Close "X" placeholder if needed, using Activity rotated for now or just text */}
+                  </button>
+                </div>
+
+                {/* Таблица товаров */}
+                <div className="flex-1 overflow-y-auto custom-scrollbar mb-6 pr-2">
+                  <table className="w-full text-[11px] border-collapse">
+                    <thead className="sticky top-0 bg-[rgba(26,31,58,0.95)] z-10">
+                      <tr className="border-b border-white/10 text-left">
+                        <th className="py-3 px-2 text-white/60 font-medium">Категорія</th>
+                        <th className="py-3 px-2 text-white/60 font-medium">Товар</th>
+                        <th className="py-3 px-2 text-white/60 font-medium">Магазин</th>
+                        <th className="py-3 px-2 text-white/60 font-medium text-right">Факт</th>
+                        <th className="py-3 px-2 text-white/60 font-medium text-right">Мін</th>
+                        <th className="py-3 px-2 text-white/60 font-medium text-right">Треба</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-white/5">
+                      {reserveItems.map((item: any, idx: number) => (
+                        <tr key={idx} className="hover:bg-white/5 transition-colors">
+                          <td className="py-3 px-2 text-white/70">{item.category_name}</td>
+                          <td className="py-3 px-2 text-white font-medium">{item.назва_продукту}</td>
+                          <td className="py-3 px-2 text-white/50 text-[10px]">
+                            {item.назва_магазину?.replace('Магазин "', '').replace('"', '') || '—'}
+                          </td>
+                          <td className="py-3 px-2 text-right text-[#52E8FF] font-mono tabular-nums">
+                            {parseFloat(item.current_stock || 0).toFixed(1)}
+                          </td>
+                          <td className="py-3 px-2 text-right text-[#FFB84D] font-mono tabular-nums">
+                            {parseFloat(item.min_stock || 0).toFixed(1)}
+                          </td>
+                          <td className="py-3 px-2 text-right text-[#00BCF2] font-black tabular-nums text-[13px]">
+                            {item.recommended_kg}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Кнопка закрыть */}
+                <button
+                  onClick={() => setShowReserveModal(false)}
+                  className="w-full px-6 py-3 rounded-xl font-bold bg-white/5 border border-white/20 text-white hover:bg-white/10 transition-all active:scale-[0.98]"
+                >
+                  Закрити
+                </button>
+              </div>
+            </div>
+          )
+        }
       </div>
     </DashboardLayout>
   );

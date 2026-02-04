@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { LogOut, Users } from 'lucide-react';
+import { LogOut } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { auditLog } from '@/lib/logger';
 
@@ -145,6 +145,7 @@ export const Sidebar = () => {
                 </div>
 
 
+
                 <div className="px-4 mt-6 pt-4 border-t border-[var(--border)] z-10">
                     <button
                         onClick={async () => {
@@ -256,4 +257,3 @@ export const DashboardLayout = ({
         </div>
     );
 };
-

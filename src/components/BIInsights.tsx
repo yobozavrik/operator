@@ -162,6 +162,6 @@ export const BIInsights = ({ queue }: { queue: ProductionTask[] }) => {
                     Згенерувати
                 </button>
             </div>
-        </div >
+        </div>
     );
 };
