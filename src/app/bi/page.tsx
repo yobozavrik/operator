@@ -62,7 +62,7 @@ export default function BIDashboard() {
             .on(
                 'postgres_changes',
                 { event: '*', schema: 'public', table: 'dashboard_deficit' },
-                (payload) => {
+                (payload: { eventType: string }) => {
                     console.log('⚡ Realtime update received:', payload.eventType);
                     // Trigger re-fetch when data changes
                     mutateDeficit();
@@ -70,7 +70,7 @@ export default function BIDashboard() {
                     mutateAllProducts();
                 }
             )
-            .subscribe((status) => {
+            .subscribe((status: string) => {
                 if (status === 'SUBSCRIBED') {
                     console.log('✅ Connected to Realtime stream');
                 }
