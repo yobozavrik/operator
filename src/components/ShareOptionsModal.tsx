@@ -54,29 +54,6 @@ export const ShareOptionsModal = ({ isOpen, items, orderData, onClose, onShare }
             const downloadFile = () => {
                 const blob = new Blob([buffer], {
                     type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-                });
-                const url = window.URL.createObjectURL(blob);
-                const link = document.createElement('a');
-                link.href = url;
-                link.download = fileName;
-                link.click();
-                window.URL.revokeObjectURL(url);
-            };
-
-            if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
-                try {
-                    await navigator.share({
-                        files: [file],
-                        title: 'Виробниче замовлення',
-                        text: shareText
-                    });
-                    return;
-                } catch (shareError) {
-                    if (shareError instanceof DOMException && shareError.name === 'AbortError') {
-                        return;
-                    }
-                    console.warn('File share failed, falling back to download:', shareError);
-                }
             }
 
             if (navigator.share) {
