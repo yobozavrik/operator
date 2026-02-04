@@ -1091,7 +1091,6 @@ export const BIPowerMatrix = ({ deficitQueue, allProductsQueue, refreshUrgency =
               <p className="text-[13px] text-[#8b949e] leading-relaxed">
                 Неможливо сформувати замовлення без активної зміни.
                 <br />
-                Будь ласка, натисніть кнопку <span className="text-[#00D4FF] font-bold">Персонал</span> у верхній панелі керування та оберіть зміну.
               </p>
             </div>
 

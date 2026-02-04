@@ -9,7 +9,6 @@ interface Props {
     className?: string;
     isActive?: boolean;
     onSelect?: () => void;
-    variant?: 'default' | 'compact';
 }
 
 const getPositionIcon = (position: Employee['position']) => {
@@ -23,7 +22,6 @@ const getPositionIcon = (position: Employee['position']) => {
     }
 };
 
-export const PersonnelCard = ({ className, isActive = false, onSelect, variant = 'default' }: Props) => {
     const [isExpanded, setIsExpanded] = useState(false);
     const [expandedShift, setExpandedShift] = useState<number | null>(null);
 
@@ -47,8 +45,6 @@ export const PersonnelCard = ({ className, isActive = false, onSelect, variant =
                     setIsExpanded(!isExpanded);
                 }}
                 className={cn(
-                    "w-full text-left rounded-xl transition-all duration-300 relative overflow-hidden group",
-                    isCompact ? "px-3 py-2.5" : "px-4 py-3.5",
                     (isExpanded || isActive) && "scale-[1.02]"
                 )}
                 style={{
@@ -100,7 +96,6 @@ export const PersonnelCard = ({ className, isActive = false, onSelect, variant =
                         <div>
                             <span
                                 className={cn(
-                                    isCompact ? "text-[10px] font-semibold uppercase tracking-wider transition-all duration-300" : "text-[12px] font-semibold uppercase tracking-wide transition-all duration-300",
                                     (isExpanded || isActive) ? "text-[#00D4FF]" : "text-gray-400"
                                 )}
                             >

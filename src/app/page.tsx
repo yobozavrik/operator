@@ -409,11 +409,6 @@ export default function BIDashboard() {
                           "bg-[#00D4FF] shadow-[0_0_8px_rgba(0,212,255,0.6)]"
                   )} />
                 </button>
-
-                <div className="min-w-[180px] max-w-[210px]">
-                  <PersonnelCard
-                    isActive={selectedStore === 'Персонал'}
-                    variant="compact"
                     onSelect={() => {
                       setSelectedStore('Персонал');
                       localStorage.setItem('activeView', 'Персонал');
