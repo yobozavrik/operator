@@ -33,10 +33,21 @@ export async function GET(request: NextRequest) {
         });
     }
 
+    const totalKg = data.total_kg ?? 0;
+
     return NextResponse.json({
-        totalKg: data.total_kg,
-        criticalSKU: data.critical_sku_count,
-        loadPercentage: Math.min(100, Math.round((data.total_kg / 662) * 100)),
+        shopLoad: totalKg,
+        criticalSKU: data.critical_sku_count || 0,
+        highSKU: data.high_sku_count || 0,
+        reserveSKU: data.reserve_sku_count || 0,
+        criticalWeight: data.critical_kg || 0,
+        highWeight: data.high_kg || 0,
+        reserveWeight: data.reserve_kg || 0,
+        totalSKU: data.total_sku_count || 0,
+        loadPercentage: Math.min(100, Math.round((totalKg / 662) * 100)),
+        staffCount: 0,
+        aiEfficiency: 98,
+        lastUpdate: new Date().toISOString(),
         breakdown: {
             critical: data.critical_kg,
             high: data.high_kg,
@@ -44,4 +55,3 @@ export async function GET(request: NextRequest) {
         }
     });
 }
-
