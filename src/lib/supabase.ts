@@ -1,22 +1,27 @@
 import { createClient } from '@supabase/supabase-js'
 
-let supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'http://placeholder.supabase.co'
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder-key'
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 
-// ✅ Ensure secure protocol in browser contexts to avoid mixed content WebSocket errors
-if (typeof window !== 'undefined' && supabaseUrl.startsWith('http://')) {
-    supabaseUrl = supabaseUrl.replace('http://', 'https://')
+if (!supabaseUrl || !supabaseAnonKey) {
+    throw new Error('Missing Supabase credentials')
 }
 
-console.log('🔧 Supabase Config:', {
-    url: supabaseUrl,
-    keyLength: supabaseAnonKey?.length,
-    hasUrl: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
-    hasKey: !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+    auth: {
+        persistSession: false,
+        autoRefreshToken: false,
+        detectSessionInUrl: false
+    },
+    global: {
+        headers: {
+            'X-Client-Info': 'bipower-dashboard'
+        }
+    }
 })
 
-if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
-    console.warn('⚠️ Supply Supabase credentials to .env.local to enable real data access.')
+// ✅ Відключаємо Realtime глобально (тільки на клієнті)
+if (typeof window !== 'undefined') {
+    supabase.realtime.setAuth(null)
+    supabase.realtime.disconnect()
 }
-
-export const supabase = createClient(supabaseUrl, supabaseAnonKey)
