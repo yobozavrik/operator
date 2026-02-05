@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useMemo, useEffect } from 'react';
-import { ChevronDown, ChevronRight, CheckCircle2, Package, AlertTriangle, X } from 'lucide-react';
+import { ChevronDown, ChevronRight, CheckCircle2, Package, AlertTriangle, X, RefreshCw } from 'lucide-react';
 import { ProductionTask, PriorityKey, SKUCategory, PriorityHierarchy, CategoryGroup } from '@/types/bi';
 import { cn } from '@/lib/utils';
 import { UI_TOKENS } from '@/lib/design-tokens';
@@ -20,10 +20,40 @@ interface Props {
   deficitQueue: ProductionTask[];
   allProductsQueue: ProductionTask[];
   refreshUrgency?: 'normal' | 'warning' | 'critical';
+  onMetricsUpdate?: (metrics: { totalKg: number, criticalWeight: number, reserveWeight: number, criticalSKU: number, reserveSKU: number }) => void;
+  onManualRefresh?: () => void;
+  planningDays?: number;
+  onPlanningDaysChange?: (days: number) => void;
 }
 
-export const BIPowerMatrix = ({ deficitQueue, allProductsQueue, refreshUrgency = 'normal' }: Props) => {
+export const BIPowerMatrix = ({
+  deficitQueue,
+  allProductsQueue,
+  refreshUrgency = 'normal',
+  onMetricsUpdate,
+  onManualRefresh,
+  planningDays: controlledPlanningDays,
+  onPlanningDaysChange
+}: Props) => {
   const { selectedStore, currentCapacity } = useStore();
+
+  // Local state for fallback if not controlled
+  const [localPlanningDays, setLocalPlanningDays] = useState<number>(3);
+
+  // Use controlled value if present, else local
+  const planningDays = controlledPlanningDays !== undefined ? controlledPlanningDays : localPlanningDays;
+
+  // Handler to update both
+  const handleSetPlanningDays = (days: number) => {
+    if (onPlanningDaysChange) {
+      onPlanningDaysChange(days);
+    } else {
+      setLocalPlanningDays(days);
+    }
+  };
+
+  const SAFETY_BUFFER_DAYS = 4;
+
   const [expandedPriorities, setExpandedPriorities] = useState<Set<PriorityKey>>(
     new Set(['critical', 'high'] as PriorityKey[])
   );
@@ -50,13 +80,110 @@ export const BIPowerMatrix = ({ deficitQueue, allProductsQueue, refreshUrgency =
   }, [selectedStores]);
 
   // Вибираємо правильний датасет залежно від режиму
-  const queue = selectedStore === 'Усі' ? deficitQueue : allProductsQueue;
+  // ⚠️ ALWAYS use allProductsQueue as base for dynamic calculation to catch items that will become deficit soon
+  // previously: const rawQueue = selectedStore === 'Усі' ? deficitQueue : allProductsQueue;
+  const rawQueue = allProductsQueue;
+
+  // ⚡ DYNAMIC CALCULATION LOGIC
+  const calculateMetrics = (avg: number, stock: number) => {
+    // 1. Общий объем заказа
+    const totalTarget = (avg * planningDays) + (avg * SAFETY_BUFFER_DAYS);
+    const rawOrder = totalTarget - stock;
+    const finalOrder = Math.ceil(Math.max(0, rawOrder));
+
+    // 2. Срочная потребность (Needs to restore Safety Buffer)
+    // REPURPOSED logic: "Deficit" now means "Urgent Stock Requirement"
+    const urgentRequirement = (avg * SAFETY_BUFFER_DAYS) - stock;
+    const urgentOrder = Math.ceil(Math.max(0, urgentRequirement));
+
+    // 3. Плановая потребность
+    const plannedOrder = Math.max(0, finalOrder - urgentOrder);
+
+    return { finalOrder, urgentOrder, plannedOrder, totalTarget };
+  };
+
+  const dynamicQueue = useMemo(() => {
+    return rawQueue.map(item => {
+      // 1. Filter and Recalculate for each store
+      const updatedStores = item.stores.filter(store => {
+        // Force include if we are in "Store View" (selectedStore !== 'Усі')
+        // Otherwise apply Visibility Logic: stock < (avg * (planningDays + Buffer))
+
+        const avgRaw = parseFloat(String(store.avgSales));
+        const stockRaw = parseFloat(String(store.currentStock));
+
+        const avg = isNaN(avgRaw) ? 0 : avgRaw;
+        const stock = isNaN(stockRaw) ? 0 : stockRaw;
+
+        // VISIBILITY LOGIC
+        if (selectedStore === 'Усі') {
+          // If avg sales is 0, we generally don't need to produce it unless we want to hold buffer.
+          // Let's strictly follow the formula.
+          const visibilityThreshold = avg * (planningDays + SAFETY_BUFFER_DAYS);
+
+          // Debugging safety
+          if (visibilityThreshold === 0 && stock === 0) return false;
+
+          return stock < visibilityThreshold;
+        }
+
+        // In specific store view, we show everything for that store (filtering by store happens in filteredQueue)
+        return true;
+      }).map(store => {
+        const avgRaw = parseFloat(String(store.avgSales));
+        const stockRaw = parseFloat(String(store.currentStock));
+        const avg = isNaN(avgRaw) ? 0 : avgRaw;
+        const stock = isNaN(stockRaw) ? 0 : stockRaw;
+
+        const { finalOrder, urgentOrder } = calculateMetrics(avg, stock);
+
+        return {
+          ...store,
+          recommendedKg: finalOrder,
+          deficitKg: urgentOrder
+        };
+      });
+
+      if (updatedStores.length === 0) return null;
+
+      // Recalculate aggregated values for the item
+      // Recalculate aggregated values for the item
+      const totalRecommended = updatedStores.reduce((sum, s) => sum + (s.recommendedKg || 0), 0);
+      const totalDeficit = updatedStores.reduce((sum, s) => sum + (s.deficitKg || 0), 0);
+
+      // Recalculate Priority based on dynamic values
+      let newPriority: PriorityKey = item.priority;
+
+      if (totalDeficit > 0) {
+        newPriority = 'critical';
+      } else if (totalRecommended > 0) {
+        newPriority = 'reserve';
+      } else {
+        newPriority = 'normal'; // Should typically be filtered out by visibility logic anyway
+      }
+
+      return {
+        ...item,
+        priority: newPriority,
+        stores: updatedStores,
+        recommendedQtyKg: totalRecommended,
+        totalDeficitKg: totalDeficit
+      } as ProductionTask;
+    }).filter((item): item is ProductionTask => {
+      if (item === null) return false;
+      // Final Safety Filter: If we are in "All Stores", show only if "finalOrder" > 0
+      if (selectedStore === 'Усі') {
+        return (item.recommendedQtyKg || 0) > 0;
+      }
+      return true;
+    });
+  }, [rawQueue, planningDays, selectedStore]);
 
   // Фільтруємо чергу залежно від обраного магазину
   const filteredQueue = useMemo((): ProductionTask[] => {
-    if (selectedStore === 'Усі') return queue;
+    if (selectedStore === 'Усі') return dynamicQueue;
 
-    return queue
+    return dynamicQueue
       .map(item => {
         const storeData = item.stores.find(s => s.storeName === selectedStore);
         if (!storeData) return null;
@@ -69,7 +196,7 @@ export const BIPowerMatrix = ({ deficitQueue, allProductsQueue, refreshUrgency =
         } as ProductionTask;
       })
       .filter((item): item is ProductionTask => item !== null);
-  }, [queue, selectedStore]);
+  }, [dynamicQueue, selectedStore]);
 
   // ДОДАЙ ЦЕЙ CONSOLE.LOG (Step 93):
   console.log('📊 Статистика filteredQueue:', {
@@ -79,6 +206,8 @@ export const BIPowerMatrix = ({ deficitQueue, allProductsQueue, refreshUrgency =
     reserve: filteredQueue.filter(i => i.priority === 'reserve').length,
     sample: filteredQueue.slice(0, 3).map(i => ({ name: i.name, priority: i.priority }))
   });
+
+  console.log('🔄 BIPowerMatrix Render | Planning Days:', planningDays);
 
   // ============================================================================
   // ALL HOOKS MUST BE CALLED UNCONDITIONALLY (Rules of Hooks)
@@ -130,16 +259,16 @@ export const BIPowerMatrix = ({ deficitQueue, allProductsQueue, refreshUrgency =
     const priorityConfigs = [
       {
         key: 'critical',
-        label: 'КРИТИЧНО & ВАЖЛИВО',
-        emoji: '🔴',
+        label: 'ТЕРМІНОВО (Stock < Buffer)',
+        emoji: '🔥',
         color: '#E74856',
         colorDark: '#C41E3A',
         glow: '#FF6B6B'
       },
       {
         key: 'reserve',
-        label: 'РЕКОМЕНДОВАНО (зробити наперед)',
-        emoji: '🔵',
+        label: 'ПЛАНОВЕ ПОПОВНЕННЯ',
+        emoji: '📅',
         color: '#007BA7',
         colorDark: '#005F8C',
         glow: '#00BCF2'
@@ -198,21 +327,52 @@ export const BIPowerMatrix = ({ deficitQueue, allProductsQueue, refreshUrgency =
     }).filter((p): p is PriorityHierarchy => p !== null);
   }, [filteredQueue]);
 
-  // Замість reserveQueue, використовуй hierarchy (Step 92)
-  const reservePriority = useMemo(() => {
-    return hierarchy.find(p => p.key === 'reserve');
-  }, [hierarchy]);
+  // 🔥 SYNC METRICS WITH PARENT (page.tsx)
+  useEffect(() => {
+    if (!onMetricsUpdate) return;
 
+    let criticalWeight = 0, criticalSKU = 0;
+    let reserveWeight = 0, reserveSKU = 0;
+
+    hierarchy.forEach(p => {
+      if (p.key === 'critical' || p.key === 'high') {
+        criticalWeight += p.totalKg;
+        criticalSKU += p.categories.reduce((acc, cat) => acc + cat.itemsCount, 0);
+      } else if (p.key === 'reserve') {
+        reserveWeight += p.totalKg;
+        reserveSKU += p.categories.reduce((acc, cat) => acc + cat.itemsCount, 0);
+      }
+    });
+
+    const totalKg = criticalWeight + reserveWeight;
+
+    // Use a timeout to avoid render-cycle conflicts if parent updates state immediately
+    const timer = setTimeout(() => {
+      onMetricsUpdate({
+        totalKg,
+        criticalWeight,
+        reserveWeight,
+        criticalSKU,
+        reserveSKU
+      });
+    }, 0);
+
+    return () => clearTimeout(timer);
+  }, [hierarchy, onMetricsUpdate]);
+
+  // Calculate stats for local usage (Footer)
   const stats = useMemo(() => {
     const criticalPriority = hierarchy.find(p => p.key === 'critical');
     const recommendedWeight = Math.round(criticalPriority?.totalKg || 0);
+    // Reserve is needed for total
+    const reservePriority = hierarchy.find(p => p.key === 'reserve');
     const totalAllWeight = Math.round(recommendedWeight + (reservePriority?.totalKg || 0));
 
     return {
       recommendedWeight,
       totalAllWeight
     };
-  }, [hierarchy, reservePriority]);
+  }, [hierarchy]);
 
   const { recommendedWeight, totalAllWeight } = stats;
 
@@ -464,9 +624,31 @@ export const BIPowerMatrix = ({ deficitQueue, allProductsQueue, refreshUrgency =
       {/* Header with weight counter */}
       <header className="flex-shrink-0 px-4 py-3 border-b border-[#3e4362] bg-gradient-to-r from-[#1a1f3a] to-[#0a0e27] z-20">
         <div className="flex items-center justify-between">
-          <h3 className="text-[14px] font-black uppercase tracking-tighter text-[var(--foreground)] flex items-center gap-2">
-            📋 {selectedWeight > 0 ? `Замовлення на ${selectedWeight} кг` : 'Формування замовлення'}
-          </h3>
+          <div className="flex items-center gap-4">
+            <h3 className="text-[14px] font-black uppercase tracking-tighter text-[var(--foreground)] flex items-center gap-2">
+              📋 {selectedWeight > 0 ? `Замовлення на ${selectedWeight} кг` : 'Формування замовлення'}
+            </h3>
+
+            {/* PLANNING DAYS CONTROL */}
+            <div className="flex items-center space-x-1 bg-white/5 p-1 rounded-lg border border-white/10">
+              <span className="text-[10px] font-bold px-2 text-white/40 uppercase tracking-wider">План (днів):</span>
+              {[1, 2, 3, 4, 5, 6, 7, 14].map((d) => (
+                <button
+                  key={d}
+                  onClick={() => handleSetPlanningDays(d)}
+                  className={cn(
+                    "w-8 h-6 flex items-center justify-center rounded text-[11px] font-bold transition-all",
+                    planningDays === d
+                      ? "bg-[#00D4FF] text-black shadow-[0_0_10px_rgba(0,212,255,0.4)]"
+                      : "text-white/60 hover:bg-white/10 hover:text-white"
+                  )}
+                >
+                  {d}
+                </button>
+              ))}
+            </div>
+          </div>
+
           <div className="flex items-center gap-2">
             <div className="h-2 w-2 rounded-full bg-[#52e8ff] animate-pulse"></div>
             <span className="text-[11px] text-[#8b949e]">
@@ -659,7 +841,17 @@ export const BIPowerMatrix = ({ deficitQueue, allProductsQueue, refreshUrgency =
                                 </span>
                               </div>
                               <span className="text-[12px] font-black text-[var(--status-normal)]">
-                                {item.recommendedQtyKg} кг
+                                {(() => {
+                                  // DYNAMIC CALCULATION FOR PRODUCT ROW (AGGREGATE)
+                                  const totalDynamic = item.stores.reduce((sum, s) => {
+                                    const avg = parseFloat(String(s.avgSales)) || 0;
+                                    const stock = parseFloat(String(s.currentStock)) || 0;
+                                    // Formula: (Avg * Days) + (Avg * 4) - Stock
+                                    const needed = Math.ceil((avg * planningDays) + (avg * 4) - stock);
+                                    return sum + (needed > 0 ? needed : 0);
+                                  }, 0);
+                                  return totalDynamic;
+                                })()} кг
                               </span>
                             </div>
                           </div>
@@ -712,8 +904,18 @@ export const BIPowerMatrix = ({ deficitQueue, allProductsQueue, refreshUrgency =
                                     </div>
 
                                     <div className="flex items-center gap-3">
+                                      {store.deficitKg > 0 && (
+                                        <span className="text-[10px] font-black text-[#FF6B6B] bg-[#FF6B6B]/10 px-1.5 py-0.5 rounded border border-[#FF6B6B]/20" title="Срочно пополнить буфер!">
+                                          🔥 {store.deficitKg} кг
+                                        </span>
+                                      )}
                                       <span className="text-[11px] font-bold text-[#58a6ff]">
-                                        {store.recommendedKg} кг
+                                        {(() => {
+                                          const avg = parseFloat(String(store.avgSales)) || 0;
+                                          const stock = parseFloat(String(store.currentStock)) || 0;
+                                          const dynamicOrder = Math.ceil((avg * planningDays) + (avg * 4) - stock);
+                                          return dynamicOrder > 0 ? dynamicOrder : 0;
+                                        })()} кг
                                       </span>
                                     </div>
                                   </div>
@@ -1029,13 +1231,17 @@ export const BIPowerMatrix = ({ deficitQueue, allProductsQueue, refreshUrgency =
       </footer>
 
       {/* Modals */}
-      {/* Data Stale Modal (Highest Priority) */}
+      {/* Data Outdated Modal - NOW WITH BUTTON */}
       {refreshUrgency === 'critical' && (
         <div
-          className="fixed inset-0 z-[200] flex items-center justify-center bg-black/60 backdrop-blur-md"
-          onClick={(e) => e.stopPropagation()}
+          className="fixed inset-0 z-[100] flex items-center justify-center p-4"
+          style={{
+            background: 'rgba(5, 5, 10, 0.9)',
+            backdropFilter: 'blur(10px)'
+          }}
         >
-          <div className="w-[450px] bg-[#161b22] border border-[#f85149] rounded-2xl shadow-[0_0_100px_rgba(248,81,73,0.2)] p-8 text-center relative overflow-hidden animate-in zoom-in duration-300">
+          <div className="relative w-full max-w-md bg-[#161b22] border border-[#f85149]/30 rounded-2xl p-8 text-center shadow-[0_0_50px_rgba(248,81,73,0.3)]">
+
             {/* Pulse Effect */}
             <div className="absolute inset-0 bg-[#f85149]/5 animate-pulse pointer-events-none" />
 
@@ -1053,11 +1259,22 @@ export const BIPowerMatrix = ({ deficitQueue, allProductsQueue, refreshUrgency =
               Для продовження роботи необхідно оновити дані.
             </p>
 
-            <div className="animate-bounce">
-              <span className="text-[#f85149] text-xs font-bold uppercase tracking-widest">
-                ☝️ Натисніть "Оновити" в меню зліва
-              </span>
-            </div>
+            {/* DIRECT ACTION BUTTON */}
+            {onManualRefresh ? (
+              <button
+                onClick={onManualRefresh}
+                className="mx-auto px-8 py-4 rounded-xl font-bold uppercase tracking-wider text-white bg-[#f85149] hover:bg-[#da3633] transition-all shadow-[0_0_20px_rgba(248,81,73,0.4)] hover:scale-105 active:scale-95 flex items-center gap-3 justify-center"
+              >
+                <RefreshCw size={20} className="animate-spin-slow" />
+                Оновити дані зараз
+              </button>
+            ) : (
+              <div className="animate-bounce">
+                <span className="text-[#f85149] text-xs font-bold uppercase tracking-widest">
+                  ☝️ Натисніть "Оновити" в меню зліва
+                </span>
+              </div>
+            )}
           </div>
         </div>
       )}
