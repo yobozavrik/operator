@@ -38,7 +38,7 @@ export const BIPowerMatrix = ({
   const { selectedStore, currentCapacity } = useStore();
 
   // Local state for fallback if not controlled
-  const [localPlanningDays, setLocalPlanningDays] = useState<number>(3);
+  const [localPlanningDays, setLocalPlanningDays] = useState<number>(1);
 
   // Use controlled value if present, else local
   const planningDays = controlledPlanningDays !== undefined ? controlledPlanningDays : localPlanningDays;
@@ -84,47 +84,28 @@ export const BIPowerMatrix = ({
   // previously: const rawQueue = selectedStore === 'Усі' ? deficitQueue : allProductsQueue;
   const rawQueue = allProductsQueue;
 
-  // ⚡ DYNAMIC CALCULATION LOGIC
-  const calculateMetrics = (avg: number, stock: number) => {
-    // 1. Общий объем заказа
-    const totalTarget = (avg * planningDays) + (avg * SAFETY_BUFFER_DAYS);
-    const rawOrder = totalTarget - stock;
-    const finalOrder = Math.ceil(Math.max(0, rawOrder));
-
-    // 2. Срочная потребность (Needs to restore Safety Buffer)
-    // REPURPOSED logic: "Deficit" now means "Urgent Stock Requirement"
-    const urgentRequirement = (avg * SAFETY_BUFFER_DAYS) - stock;
-    const urgentOrder = Math.ceil(Math.max(0, urgentRequirement));
-
-    // 3. Плановая потребность
-    const plannedOrder = Math.max(0, finalOrder - urgentOrder);
-
-    return { finalOrder, urgentOrder, plannedOrder, totalTarget };
-  };
-
   const dynamicQueue = useMemo(() => {
     return rawQueue.map(item => {
       // 1. Filter and Recalculate for each store
       const updatedStores = item.stores.filter(store => {
         // Force include if we are in "Store View" (selectedStore !== 'Усі')
-        // Otherwise apply Visibility Logic: stock < (avg * (planningDays + Buffer))
+        // Otherwise apply Visibility Logic: stock < minStock
 
         const avgRaw = parseFloat(String(store.avgSales));
         const stockRaw = parseFloat(String(store.currentStock));
+        const minStockRaw = parseFloat(String(store.minStock));
 
         const avg = isNaN(avgRaw) ? 0 : avgRaw;
         const stock = isNaN(stockRaw) ? 0 : stockRaw;
+        const minStock = isNaN(minStockRaw) ? 0 : minStockRaw;
 
         // VISIBILITY LOGIC
         if (selectedStore === 'Усі') {
-          // If avg sales is 0, we generally don't need to produce it unless we want to hold buffer.
-          // Let's strictly follow the formula.
-          const visibilityThreshold = avg * (planningDays + SAFETY_BUFFER_DAYS);
-
+          // Show only if there is a deficit relative to Min Stock
           // Debugging safety
-          if (visibilityThreshold === 0 && stock === 0) return false;
+          if (minStock === 0 && stock === 0) return false;
 
-          return stock < visibilityThreshold;
+          return stock < minStock;
         }
 
         // In specific store view, we show everything for that store (filtering by store happens in filteredQueue)
@@ -132,10 +113,28 @@ export const BIPowerMatrix = ({
       }).map(store => {
         const avgRaw = parseFloat(String(store.avgSales));
         const stockRaw = parseFloat(String(store.currentStock));
+        const minStockRaw = parseFloat(String(store.minStock)); // Get Min Stock
+
         const avg = isNaN(avgRaw) ? 0 : avgRaw;
         const stock = isNaN(stockRaw) ? 0 : stockRaw;
+        const minStock = isNaN(minStockRaw) ? 0 : minStockRaw;
 
-        const { finalOrder, urgentOrder } = calculateMetrics(avg, stock);
+        // USER REQUEST:
+        // 1. Store View (Monitoring): Need = Min Stock - Fact (Immediate Deficit)
+        // 2. All Stores View (Production Planning): Need = Min Stock + (Planning Days * Avg Sales) - Fact (Dynamic Plan)
+
+        let finalOrder = 0;
+
+        if (selectedStore !== 'Усі') {
+          // Store Monitoring Mode
+          finalOrder = Math.max(0, Math.ceil(minStock - stock));
+        } else {
+          // Production Planning Mode (Dynamic with Days)
+          finalOrder = Math.max(0, Math.ceil(minStock + (avg * planningDays) - stock));
+        }
+
+        // Urgent is essentially the same as Need in this context if Need > 0
+        const urgentOrder = finalOrder;
 
         return {
           ...store,
@@ -534,16 +533,26 @@ export const BIPowerMatrix = ({
           item.stores.forEach((store) => {
             const key = `${item.productCode}_${store.storeName}`;
             if (selectedStores.has(key)) {
+              // SMART ORDER FORMULA: Min Stock + (Planning Days * Avg Sales) - Fact
+              const minStock = parseFloat(String(store.minStock)) || 0;
+              const avgSales = parseFloat(String(store.avgSales)) || 0;
+              const currentStock = parseFloat(String(store.currentStock)) || 0;
+
+              const smartQuantity = Math.max(0, Math.ceil(minStock + (avgSales * planningDays) - currentStock));
+
+              // Deficit is what we show in the card (Immediate Need)
+              const strictDeficit = store.recommendedKg;
+
               items.push({
                 id: key,
                 productCode: item.productCode,
                 productName: item.name,
                 category: item.category,
                 storeName: store.storeName,
-                quantity: store.recommendedKg,
-                kg: store.recommendedKg,
-                minRequired: store.deficitKg,
-                maxRecommended: store.recommendedKg,
+                quantity: smartQuantity,
+                kg: smartQuantity,
+                minRequired: strictDeficit,
+                maxRecommended: smartQuantity, // Allow up to smart quantity in slider
                 priority: item.priority
               });
             }
@@ -557,10 +566,13 @@ export const BIPowerMatrix = ({
       return;
     }
 
+    const finalOrderItems = items.filter(item => item.kg > 0);
+    const totalOrderWeight = finalOrderItems.reduce((sum, item) => sum + item.kg, 0);
+
     const order = {
       date: new Date().toLocaleDateString('uk-UA'),
-      totalKg: selectedWeight,
-      items: items.filter(item => item.kg > 0)
+      totalKg: totalOrderWeight,
+      items: finalOrderItems
     };
 
     setOrderData(order);

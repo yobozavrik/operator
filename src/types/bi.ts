@@ -1,7 +1,7 @@
 export type SKUCategory =
     | 'ВАРЕНИКИ' | 'ПЕЛЬМЕНІ' | 'ХІНКАЛІ' | 'ЧЕБУРЕКИ'
     | 'КОВБАСКИ' | 'ГОЛУБЦІ' | 'КОТЛЕТИ' | 'СИРНИКИ'
-    | 'ФРИКАДЕЛЬКИ' | 'ЗРАЗИ' | 'ПЕРЕЦЬ ФАРШИРОВАНИЙ' | 'МЛИНЦІ' | 'БЕНДЕРИКИ' | 'Інше';
+    | 'ФРИКАДЕЛЬКИ' | 'ЗРАЗИ' | 'ПЕРЕЦЬ ФАРШИРОВАНИЙ' | 'МЛИНЦІ' | 'БЕНДЕРИКИ' | 'ПІЦА' | 'Інше';
 
 export type PriorityKey = 'critical' | 'high' | 'reserve' | 'normal';
 
@@ -29,6 +29,7 @@ export interface Store {
     deficitKg: number;
     recommendedKg: number;
     avgSales: number;
+    distributionPlan?: number;
 }
 
 export interface ProductionTask {

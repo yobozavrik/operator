@@ -1,805 +1,387 @@
 'use client';
 
-import React, { useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
 import useSWR from 'swr';
-import { DashboardLayout } from '@/components/layout';
-import { BIGauge, BIStatCard } from '@/components/BIPanels';
-import { BIPowerMatrix } from '@/components/BIPowerMatrix';
-import { BIInsights } from '@/components/BIInsights';
-import { PersonnelView } from '@/components/PersonnelView';
-import { PersonnelCard } from '@/components/PersonnelCard';
-import { ProductionTask, BI_Metrics, SupabaseDeficitRow } from '@/types/bi';
-import { transformDeficitData } from '@/lib/transformers';
-import { ErrorBoundary } from '@/components/ErrorBoundary';
-import { AlertTriangle, Activity, RefreshCw, BarChart2, Users } from 'lucide-react';
-import { SyncOverlay } from '@/components/SyncOverlay';
-import { UI_TOKENS } from '@/lib/design-tokens';
+import { Activity, ArrowRight, BarChart2, ChefHat, LayoutGrid, Zap, Factory, Store, ShoppingBag } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { useStore } from '@/context/StoreContext';
 
-import { supabase } from '@/lib/supabase';
+const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
-const fetcher = async (url: string) => {
-  const res = await fetch(url);
-  if (!res.ok) {
-    const error = new Error('An error occurred while fetching the data.');
-    // Attach extra info to the error object.
-    const info = await res.json().catch(() => ({}));
-    (error as any).info = info;
-    (error as any).status = res.status;
-    throw error;
-  }
-  return res.json();
-};
+export default function CommandLevel1() {
+  const [hoveredCard, setHoveredCard] = useState<string | null>(null);
 
-export default function BIDashboard() {
-  // Get store context
-  const { selectedStore, setSelectedStore, currentCapacity } = useStore();
-  const [realtimeEnabled, setRealtimeEnabled] = React.useState(true);
-  const refreshInterval = realtimeEnabled ? 0 : 30000;
+  // 🛰️ DATA FETCHING
+  const { data: gravitonData } = useSWR('/api/graviton/metrics', fetcher, { refreshInterval: 10000 });
+  const { data: pizzaData } = useSWR('/api/pizza/analytics', fetcher, { refreshInterval: 10000 });
 
-  // ⚡ REALTIME ARCHITECTURE: No more polling!
-  // We fetch initially, then listen for DB events to re-fetch.
-  const { data: deficitData, error: deficitError, mutate: mutateDeficit } = useSWR<SupabaseDeficitRow[]>(
-    '/api/graviton/deficit',
-    fetcher,
-    { refreshInterval }
-  );
+  // Simple time for the header
+  const [time, setTime] = useState<Date | null>(null);
 
-  const { data: metrics, error: metricsError, mutate: mutateMetrics } = useSWR<BI_Metrics>(
-    '/api/graviton/metrics',
-    fetcher,
-    { refreshInterval }
-  );
-
-  // Для режиму "Конкретний магазин" потрібні ВСІ товари
-  const { data: allProductsData, error: allProductsError, mutate: mutateAllProducts } = useSWR<SupabaseDeficitRow[]>(
-    '/api/graviton/all-products',
-    fetcher,
-    { refreshInterval }
-  );
-
-  // 🔄 EVENT-DRIVEN UPDATES
-  React.useEffect(() => {
-    console.log('🔌 Connecting to Supabase Realtime...');
-
-    const channel = supabase
-      .channel('dashboard-updates')
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'dashboard_deficit' },
-        (payload) => {
-          console.log('⚡ Realtime update received:', payload.eventType);
-          // Trigger re-fetch when data changes
-          mutateDeficit();
-          mutateMetrics();
-          mutateAllProducts();
-        }
-      )
-      .subscribe((status) => {
-        if (status === 'SUBSCRIBED') {
-          console.log('✅ Connected to Realtime stream');
-        }
-
-        if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED') {
-          console.warn('⚠️ Realtime unavailable, falling back to polling.', status);
-          setRealtimeEnabled(false);
-        }
-      });
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [mutateDeficit, mutateMetrics, mutateAllProducts]);
-
-  const [isRefreshing, setIsRefreshing] = React.useState(false);
-  const [currentTime, setCurrentTime] = React.useState<Date | null>(null);
-  const [showBreakdownModal, setShowBreakdownModal] = React.useState(false);
-  const [showReserveModal, setShowReserveModal] = React.useState(false);
-  const [reserveItems, setReserveItems] = React.useState<any[]>([]);
-  const [dynamicMetrics, setDynamicMetrics] = React.useState<{
-    totalKg: number;
-    criticalWeight: number;
-    reserveWeight: number;
-    criticalSKU: number;
-    reserveSKU: number;
-  } | null>(null);
-
-  // LIFTED STATE: Planning Days
-  const [planningDays, setPlanningDays] = React.useState(3);
-
-  const [lastManualRefresh, setLastManualRefresh] = React.useState<number | null>(null);
-
-  // Initial load of last refresh time
-  React.useEffect(() => {
-    const saved = localStorage.getItem('lastManualRefresh');
-    if (saved) setLastManualRefresh(parseInt(saved, 10));
-  }, []);
-
-  const minutesSinceLastRefresh = useMemo(() => {
-    if (!currentTime || !lastManualRefresh) return 0;
-    return Math.floor((currentTime.getTime() - lastManualRefresh) / 60000);
-  }, [currentTime, lastManualRefresh]);
-
-  const refreshUrgency = useMemo(() => {
-    if (!lastManualRefresh || minutesSinceLastRefresh < 45) return 'normal';
-    if (minutesSinceLastRefresh < 60) return 'warning';
-    return 'critical';
-  }, [lastManualRefresh, minutesSinceLastRefresh]);
-
-  React.useEffect(() => {
-    setCurrentTime(new Date());
-    const timer = setInterval(() => setCurrentTime(new Date()), 1000);
+  useEffect(() => {
+    setTime(new Date());
+    const timer = setInterval(() => setTime(new Date()), 1000);
     return () => clearInterval(timer);
   }, []);
 
-  // Format Date: "П'ятниця, 3 Лютого 2026"
-  const formattedDate = useMemo(() => {
-    if (!currentTime) return '';
-    const options: Intl.DateTimeFormatOptions = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
-    const parts = new Intl.DateTimeFormat('uk-UA', options).formatToParts(currentTime);
-
-    // Manual capitalization because CSS capitalize works on all words
-    const weekday = parts.find(p => p.type === 'weekday')?.value || '';
-    const day = parts.find(p => p.type === 'day')?.value || '';
-    const month = parts.find(p => p.type === 'month')?.value || '';
-    const year = parts.find(p => p.type === 'year')?.value || '';
-
-    const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
-
-    return `${capitalize(weekday)}, ${day} ${capitalize(month)} ${year}`;
-  }, [currentTime]);
-
-  const formattedTime = currentTime?.toLocaleTimeString('uk-UA', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) || '00:00:00';
-
-  const handleRefresh = async () => {
-    setIsRefreshing(true);
-    try {
-      // Trigger both webhooks in parallel
-      const results = await Promise.allSettled([
-        fetch('http://localhost:5678/webhook-test/operator', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'refresh_stock', timestamp: new Date().toISOString() })
-        }),
-        fetch('https://n8n.dmytrotovstytskyi.online/webhook/operator', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'refresh_stock', timestamp: new Date().toISOString() })
-        })
-      ]);
-
-      // Check if at least one request was successful
-      const hasSuccess = results.some(r => r.status === 'fulfilled' && r.value.ok);
-
-      if (hasSuccess) {
-        // Ждем 4 секунды, чтобы пользователь насладился анимацией и данные успели обновиться
-        await new Promise(resolve => setTimeout(resolve, 4000));
-
-        const now = Date.now();
-        setLastManualRefresh(now);
-        localStorage.setItem('lastManualRefresh', now.toString());
-
-        await Promise.all([mutateDeficit(), mutateMetrics(), mutateAllProducts()]);
-      } else {
-        console.error('All webhooks failed');
-      }
-    } catch (err) {
-      console.error('Refresh error:', err);
-    } finally {
-      setIsRefreshing(false);
-    }
-  };
-
-  // Для режиму "Усі магазини" (тільки товари з дефіцитом)
-  const deficitQueue = useMemo((): ProductionTask[] => {
-    if (!deficitData || !Array.isArray(deficitData)) return [];
-    return transformDeficitData(deficitData);
-  }, [deficitData]);
-
-  // Для режиму "Конкретний магазин" (всі товари)
-  const allProductsQueue = useMemo((): ProductionTask[] => {
-    if (!allProductsData || !Array.isArray(allProductsData)) return [];
-    return transformDeficitData(allProductsData);
-  }, [allProductsData]);
-
-  const loadReserveItems = async () => {
-    try {
-      const response = await fetch('/api/graviton/deficit/reserve');
-      const data = await response.json();
-
-      console.log('Reserve items loaded:', data.length);
-
-      setReserveItems(data);
-      setShowReserveModal(true);
-    } catch (err) {
-      console.error('Failed to load reserve items:', err);
-    }
-  };
-
-  if (deficitError || metricsError || allProductsError) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-[var(--background)] text-[var(--status-critical)] font-bold uppercase tracking-widest" role="alert">
-        Помилка даних | Supabase Offline
-      </div>
-    );
-  }
-
-  if (!deficitData || !metrics || !allProductsData) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-[var(--background)] text-[var(--text-muted)] font-bold uppercase tracking-widest animate-pulse">
-        Ініціалізація двигуна BI...
-      </div>
-    );
-  }
-
-  // Use dynamic metric if available, otherwise fallback to API
-  const displayTotalKg = dynamicMetrics ? dynamicMetrics.totalKg : Math.round(metrics.shopLoad);
-  const displayCriticalSKU = dynamicMetrics ? dynamicMetrics.criticalSKU : metrics.criticalSKU;
-
   return (
-    <DashboardLayout
-      currentWeight={displayTotalKg}
-      maxWeight={currentCapacity || 0}
-      fullHeight={true}
-    >
-      <SyncOverlay isVisible={isRefreshing} />
-      {/* ... (visual effects skipped) ... */}
+    <div className="min-h-screen bg-[#0B0E17] text-white overflow-hidden relative font-sans selection:bg-[#00D4FF]/30">
 
-      {/* FULL SCREEN FLEX CONTAINER */}
-      <div className="flex flex-col h-full overflow-hidden relative z-10">
+      {/* 🌌 AMBIENT BACKGROUND */}
+      <div className="fixed inset-0 pointer-events-none">
+        <div className="absolute top-[-20%] left-[-10%] w-[70vw] h-[70vw] bg-[#00D4FF]/5 blur-[150px] rounded-full mix-blend-screen animate-pulse-slow" />
+        <div className="absolute bottom-[-20%] right-[-10%] w-[70vw] h-[70vw] bg-[#7B61FF]/5 blur-[150px] rounded-full mix-blend-screen animate-pulse-slow delay-1000" />
+        <div className="absolute top-[50%] left-[50%] -translate-x-1/2 -translate-y-1/2 w-[100vw] h-[100vh] bg-[url('/noise.png')] opacity-[0.03] mix-blend-overlay" />
+      </div>
 
-        {/* 1. HEADER (Fixed) */}
-        <header className="flex-shrink-0 p-4 lg:p-6 pb-2 lg:pb-3">
-          <div
-            className="rounded-2xl p-1 relative overflow-hidden group/spotlight"
-            style={{
-              background: 'rgba(20, 27, 45, 0.8)',
-              backdropFilter: 'blur(20px)',
-              WebkitBackdropFilter: 'blur(20px)',
-              border: '1px solid rgba(0, 212, 255, 0.2)',
-              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 0 40px rgba(0, 212, 255, 0.1)',
-            }}
-          >
-            {/* Spotlight Effect */}
-            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover/spotlight:animate-shimmer pointer-events-none" />
+      <div className="relative z-10 flex flex-col min-h-screen">
 
-            {/* Branding + Clock */}
-            <div
-              className="px-6 py-4 flex flex-col md:flex-row justify-between items-center gap-6 z-10"
-              style={{
-                background: 'rgba(26, 31, 58, 0.7)',
-                backdropFilter: 'blur(12px)',
-                WebkitBackdropFilter: 'blur(12px)',
-                border: '1px solid rgba(255, 255, 255, 0.1)',
-                borderBottom: '1px solid rgba(255, 255, 255, 0.15)',
-                boxShadow: '0 4px 16px rgba(0, 0, 0, 0.3)',
-                borderRadius: '12px'
-              }}
-            >
-              {/* Left: Branding */}
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-xl bg-[var(--status-normal)]/10 flex items-center justify-center border border-[var(--status-normal)]/20 shadow-[0_0_15px_rgba(52,211,153,0.2)]">
-                  <BarChart2 size={24} className="text-[var(--status-normal)]" />
-                </div>
-                <div>
-                  <h1 className="text-[24px] font-bold text-white tracking-wide uppercase">
-                    ГАЛЯ БАЛУВАНА
-                  </h1>
-                  <p className="text-[11px] text-white/60 uppercase tracking-wider mt-1">
-                    Виробничий контроль • Graviton
-                  </p>
-                </div>
-              </div>
-
-              {/* Right: Date/Time */}
-              <div className="text-right flex flex-col items-end">
-                <div className="text-[13px] font-semibold text-white/80">
-                  {formattedDate}
-                </div>
-                <div className="text-[20px] font-mono font-bold text-[#52E8FF] mt-1 drop-shadow-[0_0_8px_rgba(82,232,255,0.5)]">
-                  {formattedTime}
-                </div>
-              </div>
+        {/* 🏆 HEADER */}
+        <header className="px-8 py-6 flex justify-between items-center border-b border-white/5 bg-[#0B0E17]/50 backdrop-blur-xl sticky top-0 z-50">
+          <div className="flex items-center gap-4">
+            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-[#00D4FF] to-[#0066FF] flex items-center justify-center shadow-[0_0_20px_rgba(0,212,255,0.3)]">
+              <LayoutGrid className="text-white" size={20} />
             </div>
+            <div>
+              <h1 className="text-xl font-bold tracking-wider uppercase text-white">Галя Балувана</h1>
+              <p className="text-[10px] uppercase tracking-[0.2em] text-white/40 font-bold">Command Center • Level 1</p>
+            </div>
+          </div>
 
-            {/* Small KPI Strip */}
-            <div className="px-6 py-3 flex flex-wrap gap-4 items-center justify-between z-10 border-t border-white/5 mt-1">
-              <div className="flex gap-4">
-                {/* 🔄 PREMIUM REFRESH BUTTON WITH URGENCY STATES */}
-                <button
-                  onClick={handleRefresh}
-                  disabled={isRefreshing}
-                  className={cn(
-                    "group relative flex items-center gap-3 px-5 py-3 rounded-xl transition-all duration-300 hover:scale-[1.03] overflow-hidden border active:scale-95 disabled:opacity-50",
-                    refreshUrgency === 'critical'
-                      ? "border-[#E74856]/40 shadow-[0_0_30px_rgba(231,72,86,0.25)]"
-                      : refreshUrgency === 'warning'
-                        ? "border-yellow-500/40 shadow-[0_0_25px_rgba(234,179,8,0.2)]"
-                        : "border-[#00D4FF]/20 hover:border-[#00D4FF]/50 hover:shadow-[0_0_30px_rgba(0,212,255,0.2)]"
-                  )}
-                  style={{
-                    background: refreshUrgency === 'critical'
-                      ? 'radial-gradient(circle at top left, rgba(231, 72, 86, 0.35), transparent 60%), linear-gradient(135deg, rgba(231, 72, 86, 0.15) 0%, rgba(196, 30, 58, 0.1) 100%)'
-                      : refreshUrgency === 'warning'
-                        ? 'radial-gradient(circle at top left, rgba(234, 179, 8, 0.35), transparent 60%), linear-gradient(135deg, rgba(234, 179, 8, 0.15) 0%, rgba(202, 138, 4, 0.1) 100%)'
-                        : 'radial-gradient(circle at top left, rgba(0, 212, 255, 0.35), transparent 60%), linear-gradient(135deg, rgba(0, 212, 255, 0.1) 0%, rgba(0, 136, 255, 0.05) 100%)',
-                    backdropFilter: 'blur(15px)',
-                    WebkitBackdropFilter: 'blur(15px)',
-                    boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 12px 24px rgba(0, 0, 0, 0.35)',
-                  }}
-                >
-                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:animate-shimmer pointer-events-none" />
-
-                  <div className={cn(
-                    "p-2.5 rounded-lg transition-all duration-500 flex items-center justify-center",
-                    refreshUrgency === 'critical' ? "bg-[#E74856]/20 shadow-[0_0_15px_rgba(231,72,86,0.3)]" :
-                      refreshUrgency === 'warning' ? "bg-yellow-500/20 shadow-[0_0_15px_rgba(234,179,8,0.3)]" :
-                        "bg-[#00D4FF]/10 group-hover:bg-[#00D4FF]/20 shadow-[inset_0_0_10px_rgba(0,212,255,0.1)]"
-                  )}>
-                    <RefreshCw size={18} className={cn(
-                      "transition-all duration-700",
-                      isRefreshing ? "animate-spin" : "group-hover:rotate-180",
-                      refreshUrgency === 'critical' ? "text-[#E74856]" :
-                        refreshUrgency === 'warning' ? "text-yellow-400" :
-                          "text-[#00D4FF]"
-                    )} />
-                  </div>
-
-                  <div className="flex flex-col text-left">
-                    <span className={cn(
-                      "text-[9px] font-black uppercase tracking-widest leading-none mb-1.5",
-                      refreshUrgency === 'critical' ? "text-[#E74856]" :
-                        refreshUrgency === 'warning' ? "text-yellow-400" :
-                          "text-[#00D4FF]"
-                    )}>
-                      {refreshUrgency === 'critical' ? 'КРИТИЧНО' :
-                        refreshUrgency === 'warning' ? 'УВАГА' :
-                          'СИНХРОНІЗАЦІЯ'}
-                    </span>
-                    <span className="text-[13px] font-black text-white leading-none uppercase tracking-wider">
-                      {isRefreshing ? 'ОНОВЛЕННЯ...' : refreshUrgency === 'critical' ? 'ТЕРМІНОВО ОНОВИТИ!' : 'Оновити залишки'}
-                    </span>
-                  </div>
-
-                  {/* Urgency status dot */}
-                  <div className={cn(
-                    "absolute top-3 right-3 w-1.5 h-1.5 rounded-full transition-all duration-500",
-                    isRefreshing ? "bg-white shadow-[0_0_12px_white] animate-pulse" :
-                      refreshUrgency === 'critical' ? "bg-[#E74856] shadow-[0_0_10px_#E74856]" :
-                        refreshUrgency === 'warning' ? "bg-yellow-400 shadow-[0_0_8px_rgba(250,204,21,0.8)]" :
-                          "bg-[#00D4FF] shadow-[0_0_8px_rgba(0,212,255,0.6)]"
-                  )} />
-                </button>
-
-                {/* 👥 PERSONNEL ACCESS IN HEADER */}
-                <button
-                  onClick={() => {
-                    setSelectedStore('Персонал');
-                    localStorage.setItem('activeView', 'Персонал');
-                  }}
-                  className={cn(
-                    "group relative flex items-center gap-4 px-5 py-3 rounded-xl transition-all duration-500 hover:scale-[1.03] overflow-hidden border active:scale-95",
-                    selectedStore === 'Персонал'
-                      ? "border-[#00D4FF]/40 shadow-[0_0_30px_rgba(0,212,255,0.25)] bg-[rgba(0,212,255,0.12)]"
-                      : "border-white/10 bg-white/5 hover:bg-white/10 hover:border-white/20"
-                  )}
-                  style={{ backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)' }}
-                >
-                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:animate-shimmer pointer-events-none" />
-
-                  <div className={cn(
-                    "p-2.5 rounded-lg transition-all duration-500 flex items-center justify-center",
-                    selectedStore === 'Персонал' ? "bg-[#00D4FF]/20 shadow-[0_0_15px_rgba(0,212,255,0.3)]" : "bg-white/5 group-hover:bg-white/10 shadow-[inset_0_0_10px_rgba(255,255,255,0.05)]"
-                  )}>
-                    <Users size={18} className={cn(
-                      "transition-all duration-500",
-                      selectedStore === 'Персонал' ? "text-[#00D4FF] scale-110" : "text-white/40 group-hover:text-white/80"
-                    )} />
-                  </div>
-
-                  <div className="flex flex-col text-left">
-                    <span className={cn(
-                      "text-[10px] font-black uppercase tracking-[0.25em] leading-none mb-1.5",
-                      selectedStore === 'Персонал' ? "text-[#00D4FF] text-glow" : "text-white/40 group-hover:text-white/60"
-                    )}>УПРАВЛІННЯ</span>
-                    <span className={cn(
-                      "text-[14px] font-black leading-none uppercase tracking-tight transition-colors",
-                      selectedStore === 'Персонал' ? "text-white" : "text-white/80 group-hover:text-white"
-                    )}>Персонал</span>
-                  </div>
-
-                  {selectedStore === 'Персонал' && (
-                    <div className="absolute top-3 right-3 w-1.5 h-1.5 rounded-full bg-[#00D4FF] shadow-[0_0_10px_#00D4FF]" />
-                  )}
-                </button>
-
-                <button
-                  onClick={() => setShowBreakdownModal(true)}
-                  className="transition-transform hover:scale-[1.03] active:scale-95"
-                >
-                  <SmallKPI label="Загалом кг" value={displayTotalKg} icon={Activity} color={UI_TOKENS.colors.priority.normal} />
-                </button>
-                <SmallKPI label="Критичні SKU" value={displayCriticalSKU} icon={AlertTriangle} color={UI_TOKENS.colors.priority.critical} />
-
-                <CapacityProgress current={displayTotalKg} total={currentCapacity || 0} />
-              </div>
-
-              <div className="flex gap-4 items-center pl-4 border-l border-white/10 ml-auto">
-                <p className="text-[10px] text-white/40 uppercase tracking-widest font-bold">
-                  Останнє оновлення: {lastManualRefresh ? new Date(lastManualRefresh).toLocaleTimeString('uk-UA') : '---'}
-                </p>
-              </div>
+          <div className="text-right hidden md:block">
+            <div className="text-lg font-mono font-bold text-[#00D4FF] drop-shadow-[0_0_8px_rgba(0,212,255,0.5)]">
+              {time?.toLocaleTimeString('uk-UA')}
+            </div>
+            <div className="text-[10px] uppercase tracking-widest text-white/40">
+              {time?.toLocaleDateString('uk-UA', { weekday: 'long', day: 'numeric', month: 'long' })}
             </div>
           </div>
         </header>
 
-        {/* 2. MAIN CONTENT (Flexible) */}
-        <main className="flex-1 min-h-0 p-4 lg:p-6 pt-0 lg:pt-0">
-          <div className="grid grid-cols-12 gap-6 h-full">
-            {/* Main Matrix (Takes most space) */}
-            <div
-              className="col-span-12 lg:col-span-9 h-full flex flex-col overflow-hidden rounded-2xl p-1"
-              style={{
-                /* style skipped */
-              }}
-            >
-              <ErrorBoundary>
-                {selectedStore === 'Персонал' ? (
-                  <PersonnelView />
-                ) : (
-                  <BIPowerMatrix
-                    deficitQueue={deficitQueue}
-                    allProductsQueue={allProductsQueue}
-                    refreshUrgency={refreshUrgency}
-                    onMetricsUpdate={setDynamicMetrics}
-                    onManualRefresh={handleRefresh}
-                    planningDays={planningDays}
-                    onPlanningDaysChange={setPlanningDays}
-                  />)}
-              </ErrorBoundary>
-            </div>
+        {/* 🚀 MAIN CONTENT AREA */}
+        <main className="flex-1 flex flex-col items-center justify-center px-4 lg:px-8 py-2">
 
-            {/* Insights (Side panel if there's room) */}
-            <div className="hidden lg:flex lg:col-span-3 h-full flex-col overflow-hidden">
-              <div
-                className="rounded-2xl p-4 flex flex-col h-full"
-                style={{
-                  background: 'rgba(20, 27, 45, 0.8)',
-                  backdropFilter: 'blur(20px)',
-                  WebkitBackdropFilter: 'blur(20px)',
-                  border: '1px solid rgba(0, 212, 255, 0.15)',
-                  boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 0 30px rgba(0, 212, 255, 0.08)',
-                }}
-              >
-                <h3 className="text-[11px] font-bold text-[#00D4FF] uppercase tracking-widest mb-4">Оперативна Аналітика</h3>
-                <div className="flex-1 overflow-y-auto custom-scrollbar">
-                  <ErrorBoundary>
-                    <BIInsights queue={deficitQueue} />
-                  </ErrorBoundary>
-                </div>
-              </div>
-            </div>
+          <div className="w-full max-w-[1400px] grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 lg:gap-4">
+
+            {/* 🟦 CARD 1: GRAVITON */}
+            <WorkshopCard
+              href="/graviton"
+              title="ЦЕХ Гравітон"
+              subtitle="Виробництво заморозки"
+              icon={BarChart2}
+              color="#00D4FF"
+              isHovered={hoveredCard === 'graviton'}
+              onMouseEnter={() => setHoveredCard('graviton')}
+              onMouseLeave={() => setHoveredCard(null)}
+              stats={[
+                { label: 'Всього до виробництва', value: gravitonData ? `${Math.round(gravitonData.shopLoad)} кг` : '— кг' },
+                {
+                  label: 'Критично',
+                  value: gravitonData ? `${gravitonData.criticalSKU} SKU` : '— 🔥',
+                  valueColor: (gravitonData?.criticalSKU > 0) ? '#FF4D4D' : undefined
+                }
+              ]}
+              actionLabel="Управління замовленням"
+            />
+
+            {/* 🟧 CARD 2: PIZZA */}
+            <WorkshopCard
+              href="/pizza"
+              title="ЦЕХ Піца"
+              subtitle="Випічка та пакування"
+              icon={ChefHat}
+              color="#FFB800"
+              isHovered={hoveredCard === 'pizza'}
+              onMouseEnter={() => setHoveredCard('pizza')}
+              onMouseLeave={() => setHoveredCard(null)}
+              stats={[
+                {
+                  label: 'Факт залишок',
+                  value: pizzaData ? `${pizzaData.kpi.currentStock} шт.` : '— шт.',
+                  valueColor: (Number(pizzaData?.kpi.fillLevel) < 50) ? '#FF4D4D' : undefined
+                },
+                { label: 'Норма', value: pizzaData ? `${pizzaData.kpi.totalTarget} шт.` : '— шт.' },
+                {
+                  label: 'Індекс заповненості',
+                  value: pizzaData ? `${pizzaData.kpi.fillLevel}%` : '— %',
+                  valueColor: Number(pizzaData?.kpi.fillLevel) < 50 ? '#FF4D4D' :
+                    Number(pizzaData?.kpi.fillLevel) < 80 ? '#FFA500' : undefined
+                }
+              ]}
+              actionLabel="Розподіл та логістика"
+            />
+
+            {/* 🟣 CARD 3: KRAFT BAKERY */}
+            <WorkshopCard
+              href="#"
+              title="Крафтова пекарня"
+              subtitle="Випічка хліба та булок"
+              icon={Zap}
+              color="#A855F7"
+              isHovered={hoveredCard === 'bakery'}
+              onMouseEnter={() => setHoveredCard('bakery')}
+              onMouseLeave={() => setHoveredCard(null)}
+              isLocked={true}
+              stats={[
+                { label: 'План на зміну', value: '— шт.' },
+                { label: 'Готовність', value: '— %' }
+              ]}
+              actionLabel="В розробці"
+            />
+
+            {/* 🟢 CARD 4: FLORIDA */}
+            <WorkshopCard
+              href="#"
+              title="ЦЕХ Флорида"
+              subtitle="Кондитерські вироби"
+              icon={Activity}
+              color="#10B981"
+              isHovered={hoveredCard === 'florida'}
+              onMouseEnter={() => setHoveredCard('florida')}
+              onMouseLeave={() => setHoveredCard(null)}
+              isLocked={true}
+              stats={[
+                { label: 'Замовлення', value: '—' },
+                { label: 'Статус', value: 'Очікуємо' }
+              ]}
+              actionLabel="В розробці"
+            />
+
+            {/* 🟡 CARD 5: SADOVA */}
+            <WorkshopCard
+              href="#"
+              title="ЦЕХ Садова"
+              subtitle="Випічка та кулінарія"
+              icon={Factory}
+              color="#F59E0B"
+              isHovered={hoveredCard === 'sadova'}
+              onMouseEnter={() => setHoveredCard('sadova')}
+              onMouseLeave={() => setHoveredCard(null)}
+              isLocked={true}
+              stats={[
+                { label: 'План', value: '—' },
+                { label: 'Статус', value: 'Очікуємо' }
+              ]}
+              actionLabel="В розробці"
+            />
+
+            {/* 🟣 CARD 6: ENTUZIASTIV */}
+            <WorkshopCard
+              href="#"
+              title="ЦЕХ Ентузіастів"
+              subtitle="Виробництво"
+              icon={Store}
+              color="#EC4899"
+              isHovered={hoveredCard === 'entuziastiv'}
+              onMouseEnter={() => setHoveredCard('entuziastiv')}
+              onMouseLeave={() => setHoveredCard(null)}
+              isLocked={true}
+              stats={[
+                { label: 'План', value: '—' },
+                { label: 'Статус', value: 'Очікуємо' }
+              ]}
+              actionLabel="В розробці"
+            />
+
+            {/* 🔵 CARD 7: BULVAR */}
+            <WorkshopCard
+              href="#"
+              title="ЦЕХ Бульвар"
+              subtitle="Центральна кухня"
+              icon={ShoppingBag}
+              color="#6366F1"
+              isHovered={hoveredCard === 'bulvar'}
+              onMouseEnter={() => setHoveredCard('bulvar')}
+              onMouseLeave={() => setHoveredCard(null)}
+              isLocked={true}
+              stats={[
+                { label: 'План', value: '—' },
+                { label: 'Статус', value: 'Очікуємо' }
+              ]}
+              actionLabel="В розробці"
+            />
+
+            {/* 🍬 CARD 8: CONFECTIONERY */}
+            <WorkshopCard
+              href="#"
+              title="ЦЕХ Кондитерка"
+              subtitle="Солодощі та десерти"
+              icon={Zap}
+              color="#8B5CF6"
+              isHovered={hoveredCard === 'confectionery'}
+              onMouseEnter={() => setHoveredCard('confectionery')}
+              onMouseLeave={() => setHoveredCard(null)}
+              isLocked={true}
+              stats={[
+                { label: 'План', value: '—' },
+                { label: 'Статус', value: 'Очікуємо' }
+              ]}
+              actionLabel="В розробці"
+            />
+
+            {/* 🏛️ CARD 9: HEROIV MAIDANU */}
+            <WorkshopCard
+              href="#"
+              title="ЦЕХ Героїв Майдану"
+              subtitle="Виробництво"
+              icon={Factory}
+              color="#14B8A6"
+              isHovered={hoveredCard === 'heroiv'}
+              onMouseEnter={() => setHoveredCard('heroiv')}
+              onMouseLeave={() => setHoveredCard(null)}
+              isLocked={true}
+              stats={[
+                { label: 'План', value: '—' },
+                { label: 'Статус', value: 'Очікуємо' }
+              ]}
+              actionLabel="В розробці"
+            />
+
           </div>
+
         </main>
 
-        {/* Breakdown Modal */}
-        {
-          showBreakdownModal && (
-            <div
-              className="fixed inset-0 z-[100] flex items-center justify-center p-4"
-              style={{
-                background: 'rgba(0, 0, 0, 0.7)',
-                backdropFilter: 'blur(8px)',
-                WebkitBackdropFilter: 'blur(8px)'
-              }}
-              onClick={() => setShowBreakdownModal(false)}
-            >
-              <div
-                className="relative w-full max-w-[500px] max-h-[90vh] flex flex-col rounded-2xl p-6 overflow-y-auto custom-scrollbar"
-                style={{
-                  background: 'rgba(26, 31, 58, 0.95)',
-                  backdropFilter: 'blur(20px)',
-                  WebkitBackdropFilter: 'blur(20px)',
-                  border: '1px solid rgba(255, 255, 255, 0.1)',
-                  boxShadow: '0 20px 60px rgba(0, 0, 0, 0.5)'
-                }}
-                onClick={(e) => e.stopPropagation()}
-              >
-                <h2 className="text-[18px] font-bold text-white mb-6">
-                  📊 Розбивка по пріоритетам
-                </h2>
-
-                <div className="mb-4 p-4 rounded-xl" style={{
-                  background: 'rgba(231, 72, 86, 0.1)',
-                  border: '1px solid rgba(231, 72, 86, 0.3)'
-                }}>
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-[14px] font-semibold text-[#E74856]">
-                      🔴 КРИТИЧНО
-                    </span>
-                    <span className="text-[16px] font-bold text-[#E74856]">
-                      {Math.round(dynamicMetrics ? dynamicMetrics.criticalWeight : metrics.criticalWeight)} кг
-                    </span>
-                  </div>
-                  <div className="text-[11px] text-white/60">
-                    товару немає — {dynamicMetrics ? dynamicMetrics.criticalSKU : metrics.criticalSKU} SKU
-                  </div>
-                </div>
-
-                <div className="mb-4 p-4 rounded-xl" style={{
-                  background: 'rgba(255, 192, 0, 0.1)',
-                  border: '1px solid rgba(255, 192, 0, 0.3)'
-                }}>
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-[14px] font-semibold text-[#FFC000]">
-                      🟠 ВИСОКИЙ
-                    </span>
-                    <span className="text-[16px] font-bold text-[#FFC000]">
-                      {Math.round(dynamicMetrics ? 0 : metrics.highWeight)} кг
-                    </span>
-                  </div>
-                  <div className="text-[11px] text-white/60">
-                    майже закінчилось — {dynamicMetrics ? 0 : metrics.highSKU} SKU
-                  </div>
-                </div>
-
-                <button
-                  onClick={loadReserveItems}
-                  className="w-full text-left mb-6 p-4 rounded-xl transition-all hover:scale-[1.02] active:scale-[0.98]"
-                  style={{
-                    background: 'rgba(0, 188, 242, 0.1)',
-                    border: '1px solid rgba(0, 188, 242, 0.3)'
-                  }}
-                >
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-[14px] font-semibold text-[#00BCF2]">
-                      🔵 РЕЗЕРВ
-                    </span>
-                    <span className="text-[16px] font-bold text-[#00BCF2]">
-                      {Math.round(dynamicMetrics ? dynamicMetrics.reserveWeight : metrics.reserveWeight)} кг
-                    </span>
-                  </div>
-                  <div className="text-[11px] text-white/60">
-                    товару нижче мінімального — {dynamicMetrics ? dynamicMetrics.reserveSKU : metrics.reserveSKU} SKU
-                  </div>
-                </button>
-
-                <div className="pt-4 border-t border-white/10">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[14px] font-bold text-white">
-                      ВСЬОГО:
-                    </span>
-                    <span className="text-[20px] font-bold text-[#52E8FF]">
-                      {Math.round(dynamicMetrics ? dynamicMetrics.totalKg : metrics.shopLoad)} кг
-                    </span>
-                  </div>
-                  <div className="text-[11px] text-white/50 text-right mt-1">
-                    {dynamicMetrics ? (dynamicMetrics.criticalSKU + dynamicMetrics.reserveSKU) : metrics.totalSKU} SKU
-                  </div>
-                </div>
-
-                <button
-                  onClick={() => setShowBreakdownModal(false)}
-                  className="mt-6 w-full px-6 py-3 rounded-xl font-semibold bg-white/5 border border-white/20 text-white hover:bg-white/10 transition-all"
-                >
-                  Закрити
-                </button>
-              </div>
-            </div>
-          )
-        }
-
-        {/* 🔵 RESERVE DETAIL MODAL (Step 78) */}
-        {
-          showReserveModal && (
-            <div
-              className="fixed inset-0 z-[120] flex items-center justify-center p-4"
-              style={{
-                background: 'rgba(0, 0, 0, 0.7)',
-                backdropFilter: 'blur(8px)',
-                WebkitBackdropFilter: 'blur(8px)'
-              }}
-              onClick={() => setShowReserveModal(false)}
-            >
-              <div
-                className="relative w-full max-w-[800px] max-h-[80vh] flex flex-col rounded-2xl p-6 overflow-hidden"
-                style={{
-                  background: 'rgba(26, 31, 58, 0.95)',
-                  backdropFilter: 'blur(20px)',
-                  WebkitBackdropFilter: 'blur(20px)',
-                  border: '1px solid rgba(255, 255, 255, 0.1)',
-                  boxShadow: '0 20px 60px rgba(0, 0, 0, 0.5)'
-                }}
-                onClick={(e) => e.stopPropagation()}
-              >
-                {/* Заголовок */}
-                <div className="flex justify-between items-center mb-4">
-                  <div>
-                    <h2 className="text-[18px] font-bold text-white">
-                      🔵 РЕЗЕРВ — товари нижче мінімального
-                    </h2>
-                    <div className="text-[12px] text-white/60 mt-1">
-                      {reserveItems.length} SKU — загалом {Math.round(metrics.reserveWeight)} кг
-                    </div>
-                  </div>
-                  <button
-                    onClick={() => setShowReserveModal(false)}
-                    className="p-2 hover:bg-white/5 rounded-lg text-white/40 hover:text-white"
-                  >
-                    <Activity size={20} className="rotate-45" /> {/* Close "X" placeholder if needed, using Activity rotated for now or just text */}
-                  </button>
-                </div>
-
-                {/* Таблица товаров */}
-                <div className="flex-1 overflow-y-auto custom-scrollbar mb-6 pr-2">
-                  <table className="w-full text-[11px] border-collapse">
-                    <thead className="sticky top-0 bg-[rgba(26,31,58,0.95)] z-10">
-                      <tr className="border-b border-white/10 text-left">
-                        <th className="py-3 px-2 text-white/60 font-medium">Категорія</th>
-                        <th className="py-3 px-2 text-white/60 font-medium">Товар</th>
-                        <th className="py-3 px-2 text-white/60 font-medium">Магазин</th>
-                        <th className="py-3 px-2 text-white/60 font-medium text-right">Факт</th>
-                        <th className="py-3 px-2 text-white/60 font-medium text-right">Мін</th>
-                        <th className="py-3 px-2 text-white/60 font-medium text-right">Треба</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-white/5">
-                      {reserveItems.map((item: any, idx: number) => (
-                        <tr key={idx} className="hover:bg-white/5 transition-colors">
-                          <td className="py-3 px-2 text-white/70">{item.category_name}</td>
-                          <td className="py-3 px-2 text-white font-medium">{item.назва_продукту}</td>
-                          <td className="py-3 px-2 text-white/50 text-[10px]">
-                            {item.назва_магазину?.replace('Магазин "', '').replace('"', '') || '—'}
-                          </td>
-                          <td className="py-3 px-2 text-right text-[#52E8FF] font-mono tabular-nums">
-                            {parseFloat(item.current_stock || 0).toFixed(1)}
-                          </td>
-                          <td className="py-3 px-2 text-right text-[#FFB84D] font-mono tabular-nums">
-                            {parseFloat(item.min_stock || 0).toFixed(1)}
-                          </td>
-                          <td className="py-3 px-2 text-right text-[#00BCF2] font-black tabular-nums text-[13px]">
-                            {(() => {
-                              const avg = parseFloat(item.avg_sales_day || 0);
-                              const stock = parseFloat(item.current_stock || 0);
-                              const val = Math.ceil((avg * planningDays) + (avg * 4) - stock);
-                              return val > 0 ? val : 0;
-                            })()}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-
-                {/* Кнопка закрыть */}
-                <button
-                  onClick={() => setShowReserveModal(false)}
-                  className="w-full px-6 py-3 rounded-xl font-bold bg-white/5 border border-white/20 text-white hover:bg-white/10 transition-all active:scale-[0.98]"
-                >
-                  Закрити
-                </button>
-              </div>
-            </div>
-          )
-        }
-      </div >
-    </DashboardLayout >
+        <footer className="py-4 text-center text-white/20 text-[10px] uppercase tracking-widest font-mono pointer-events-none">
+          System v2.0 • Antigravity Module
+        </footer>
+      </div>
+    </div>
   );
 }
 
-const CapacityProgress = ({ current, total }: { current: number; total: number }) => {
-  const percentage = total > 0 ? Math.round((current / total) * 100) : 0;
-  const isOverload = percentage > 100;
-
-  // SVG Circle Math
-  const radius = 18;
-  const circumference = 2 * Math.PI * radius;
-  const offset = circumference - (Math.min(100, percentage) / 100) * circumference;
-
-  // Status Color
-  const getStatusColor = () => {
-    if (percentage > 100) return '#E74856'; // Red
-    if (percentage > 85) return '#FFC000';  // Yellow/Orange
-    return '#00D4FF';                       // Cyan/Blue
-  };
-
-  const color = getStatusColor();
-
+// ✨ COMPONENT: Workshop Card
+function WorkshopCard({
+  href,
+  title,
+  subtitle,
+  icon: Icon,
+  color,
+  isHovered,
+  onMouseEnter,
+  onMouseLeave,
+  stats,
+  actionLabel,
+  isLocked = false
+}: {
+  href: string;
+  title: string;
+  subtitle: string;
+  icon: any;
+  color: string;
+  isHovered: boolean;
+  onMouseEnter: () => void;
+  onMouseLeave: () => void;
+  stats: { label: string; value: string; valueColor?: string }[];
+  actionLabel: string;
+  isLocked?: boolean;
+}) {
   return (
-    <div
-      className="group relative flex items-center gap-4 px-5 py-3 rounded-xl transition-all duration-300 hover:scale-105 hover:shadow-[0_0_20px_rgba(0,0,0,0.3)] overflow-hidden"
+    <Link
+      href={isLocked ? '#' : href}
+      className={cn(
+        "group relative h-[210px] lg:h-[240px] flex flex-col rounded-3xl overflow-hidden transition-all duration-500 hover:scale-[1.02] active:scale-[0.98]",
+        isLocked && "cursor-not-allowed opacity-80"
+      )}
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
       style={{
-        background: 'rgba(26, 31, 58, 0.6)',
-        backdropFilter: 'blur(10px)',
-        WebkitBackdropFilter: 'blur(10px)',
-        border: '1px solid rgba(255, 255, 255, 0.1)',
-        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)'
+        background: 'rgba(255, 255, 255, 0.02)',
+        border: `1px solid ${isHovered ? color : 'rgba(255, 255, 255, 0.08)'}`,
+        boxShadow: isHovered
+          ? `0 0 60px -20px ${color}40, inset 0 0 20px -5px ${color}20`
+          : '0 20px 40px -10px rgba(0,0,0,0.5)',
       }}
     >
-      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:animate-shimmer pointer-events-none" />
+      {/* 🔦 Dynamic Glow */}
+      <div
+        className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700"
+        style={{
+          background: `radial-gradient(800px circle at 50% 0%, ${color}15, transparent 60%)`
+        }}
+      />
 
-      {/* Circular Progress SVG */}
-      <div className="relative w-12 h-12 flex items-center justify-center">
-        <svg className="w-full h-full transform -rotate-90">
-          {/* Background Track */}
-          <circle
-            cx="24"
-            cy="24"
-            r={radius}
-            stroke="rgba(255,255,255,0.05)"
-            strokeWidth="3.5"
-            fill="transparent"
-          />
-          {/* Progress Fill */}
-          <circle
-            cx="24"
-            cy="24"
-            r={radius}
-            stroke={color}
-            strokeWidth="3.5"
-            fill="transparent"
-            strokeDasharray={circumference}
-            strokeDashoffset={offset}
-            strokeLinecap="round"
-            className="transition-all duration-1000 ease-out"
-            style={{
-              filter: `drop-shadow(0 0 4px ${color}80)`
-            }}
-          />
-        </svg>
-        <div className="absolute inset-0 flex items-center justify-center">
-          <span className="text-[10px] font-black" style={{ color: color }}>
-            {percentage}%
-          </span>
+      {/* 🖼️ Card Content */}
+      <div className="relative z-10 flex-1 p-6 lg:p-8 flex flex-col justify-between">
+
+        {/* Header */}
+        <div className="flex justify-between items-start">
+          <div>
+            <div
+              className="w-12 h-12 rounded-xl flex items-center justify-center mb-4 transition-transform duration-500 group-hover:scale-110 group-hover:rotate-3"
+              style={{
+                background: `${color}15`,
+                boxShadow: `0 0 30px ${color}10`,
+                border: `1px solid ${color}30`
+              }}
+            >
+              <Icon size={24} style={{ color: color }} />
+            </div>
+
+            <h2 className="text-2xl lg:text-3xl font-bold text-white mb-1 leading-tight tracking-tight">
+              {title}
+            </h2>
+            <p className="text-white/40 text-[10px] lg:text-xs font-medium uppercase tracking-widest">
+              {subtitle}
+            </p>
+          </div>
+
+          {isLocked && (
+            <div className="bg-white/5 border border-white/10 px-3 py-1 rounded-full backdrop-blur-md">
+              <span className="text-[10px] font-bold text-white/40 uppercase tracking-tighter">🔒 Offline</span>
+            </div>
+          )}
         </div>
+
+        {/* Stats Grid */}
+        <div className={cn(
+          "grid gap-3 my-4",
+          stats.length === 3 ? "grid-cols-3" : "grid-cols-2"
+        )}>
+          {stats.map((stat, i) => (
+            <div key={i} className="bg-white/5 rounded-xl p-3 border border-white/5 group-hover:bg-white/10 group-hover:border-white/10 transition-colors">
+              <div className="text-[7px] lg:text-[8px] text-white/40 uppercase tracking-widest font-bold mb-0.5 truncate">
+                {stat.label}
+              </div>
+              <div
+                className="text-sm lg:text-lg font-mono font-bold truncate transition-colors duration-300"
+                style={{ color: stat.valueColor || '#FFF' }}
+              >
+                {stat.value}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Action Button */}
+        <div
+          className="flex items-center justify-between py-3 px-5 rounded-xl transition-all duration-300 transform group-hover:translate-x-2"
+          style={{
+            background: isHovered && !isLocked ? color : 'rgba(255, 255, 255, 0.05)',
+            color: isHovered && !isLocked ? '#000' : '#FFF'
+          }}
+        >
+          <span className="font-bold uppercase tracking-widest text-[10px]">
+            {actionLabel}
+          </span>
+          <ArrowRight size={16} className={cn("transition-transform duration-300", isHovered && "translate-x-1")} />
+        </div>
+
       </div>
 
-      <div className="flex flex-col">
-        <span className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest leading-none mb-1.5 line-clamp-1">
-          {isOverload ? 'ПЕРЕВАНТАЖЕННЯ' : 'ЗАВАНТАЖЕННЯ'}
-        </span>
-        <div className="flex items-baseline gap-1.5">
-          <span className="text-[16px] font-black text-white leading-none tracking-tight">
-            {Math.round(current)}
-          </span>
-          <span className="text-[10px] font-bold text-white/40 uppercase">
-            / {total} кг
-          </span>
-        </div>
-      </div>
-
-      {/* Pulsing indicator if overloaded */}
-      {isOverload && (
-        <div className="absolute top-2 right-2 flex h-2 w-2">
-          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-          <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
+      {/* 🏗️ IN DEVELOPMENT OVERLAY */}
+      {isLocked && (
+        <div className="absolute inset-0 z-20 flex items-center justify-center bg-[#0B0E17]/60 backdrop-blur-[2px] pointer-events-none group-hover:backdrop-blur-none transition-all duration-500">
+          <div className="px-6 py-3 border-y-2 border-white/10 bg-white/5 flex flex-col items-center gap-1 -rotate-6 shadow-[0_0_50px_rgba(255,255,255,0.05)]">
+            <span className="text-3xl lg:text-4xl font-black text-white/90 tracking-tighter uppercase text-center drop-shadow-2xl">
+              В РОЗРОБЦІ
+            </span>
+            <div className="flex items-center gap-2">
+              <Zap size={14} className="text-[#00D4FF] animate-pulse" />
+              <span className="text-[10px] font-bold text-[#00D4FF] uppercase tracking-[0.3em]">System Level 2</span>
+            </div>
+          </div>
         </div>
       )}
-    </div>
+    </Link>
   );
-};
-
-const SmallKPI = ({ label, value, icon: Icon, color }: { label: string; value: string | number; icon: React.ElementType; color: string }) => (
-  <div
-    className="group relative flex items-center gap-3 px-5 py-3 rounded-xl transition-all duration-300 hover:scale-105 hover:shadow-[0_0_20px_rgba(0,0,0,0.3)] overflow-hidden"
-    style={{
-      background: 'rgba(26, 31, 58, 0.6)',
-      backdropFilter: 'blur(10px)',
-      WebkitBackdropFilter: 'blur(10px)',
-      border: '1px solid rgba(255, 255, 255, 0.1)',
-      boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)'
-    }}
-  >
-    {/* Shimmer on hover */}
-    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:animate-shimmer pointer-events-none" />
-
-    <div className="p-2.5 rounded-lg transition-colors group-hover:bg-white/5" style={{ backgroundColor: `${color}10` }}>
-      <Icon size={16} style={{ color: color }} className="transition-transform group-hover:scale-110" />
-    </div>
-    <div className="flex flex-col">
-      <span className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest leading-none mb-1.5">{label}</span>
-      <span className="text-[16px] font-black text-[var(--foreground)] leading-none tabular-nums tracking-tight">{value}</span>
-    </div>
-  </div>
-);
+}

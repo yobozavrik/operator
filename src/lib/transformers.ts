@@ -114,3 +114,106 @@ export function transformDeficitData(data: SupabaseDeficitRow[]): ProductionTask
 // Alias for backward compatibility
 export const transformSupabaseData = transformDeficitData;
 
+
+/**
+ * Transformer for Pizza View (pizza1.v_pizza_orders)
+ * Maps flat structure to ProductionTask
+ */
+export function transformPizzaData(data: any[]): ProductionTask[] {
+    if (!data || !Array.isArray(data)) return [];
+
+    const productMap = new Map<string, ProductionTask>();
+    let autoIdCounter = 1000; // Fallback counter for missing IDs
+
+    // DEBUG: Log first row to see structure
+    if (data.length > 0) {
+        console.log('[Transform Pizza] First Row:', data[0]);
+        console.log('[Transform Pizza] Keys:', Object.keys(data[0]));
+    }
+
+    // Helper for safe number parsing (handles commas, nulls, undefined)
+    const safeNumber = (val: any): number => {
+        if (val === null || val === undefined) return 0;
+        if (typeof val === 'number') return val;
+        if (typeof val === 'string') {
+            const clean = val.replace(',', '.').replace(/[^0-9.-]/g, '');
+            return Number(clean) || 0;
+        }
+        return 0;
+    };
+
+    data.forEach((row) => {
+        // Safe number parsing with comma support
+        // MAPPING BASED ON USER LOGS: stock_now, norm_3_days, need_net
+        const stock = safeNumber(row.current_stock || row.stock || row.stock_now || row.quantity);
+        const min = safeNumber(row.min_stock || row.min || row.norm_3_days || row.min_qty);
+        const netNeed = safeNumber(row.net_need || row.need || row.need_net || row.deficit);
+
+        // Calculate avg if missing (assuming norm is for 3 days as per column name 'norm_3_days')
+        let avg = safeNumber(row.avg_sales_day || row.avg_sales || row.avg);
+        if (avg === 0 && min > 0) {
+            avg = min / 3;
+        }
+
+        // Use product_id (or product_name if id missing) as unique key
+        const productKey = row.product_id
+            ? String(row.product_id)
+            : (row.product_name || row.pizza_name || row.назва_продукту);
+
+        if (!productKey) {
+            console.warn('[Transform Pizza] Skipper row - no product key:', row);
+            return;
+        }
+
+        // Build Store Object
+        const storeObj = {
+            storeId: row.store_id || row.spot_id || row.code || 0,
+            storeName: row.store_name || row.shop_name || row.spot_name || row.назва_магазину || 'Магазин',
+            currentStock: stock,
+            minStock: min,
+            deficitKg: Math.max(0, netNeed),
+            recommendedKg: Math.max(0, netNeed),
+            avgSales: avg,
+            distributionPlan: 0,
+            surplusPriority: row.surplus_priority || row.priority
+        };
+
+        if (productMap.has(productKey)) {
+            // Aggregate to existing Product
+            const existing = productMap.get(productKey)!;
+            existing.totalStockKg += stock;
+            existing.dailyForecastKg += avg;
+            existing.minStockThresholdKg += min; // Sum up min stock thresholds
+            existing.stores.push(storeObj);
+
+            // Check trend or other aggregation logic if needed
+            if (stock === 0) existing.outOfStockStores += 1;
+
+        } else {
+            // Create new Product entry
+            const numericCode = row.product_id ? Number(row.product_id) : autoIdCounter++;
+
+            productMap.set(productKey, {
+                id: productKey,
+                productCode: numericCode,
+                name: row.product_name || row.назва_продукту || 'Unknown Product',
+                category: 'ПІЦА', // Force single category
+                totalStockKg: stock,
+                dailyForecastKg: avg,
+                minStockThresholdKg: min,
+                outOfStockStores: stock === 0 ? 1 : 0,
+                salesTrendKg: [avg], // Simple init
+                stores: [storeObj],
+                recommendedQtyKg: Math.max(0, netNeed),
+                priority: 'normal',
+                storeName: 'Multiple',
+                priorityReason: 'Pizza Distribution',
+                status: 'pending',
+                deficitPercent: 0
+            });
+        }
+
+    });
+
+    return Array.from(productMap.values());
+}

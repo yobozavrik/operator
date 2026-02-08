@@ -36,11 +36,6 @@ export async function GET(request: NextRequest) {
     const totalKg = Number(data?.total_kg) || 0;
     const criticalSKU = Number(data?.critical_sku_count) || 0;
     const highSKU = Number(data?.high_sku_count) || 0;
-    const reserveSKU = Number(data?.reserve_sku_count) || 0;
-    const criticalWeight = Number(data?.critical_kg) || 0;
-    const highWeight = Number(data?.high_kg) || 0;
-    const reserveWeight = Number(data?.reserve_kg) || 0;
-    const totalSKU = Number(data?.total_sku_count) || 0;
     const loadPercentage = totalKg
         ? Math.min(100, Math.round((totalKg / 662) * 100))
         : 0;

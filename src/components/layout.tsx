@@ -1,20 +1,21 @@
 'use client';
 
-import React, { useState } from 'react';
-import { LogOut } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { LogOut, Factory, Truck, Users, ClipboardList, LayoutDashboard, BarChart3 } from 'lucide-react';
+import { usePathname, useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { auditLog } from '@/lib/logger';
 
 import { useStore } from '@/context/StoreContext';
 
 const STORES_MENU = [
-    { label: 'Усі' },
-    { label: 'Магазин "Садгора"' },
-    { label: 'Магазин "Компас"' },
-    { label: 'Магазин "Руська"' },
-    { label: 'Магазин "Хотинська"' },
-    { label: 'Магазин "Білоруська"' },
-    { label: 'Магазин "Кварц"' },
+    { label: 'Усі', slug: 'all' },
+    { label: 'Магазин "Садгора"', slug: 'sadova' },
+    { label: 'Магазин "Компас"', slug: 'kompas' },
+    { label: 'Магазин "Руська"', slug: 'ruska' },
+    { label: 'Магазин "Хотинська"', slug: 'hotynska' },
+    { label: 'Магазин "Білоруська"', slug: 'biloruska' },
+    { label: 'Магазин "Кварц"', slug: 'kvarc' },
 ];
 
 const storeGradients = [
@@ -30,6 +31,17 @@ const storeGradients = [
 export const Sidebar = () => {
     const { selectedStore, setSelectedStore } = useStore();
     const [hoveredStore, setHoveredStore] = useState<number | null>(null);
+    const pathname = usePathname();
+    const router = useRouter();
+
+    const isPizzaMode = pathname?.startsWith('/pizza');
+
+    const PIZZA_MENU = [
+        { label: 'Дашборд', icon: LayoutDashboard, path: '/pizza' },
+        { label: 'Аналітика', icon: BarChart3, path: '/pizza/production' },
+        { label: 'Персонал', icon: Users, path: '/pizza/personnel' },
+        { label: 'Замовлення', icon: ClipboardList, path: '/pizza/order-form' }
+    ];
 
     return (
         <>
@@ -73,78 +85,142 @@ export const Sidebar = () => {
                 </div>
 
                 <div className="flex-1 px-4 space-y-2 overflow-y-auto custom-scrollbar z-10">
-                    <p className="px-2 text-[11px] font-semibold text-[#00D4FF] uppercase tracking-widest mb-4 mt-4">Магазини</p>
-                    {STORES_MENU.map((item, i) => {
-                        const isActive = selectedStore === item.label;
-                        const isHovered = hoveredStore === i;
+                    <p className="px-2 text-[11px] font-semibold text-[#00D4FF] uppercase tracking-widest mb-4 mt-4">
+                        {isPizzaMode ? 'Навігація' : 'Магазини'}
+                    </p>
 
-                        return (
-                            <button
-                                key={i}
-                                onClick={() => {
-                                    setSelectedStore(item.label);
-                                    auditLog('CHANGE_STORE', 'Sidebar', { store: item.label });
-                                }}
-                                onMouseEnter={() => setHoveredStore(i)}
-                                onMouseLeave={() => setHoveredStore(null)}
-                                className={cn(
-                                    "w-full px-4 py-3.5 text-center rounded-xl transition-all duration-300 relative overflow-hidden group",
-                                    isActive && "scale-[1.02]"
-                                )}
-                                style={{
-                                    background: isActive
-                                        ? 'rgba(0, 212, 255, 0.1)'
-                                        : 'rgba(20, 27, 45, 0.7)',
-                                    backdropFilter: 'blur(20px)',
-                                    WebkitBackdropFilter: 'blur(20px)',
-                                    border: isActive
-                                        ? '1px solid rgba(0, 212, 255, 0.5)'
-                                        : isHovered
-                                            ? '1px solid rgba(0, 212, 255, 0.3)'
-                                            : '1px solid rgba(255, 255, 255, 0.08)',
-                                    boxShadow: isActive
-                                        ? '0 0 30px rgba(0, 212, 255, 0.3), 0 8px 32px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1)'
-                                        : isHovered
-                                            ? '0 0 20px rgba(0, 212, 255, 0.15), 0 8px 24px rgba(0, 0, 0, 0.3)'
-                                            : '0 4px 16px rgba(0, 0, 0, 0.2)',
-                                }}
-                            >
-                                {/* Shimmer effect on hover */}
-                                <div
+                    {isPizzaMode ? (
+                        /* ---- PIZZA MENU ---- */
+                        PIZZA_MENU.map((item, i) => {
+                            const isActive = pathname === item.path;
+                            const Icon = item.icon;
+
+                            return (
+                                <button
+                                    key={i}
+                                    onClick={() => router.push(item.path)}
                                     className={cn(
-                                        "absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full transition-transform duration-700",
-                                        isHovered && "translate-x-full"
+                                        "w-full px-4 py-3.5 text-left rounded-xl transition-all duration-300 relative overflow-hidden group flex items-center gap-3",
+                                        isActive && "scale-[1.02]"
                                     )}
-                                />
+                                    style={{
+                                        background: isActive
+                                            ? 'rgba(0, 212, 255, 0.1)'
+                                            : 'rgba(20, 27, 45, 0.7)',
+                                        backdropFilter: 'blur(20px)',
+                                        WebkitBackdropFilter: 'blur(20px)',
+                                        border: isActive
+                                            ? '1px solid rgba(0, 212, 255, 0.5)'
+                                            : '1px solid rgba(255, 255, 255, 0.08)',
+                                        boxShadow: isActive
+                                            ? '0 0 30px rgba(0, 212, 255, 0.3), 0 8px 32px rgba(0, 0, 0, 0.4)'
+                                            : 'none',
+                                    }}
+                                >
+                                    {/* Active glow indicator */}
+                                    {isActive && (
+                                        <div
+                                            className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 rounded-r-full"
+                                            style={{
+                                                background: 'linear-gradient(180deg, #00D4FF 0%, #0088FF 100%)',
+                                                boxShadow: '0 0 12px rgba(0, 212, 255, 0.8)',
+                                            }}
+                                        />
+                                    )}
 
-                                {/* Active glow indicator */}
-                                {isActive && (
-                                    <div
-                                        className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 rounded-r-full"
-                                        style={{
-                                            background: 'linear-gradient(180deg, #00D4FF 0%, #0088FF 100%)',
-                                            boxShadow: '0 0 12px rgba(0, 212, 255, 0.8)',
-                                        }}
-                                    />
-                                )}
+                                    <div className={cn(
+                                        "w-8 h-8 rounded-lg flex items-center justify-center transition-colors",
+                                        isActive ? "bg-[#00D4FF]/20 text-[#00D4FF]" : "bg-white/5 text-white/40 group-hover:text-white"
+                                    )}>
+                                        <Icon size={18} />
+                                    </div>
 
-                                <div className="relative z-10">
-                                    <span
-                                        className={cn(
-                                            "text-[12px] font-semibold uppercase tracking-wide transition-all duration-300",
-                                            isActive
-                                                ? "text-[#00D4FF]"
-                                                : isHovered
-                                                    ? "text-white"
-                                                    : "text-gray-400"
-                                        )}
-                                    >
+                                    <span className={cn(
+                                        "text-[12px] font-bold uppercase tracking-wide",
+                                        isActive ? "text-white" : "text-white/60 group-hover:text-white"
+                                    )}>
                                         {item.label}
                                     </span>
-                                </div>
-                            </button>
-                        );
-                    })}
+                                </button>
+                            );
+                        })
+                    ) : (
+                        /* ---- STORE MENU ---- */
+                        <div className="flex flex-col gap-1">
+                            {STORES_MENU.map((item, i) => {
+                                const isActive = selectedStore === item.label;
+                                const isHovered = hoveredStore === i;
+
+                                return (
+                                    <button
+                                        key={i}
+                                        onClick={() => {
+                                            setSelectedStore(item.label);
+                                            auditLog('CHANGE_STORE', 'Sidebar', { store: item.label });
+                                            router.push(item.slug === 'all' ? '/graviton' : `/graviton/${item.slug}`);
+                                        }}
+                                        onMouseEnter={() => setHoveredStore(i)}
+                                        onMouseLeave={() => setHoveredStore(null)}
+                                        className={cn(
+                                            "w-full px-4 py-3.5 text-center rounded-xl transition-all duration-300 relative overflow-hidden group",
+                                            isActive && "scale-[1.02]"
+                                        )}
+                                        style={{
+                                            background: isActive
+                                                ? 'rgba(0, 212, 255, 0.1)'
+                                                : 'rgba(20, 27, 45, 0.7)',
+                                            backdropFilter: 'blur(20px)',
+                                            WebkitBackdropFilter: 'blur(20px)',
+                                            border: isActive
+                                                ? '1px solid rgba(0, 212, 255, 0.5)'
+                                                : isHovered
+                                                    ? '1px solid rgba(0, 212, 255, 0.3)'
+                                                    : '1px solid rgba(255, 255, 255, 0.08)',
+                                            boxShadow: isActive
+                                                ? '0 0 30px rgba(0, 212, 255, 0.3), 0 8px 32px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1)'
+                                                : isHovered
+                                                    ? '0 0 20px rgba(0, 212, 255, 0.15), 0 8px 24px rgba(0, 0, 0, 0.3)'
+                                                    : '0 4px 16px rgba(0, 0, 0, 0.2)',
+                                        }}
+                                    >
+                                        {/* Shimmer effect on hover */}
+                                        <div
+                                            className={cn(
+                                                "absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full transition-transform duration-700",
+                                                isHovered && "translate-x-full"
+                                            )}
+                                        />
+
+                                        {/* Active glow indicator */}
+                                        {isActive && (
+                                            <div
+                                                className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 rounded-r-full"
+                                                style={{
+                                                    background: 'linear-gradient(180deg, #00D4FF 0%, #0088FF 100%)',
+                                                    boxShadow: '0 0 12px rgba(0, 212, 255, 0.8)',
+                                                }}
+                                            />
+                                        )}
+
+                                        <div className="relative z-10">
+                                            <span
+                                                className={cn(
+                                                    "text-[12px] font-semibold uppercase tracking-wide transition-all duration-300",
+                                                    isActive
+                                                        ? "text-[#00D4FF]"
+                                                        : isHovered
+                                                            ? "text-white"
+                                                            : "text-gray-400"
+                                                )}
+                                            >
+                                                {item.label}
+                                            </span>
+                                        </div>
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    )}
                 </div>
 
 
@@ -189,14 +265,20 @@ export const Sidebar = () => {
 import { StoreProvider } from '@/context/StoreContext';
 
 // Particle component for background animation
+// Particle component for background animation
 const ParticleGrid = () => {
-    const particles = Array.from({ length: 30 }, (_, i) => ({
-        id: i,
-        left: `${Math.random() * 100}%`,
-        top: `${Math.random() * 100}%`,
-        delay: `${Math.random() * 4}s`,
-        duration: `${3 + Math.random() * 3}s`,
-    }));
+    const [particles, setParticles] = useState<Array<{ id: number; left: string; top: string; delay: string; duration: string }>>([]);
+
+    useEffect(() => {
+        const newParticles = Array.from({ length: 30 }, (_, i) => ({
+            id: i,
+            left: `${Math.random() * 100}%`,
+            top: `${Math.random() * 100}%`,
+            delay: `${Math.random() * 4}s`,
+            duration: `${3 + Math.random() * 3}s`,
+        }));
+        setParticles(newParticles);
+    }, []);
 
     return (
         <div className="particle-grid">
