@@ -7,8 +7,8 @@ export const SidebarBI = () => {
     return (
         <aside className="hidden lg:flex w-64 border-r border-[#3e3e42] bg-[#1e1e1e] h-screen sticky top-0 flex flex-col p-4 space-y-6">
             <div className="flex items-center gap-2 px-2 py-4 border-b border-[#3e3e42]">
-                <div className="w-6 h-6 bg-[#00bcf2] rounded-sm flex items-center justify-center font-bold text-[10px] text-white">G</div>
-                <span className="font-bold text-sm tracking-tight text-white uppercase">Graviton Engine</span>
+                <div className="w-6 h-6 bg-[#00bcf2] rounded-sm flex items-center justify-center font-bold text-[10px] text-white">Г</div>
+                <span className="font-bold text-xs tracking-tight text-white uppercase">Аналітична система Галя</span>
             </div>
 
             <div className="space-y-6">

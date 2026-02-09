@@ -14,7 +14,7 @@ export const generateDistributionExcel = async (data: GravitonResult[]) => {
     // --- HEADER ---
     worksheet.mergeCells('A1:B1'); // Merged A-B for 2 columns
     const titleCell = worksheet.getCell('A1');
-    titleCell.value = 'РОЗПОДІЛ ПРОДУКЦІЇ (GRAVITON)';
+    titleCell.value = 'РОЗПОДІЛ ПРОДУКЦІЇ (ГАЛЯ БАЛУВАНА)';
     titleCell.font = { bold: true, size: 16, color: { argb: 'FFFFFFFF' } };
     titleCell.fill = {
         type: 'pattern',
@@ -148,7 +148,7 @@ export const generateDistributionExcel = async (data: GravitonResult[]) => {
 
     const link = document.createElement('a');
     link.href = url;
-    const fileName = `Graviton_Distribution_${new Date().toISOString().split('T')[0]}.xlsx`;
+    const fileName = `Galya_Distribution_${new Date().toISOString().split('T')[0]}.xlsx`;
     link.download = fileName;
     link.click();
 

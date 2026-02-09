@@ -78,8 +78,8 @@ export const Sidebar = () => {
                             </svg>
                         </div>
                         <div>
-                            <h1 className="text-[16px] font-bold text-white tracking-wide uppercase">GRAVITON</h1>
-                            <p className="text-[10px] text-[#00D4FF] uppercase tracking-widest">Production Hub</p>
+                            <h1 className="text-[10px] font-bold text-[#00D4FF] tracking-wide uppercase">АНАЛІТИЧНА СИСТЕМА</h1>
+                            <p className="text-[16px] text-white font-black uppercase tracking-widest">ГАЛЯ</p>
                         </div>
                     </div>
                 </div>
@@ -243,20 +243,48 @@ export const Sidebar = () => {
 
             {/* Mobile Bottom Bar */}
             <div className="lg:hidden fixed bottom-0 left-0 right-0 h-16 bg-[var(--background)]/95 backdrop-blur-xl border-t border-[var(--border)] flex items-center justify-around px-2 z-50">
-                {STORES_MENU.slice(0, 5).map((item, i) => (
-                    <button
-                        key={i}
-                        onClick={() => setSelectedStore(item.label)}
-                        className={cn(
-                            "flex flex-col items-center gap-1 px-2 py-1 rounded-lg transition-all",
-                            selectedStore === item.label
-                                ? "text-[#00D4FF] bg-[#00D4FF]/10"
-                                : "text-[var(--text-muted)]"
-                        )}
-                    >
-                        <span className="text-[9px] font-bold uppercase tracking-tight text-center leading-tight">{item.label.replace('Магазин ', '')}</span>
-                    </button>
-                ))}
+                {isPizzaMode ? (
+                    // 1. PIZZA MODE: Show Pizza Menu Icons
+                    PIZZA_MENU.map((item, i) => {
+                        const Icon = item.icon;
+                        const isActive = pathname === item.path;
+                        return (
+                            <button
+                                key={i}
+                                onClick={() => router.push(item.path)}
+                                className={cn(
+                                    "flex flex-col items-center gap-1 px-2 py-1.5 rounded-lg transition-all",
+                                    isActive
+                                        ? "text-[#00D4FF] bg-[#00D4FF]/10 scale-105"
+                                        : "text-[var(--text-muted)] hover:text-white"
+                                )}
+                            >
+                                <Icon size={20} strokeWidth={isActive ? 2.5 : 2} />
+                                <span className="text-[9px] font-bold uppercase tracking-tight text-center leading-tight">
+                                    {item.label}
+                                </span>
+                            </button>
+                        );
+                    })
+                ) : (
+                    // 2. DEFAULT MODE: Show Stores (Fallback)
+                    STORES_MENU.slice(0, 5).map((item, i) => (
+                        <button
+                            key={i}
+                            onClick={() => setSelectedStore(item.label)}
+                            className={cn(
+                                "flex flex-col items-center gap-1 px-2 py-1 rounded-lg transition-all",
+                                selectedStore === item.label
+                                    ? "text-[#00D4FF] bg-[#00D4FF]/10"
+                                    : "text-[var(--text-muted)]"
+                            )}
+                        >
+                            <span className="text-[9px] font-bold uppercase tracking-tight text-center leading-tight">
+                                {item.label.replace('Магазин ', '')}
+                            </span>
+                        </button>
+                    ))
+                )}
             </div>
         </>
     );

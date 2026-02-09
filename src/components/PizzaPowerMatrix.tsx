@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import useSWR from 'swr';
-import { ChefHat, AlertTriangle, RefreshCw, RotateCcw, ChevronDown, ChevronRight, Activity, Percent, CheckCircle, Calculator, Truck, TrendingUp } from 'lucide-react';
+import { ChefHat, AlertTriangle, RefreshCw, RotateCcw, ChevronDown, ChevronRight, Activity, Percent, CheckCircle, Calculator, Truck, TrendingUp, Package, Store } from 'lucide-react';
 import { ProductionTask } from '@/types/bi';
 import { cn } from '@/lib/utils';
 import { BackToHome } from '@/components/BackToHome';
@@ -407,23 +407,25 @@ export const PizzaPowerMatrix = ({ data, onRefresh, initialViewMode = 'products'
                 <button
                     onClick={() => setViewMode('products')}
                     className={cn(
-                        "px-6 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-all border",
+                        "px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all border flex items-center gap-2",
                         viewMode === 'products'
-                            ? "bg-[#FFB800] border-[#FFB800] text-black shadow-[0_0_15px_rgba(255,184,0,0.3)] scale-105"
-                            : "bg-white/5 border-white/10 text-white/40 hover:text-white hover:bg-white/10 hover:border-white/20"
+                            ? "bg-[#FFB800] border-[#FFB800] text-black shadow-[0_0_20px_rgba(255,184,0,0.4)] scale-105"
+                            : "bg-white/5 border-white/5 text-white/40 hover:text-white hover:bg-white/10 hover:border-white/20"
                     )}
                 >
+                    <Package size={16} strokeWidth={3} className={viewMode === 'products' ? "text-black" : "text-white/40"} />
                     За продуктами
                 </button>
                 <button
                     onClick={() => setViewMode('stores')}
                     className={cn(
-                        "px-6 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-all border",
+                        "px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all border flex items-center gap-2",
                         viewMode === 'stores'
-                            ? "bg-[#FFB800] border-[#FFB800] text-black shadow-[0_0_15px_rgba(255,184,0,0.3)] scale-105"
-                            : "bg-white/5 border-white/10 text-white/40 hover:text-white hover:bg-white/10 hover:border-white/20"
+                            ? "bg-[#00D4FF] border-[#00D4FF] text-black shadow-[0_0_20px_rgba(0,212,255,0.4)] scale-105"
+                            : "bg-white/5 border-white/5 text-white/40 hover:text-white hover:bg-white/10 hover:border-white/20"
                     )}
                 >
+                    <Store size={16} strokeWidth={3} className={viewMode === 'stores' ? "text-black" : "text-white/40"} />
                     За точками
                 </button>
             </div>

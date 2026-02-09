@@ -9,7 +9,8 @@ export async function GET() {
         const { data: kpi, error: kpiError } = await supabase
             .from('v_pub_analytics')
             .select('*')
-            .single();
+            .select('*')
+            .maybeSingle();
 
         if (kpiError) throw kpiError;
 

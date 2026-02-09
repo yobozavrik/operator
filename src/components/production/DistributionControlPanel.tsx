@@ -1,9 +1,10 @@
 
 import React, { useState } from 'react';
 import useSWR from 'swr';
-import { Play, Loader2, AlertCircle, RefreshCw, CheckCircle2, ShoppingBag, Truck } from 'lucide-react';
+import { Play, Loader2, AlertCircle, RefreshCw, CheckCircle2, ShoppingBag, Truck, Download } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
+import { generateDistributionExcel } from '@/lib/order-export';
 
 // --- Types ---
 interface DistributionResult {
@@ -37,7 +38,25 @@ export const DistributionControlPanel = () => {
     } = useSWR<DistributionResult[]>('/api/pizza/distribution/results', fetcher, { refreshInterval: 10000 });
 
     const [isRunning, setIsRunning] = useState(false);
+    const [isExporting, setIsExporting] = useState(false);
     const [lastRunResult, setLastRunResult] = useState<string | null>(null);
+
+    // 📥 ACTION: Export to Excel
+    const handleExport = async () => {
+        if (!resultsData || resultsData.length === 0) return;
+
+        setIsExporting(true);
+        try {
+            await generateDistributionExcel(resultsData);
+            setLastRunResult('Файл збережено!');
+            setTimeout(() => setLastRunResult(null), 3000);
+        } catch (error) {
+            console.error('Export failed:', error);
+            alert('Помилка при експорті');
+        } finally {
+            setIsExporting(false);
+        }
+    };
 
     // 🚀 ACTION: Trigger Distribution
     const handleRunDistribution = async () => {
@@ -78,30 +97,49 @@ export const DistributionControlPanel = () => {
                     </div>
                 </div>
 
-                {/* Right: Action Button */}
+                {/* Right: Action Buttons */}
                 <div className="flex flex-col items-end gap-2 w-full md:w-auto">
-                    <button
-                        onClick={handleRunDistribution}
-                        disabled={isRunning}
-                        className={cn(
-                            "relative overflow-hidden h-12 px-8 rounded-xl font-black uppercase tracking-wider transition-all flex items-center gap-3 shadow-xl w-full md:w-auto justify-center",
-                            isRunning
-                                ? "bg-[#1A1F3A] text-white/50 cursor-not-allowed border border-white/5"
-                                : "bg-gradient-to-r from-[#FFB800] to-[#FF8A00] text-[#0B0E14] hover:shadow-[0_0_30px_rgba(255,184,0,0.3)] hover:scale-[1.02] active:scale-[0.98]"
-                        )}
-                    >
-                        {isRunning ? (
-                            <>
-                                <Loader2 size={20} className="animate-spin" />
-                                <span>Розрахунок...</span>
-                            </>
-                        ) : (
-                            <>
-                                <Play size={20} fill="currentColor" />
-                                <span>Сформувати розподілення</span>
-                            </>
-                        )}
-                    </button>
+                    <div className="flex items-center gap-3 w-full md:w-auto">
+                        {/* EXPORT BUTTON */}
+                        <button
+                            onClick={handleExport}
+                            disabled={isExporting || resultsLoading || !resultsData || resultsData.length === 0}
+                            className={cn(
+                                "h-12 px-6 rounded-xl font-bold uppercase tracking-wider transition-all flex items-center gap-2 border border-white/10 shrink-0",
+                                !resultsData || resultsData.length === 0
+                                    ? "bg-white/5 text-white/20 cursor-not-allowed"
+                                    : "bg-[#1A1F3A] text-[#00D4FF] hover:bg-[#00D4FF]/10 hover:border-[#00D4FF]/30 active:scale-[0.98]"
+                            )}
+                            title="Скачати Excel"
+                        >
+                            {isExporting ? <Loader2 size={18} className="animate-spin" /> : <Download size={18} />}
+                            <span className="hidden sm:inline text-xs">Excel</span>
+                        </button>
+
+                        {/* RUN BUTTON */}
+                        <button
+                            onClick={handleRunDistribution}
+                            disabled={isRunning}
+                            className={cn(
+                                "relative overflow-hidden h-12 px-8 rounded-xl font-black uppercase tracking-wider transition-all flex items-center gap-3 shadow-xl w-full md:w-auto justify-center",
+                                isRunning
+                                    ? "bg-[#1A1F3A] text-white/50 cursor-not-allowed border border-white/5"
+                                    : "bg-gradient-to-r from-[#FFB800] to-[#FF8A00] text-[#0B0E14] hover:shadow-[0_0_30px_rgba(255,184,0,0.3)] hover:scale-[1.02] active:scale-[0.98]"
+                            )}
+                        >
+                            {isRunning ? (
+                                <>
+                                    <Loader2 size={20} className="animate-spin" />
+                                    <span>Розрахунок...</span>
+                                </>
+                            ) : (
+                                <>
+                                    <Play size={20} fill="currentColor" />
+                                    <span>Сформувати розподілення</span>
+                                </>
+                            )}
+                        </button>
+                    </div>
 
                     {/* Feedback Message */}
                     <AnimatePresence>

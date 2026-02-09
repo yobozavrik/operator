@@ -97,15 +97,15 @@ export default function CommandLevel1() {
               stats={[
                 {
                   label: 'Факт залишок',
-                  value: pizzaData ? `${pizzaData.kpi.currentStock} шт.` : '— шт.',
-                  valueColor: (Number(pizzaData?.kpi.fillLevel) < 50) ? '#FF4D4D' : undefined
+                  value: pizzaData?.kpi ? `${pizzaData.kpi.currentStock} шт.` : '— шт.',
+                  valueColor: (Number(pizzaData?.kpi?.fillLevel) < 50) ? '#FF4D4D' : undefined
                 },
-                { label: 'Норма', value: pizzaData ? `${pizzaData.kpi.totalTarget} шт.` : '— шт.' },
+                { label: 'Норма', value: pizzaData?.kpi ? `${pizzaData.kpi.totalTarget} шт.` : '— шт.' },
                 {
                   label: 'Індекс заповненості',
-                  value: pizzaData ? `${pizzaData.kpi.fillLevel}%` : '— %',
-                  valueColor: Number(pizzaData?.kpi.fillLevel) < 50 ? '#FF4D4D' :
-                    Number(pizzaData?.kpi.fillLevel) < 80 ? '#FFA500' : undefined
+                  value: pizzaData?.kpi ? `${pizzaData.kpi.fillLevel}%` : '— %',
+                  valueColor: Number(pizzaData?.kpi?.fillLevel) < 50 ? '#FF4D4D' :
+                    Number(pizzaData?.kpi?.fillLevel) < 80 ? '#FFA500' : undefined
                 }
               ]}
               actionLabel="Розподіл та логістика"
