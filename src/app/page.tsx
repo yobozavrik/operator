@@ -5,6 +5,7 @@ import Link from 'next/link';
 import useSWR from 'swr';
 import { Activity, ArrowRight, BarChart2, ChefHat, LayoutGrid, Zap, Factory, Store, ShoppingBag } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { CriticalCounter, StatusDot, Skeleton } from '@/components/ui';
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
@@ -60,6 +61,26 @@ export default function CommandLevel1() {
 
         {/* 🚀 MAIN CONTENT AREA */}
         <main className="flex-1 flex flex-col items-center justify-center px-4 lg:px-8 py-2">
+
+          {/* Critical Alert */}
+          {(gravitonData?.criticalSKU > 0 || (pizzaData?.kpi && Number(pizzaData.kpi.fillLevel) < 50)) && (
+            <div className="w-full max-w-[1400px] mb-4 flex items-center justify-center gap-4">
+              {gravitonData?.criticalSKU > 0 && (
+                <CriticalCounter
+                  count={gravitonData.criticalSKU}
+                  label="критичних у Гравітоні"
+                  onClick={() => window.location.href = '/graviton'}
+                />
+              )}
+              {pizzaData?.kpi && Number(pizzaData.kpi.fillLevel) < 50 && (
+                <CriticalCounter
+                  count={1}
+                  label="низький запас піци"
+                  onClick={() => window.location.href = '/pizza'}
+                />
+              )}
+            </div>
+          )}
 
           <div className="w-full max-w-[1400px] grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 lg:gap-4">
 
@@ -325,9 +346,16 @@ function WorkshopCard({
             </p>
           </div>
 
-          {isLocked && (
+          {isLocked ? (
             <div className="bg-white/5 border border-white/10 px-3 py-1 rounded-full backdrop-blur-md">
               <span className="text-[10px] font-bold text-white/40 uppercase tracking-tighter">🔒 Offline</span>
+            </div>
+          ) : (
+            <div className="flex items-center gap-2 bg-white/5 border border-white/10 px-3 py-1.5 rounded-full backdrop-blur-md">
+              <StatusDot status={stats.some(s => s.valueColor === '#FF4D4D') ? 'critical' : 'good'} pulse={stats.some(s => s.valueColor === '#FF4D4D')} />
+              <span className="text-[10px] font-bold text-white/60 uppercase tracking-tighter">
+                {stats.some(s => s.valueColor === '#FF4D4D') ? 'Увага' : 'Online'}
+              </span>
             </div>
           )}
         </div>

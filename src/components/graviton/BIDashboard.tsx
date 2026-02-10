@@ -2,25 +2,22 @@
 
 import React, { useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, ChevronLeft } from 'lucide-react';
-import { BackToHome } from '@/components/BackToHome';
 import useSWR from 'swr';
+import { supabase } from '@/lib/supabase';
+import { ProductionTask, BI_Metrics, SupabaseDeficitRow } from '@/types/bi';
+import { transformDeficitData } from '@/lib/transformers';
 import { DashboardLayout } from '@/components/layout';
-import { BIGauge, BIStatCard } from '@/components/BIPanels';
+import { SyncOverlay } from '@/components/SyncOverlay';
+import { cn } from '@/lib/utils';
+import { BackToHome } from '@/components/BackToHome';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { BIPowerMatrix } from '@/components/BIPowerMatrix';
 import { BIInsights } from '@/components/BIInsights';
 import { PersonnelView } from '@/components/PersonnelView';
-import { PersonnelCard } from '@/components/PersonnelCard';
-import { ProductionTask, BI_Metrics, SupabaseDeficitRow } from '@/types/bi';
-import { transformDeficitData } from '@/lib/transformers';
-import { ErrorBoundary } from '@/components/ErrorBoundary';
-import { AlertTriangle, Activity, RefreshCw, BarChart2, Users, Truck } from 'lucide-react';
-import { GravitonDistributionPanel } from './GravitonDistributionPanel';
-import { SyncOverlay } from '@/components/SyncOverlay';
 import { UI_TOKENS } from '@/lib/design-tokens';
-import { cn } from '@/lib/utils';
+import { BarChart2, RefreshCw, Activity, AlertTriangle, Users, Truck } from 'lucide-react';
 import { useStore } from '@/context/StoreContext';
-import { supabase } from '@/lib/supabase';
+import { useToast, AlertBanner, CriticalCounter, SkeletonKPI, SkeletonTable } from '@/components/ui';
 
 const fetcher = async (url: string) => {
     const res = await fetch(url);
@@ -38,6 +35,7 @@ export const BIDashboard = () => {
     // Get store context
     const { selectedStore, setSelectedStore, currentCapacity } = useStore();
     const router = useRouter();
+    const toast = useToast();
     const [realtimeEnabled, setRealtimeEnabled] = React.useState(true);
     const refreshInterval = realtimeEnabled ? 0 : 30000;
 
@@ -152,9 +150,13 @@ export const BIDashboard = () => {
                 setLastManualRefresh(now);
                 localStorage.setItem('lastManualRefresh', now.toString());
                 await Promise.all([mutateDeficit(), mutateMetrics(), mutateAllProducts()]);
+                toast.success('Дані оновлено', 'Залишки синхронізовано з Poster');
+            } else {
+                toast.warning('Часткове оновлення', 'Не вдалося підключитися до всіх серверів');
             }
         } catch (err) {
             console.error('Refresh error:', err);
+            toast.error('Помилка оновлення', 'Перевірте підключення до мережі');
         } finally {
             setIsRefreshing(false);
         }
@@ -191,8 +193,32 @@ export const BIDashboard = () => {
 
     if (!deficitData || !metrics || !allProductsData) {
         return (
-            <div className="flex items-center justify-center min-h-screen bg-[var(--background)] text-[var(--text-muted)] font-bold uppercase tracking-widest animate-pulse">
-                Ініціалізація двигуна BI...
+            <div className="min-h-screen bg-[var(--background)] p-8">
+                <div className="max-w-7xl mx-auto space-y-6">
+                    {/* Header skeleton */}
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-4">
+                            <div className="w-12 h-12 rounded-xl bg-white/5 animate-pulse" />
+                            <div className="space-y-2">
+                                <div className="h-6 w-48 bg-white/5 rounded animate-pulse" />
+                                <div className="h-3 w-32 bg-white/5 rounded animate-pulse" />
+                            </div>
+                        </div>
+                        <div className="text-right space-y-2">
+                            <div className="h-4 w-40 bg-white/5 rounded animate-pulse" />
+                            <div className="h-6 w-24 bg-white/5 rounded animate-pulse" />
+                        </div>
+                    </div>
+                    {/* KPI skeleton */}
+                    <div className="grid grid-cols-4 gap-4">
+                        <SkeletonKPI />
+                        <SkeletonKPI />
+                        <SkeletonKPI />
+                        <SkeletonKPI />
+                    </div>
+                    {/* Table skeleton */}
+                    <SkeletonTable rows={8} columns={5} />
+                </div>
             </div>
         );
     }
@@ -323,7 +349,23 @@ export const BIDashboard = () => {
                     </div>
                 </header>
 
-                <main className="flex-1 min-h-0 p-4 lg:p-6 pt-0 lg:pt-0">
+                {/* Critical Alert Banner */}
+                {displayCriticalSKU > 0 && (
+                    <div className="px-4 lg:px-6 pt-2">
+                        <AlertBanner
+                            type="critical"
+                            title={`КРИТИЧНИЙ ДЕФІЦИТ: ${displayCriticalSKU} позицій`}
+                            description="Потрібне термінове виробництво для запобігання втраті продажів"
+                            pulse
+                            action={{
+                                label: 'Переглянути список',
+                                onClick: () => setSelectedStore('Усі'),
+                            }}
+                        />
+                    </div>
+                )}
+
+                <main className="flex-1 min-h-0 p-4 lg:p-6 pt-2 lg:pt-2">
                     <div className="grid grid-cols-12 gap-6 h-full">
                         <div className="col-span-12 lg:col-span-9 h-full flex flex-col overflow-hidden rounded-2xl p-1">
                             <ErrorBoundary>
