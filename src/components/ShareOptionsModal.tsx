@@ -1,11 +1,12 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
-import { X, Send, Download, Copy, Check } from 'lucide-react';
+import { Send, Download, Copy, Check } from 'lucide-react';
 import { OrderItem, SharePlatform } from '@/types/order';
 import { formatOrderMessage } from '@/lib/messageFormatter';
 import { groupItemsByCategory, generateExcel, prepareWorkbook } from '@/lib/order-export';
 import { auditLog } from '@/lib/logger';
+import { Modal, ModalHeader, ModalBody, ModalFooter, ModalButton } from '@/components/ui/Modal';
 
 interface ShareOptionsModalProps {
     isOpen: boolean;
@@ -110,123 +111,104 @@ export const ShareOptionsModal = ({ isOpen, items, orderData, onClose, onShare }
         setTimeout(() => setCopied(false), 2000);
     };
 
-    if (!isOpen) return null;
-
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
-            <div className="bg-[#1A1A1A] border border-[#3A3A3A] rounded-2xl shadow-2xl w-full max-w-2xl max-h-[85vh] flex flex-col overflow-hidden animate-in fade-in zoom-in duration-300">
-                {/* Header */}
-                <div className="flex-shrink-0 px-6 py-5 border-b border-[#3A3A3A] bg-[#111823]">
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                            <Send className="text-[#58A6FF]" size={24} />
-                            <h2 className="text-[16px] font-black uppercase tracking-tight text-[#E6EDF3]">
-                                📤 Поділитися замовленням
-                            </h2>
-                        </div>
+        <Modal isOpen={isOpen} onClose={onClose} size="md">
+            {/* Header */}
+            <ModalHeader icon={<Send size={20} />}>
+                <h2 className="text-[16px] font-black uppercase tracking-tight text-white">
+                    Поділитися замовленням
+                </h2>
+                <p className="text-[11px] text-white/40 mt-1">
+                    Оберіть спосіб надсилання
+                </p>
+            </ModalHeader>
+
+            {/* Content */}
+            <ModalBody className="space-y-6">
+                {/* Action Buttons */}
+                <div className="space-y-4">
+                    <h3 className="text-[11px] font-bold uppercase text-white/40 tracking-widest text-center">
+                        Оберіть дію
+                    </h3>
+
+                    <div className="flex gap-3">
+                        {/* Share Button */}
                         <button
-                            onClick={onClose}
-                            className="text-[#8B949E] hover:text-[#E6EDF3] transition-colors"
+                            onClick={handleShareExcel}
+                            className="flex-1 flex items-center justify-center gap-2.5 px-6 py-4 rounded-xl font-bold text-[13px] transition-all hover:scale-[1.02] active:scale-[0.98] bg-gradient-to-r from-[#0088FF] to-[#00D4FF] text-white shadow-lg shadow-[#0088FF]/20 hover:shadow-xl hover:shadow-[#00D4FF]/30"
                         >
-                            <X size={20} />
+                            <Send size={18} />
+                            Поділитися
+                        </button>
+
+                        {/* Download Button */}
+                        <button
+                            onClick={handleDownloadExcel}
+                            className="flex-1 flex items-center justify-center gap-2.5 px-6 py-4 rounded-xl font-bold text-[13px] transition-all hover:scale-[1.02] active:scale-[0.98] bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/20 text-white"
+                        >
+                            <Download size={18} className="text-[#00D4FF]" />
+                            Завантажити
                         </button>
                     </div>
                 </div>
 
-                {/* Content */}
-                <div className="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-6">
-                    {/* Action Buttons */}
-                    <div className="space-y-4">
-                        <h3 className="text-[12px] font-bold uppercase text-[#8B949E] tracking-widest text-center mb-6">
-                            Оберіть дію
+                {/* Message Preview */}
+                <div>
+                    <div className="flex items-center justify-between mb-3">
+                        <h3 className="text-[11px] font-bold uppercase text-white/40 tracking-widest">
+                            Попередній перегляд
                         </h3>
-
-                        <div className="flex gap-4">
-                            {/* Кнопка Поділитися */}
-                            <button
-                                onClick={handleShareExcel}
-                                className="flex-1 flex items-center justify-center gap-2.5 px-6 py-3.5 rounded-xl font-bold text-[13px] transition-all hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-blue-500/20"
-                                style={{
-                                    background: 'linear-gradient(135deg, #0088CC 0%, #0066AA 100%)',
-                                    color: '#fff'
-                                }}
-                            >
-                                <Send size={18} />
-                                Поділитися
-                            </button>
-
-                            {/* Кнопка Завантажити */}
-                            <button
-                                onClick={handleDownloadExcel}
-                                className="flex-1 flex items-center justify-center gap-2.5 px-6 py-3.5 rounded-xl font-bold text-[13px] transition-all hover:scale-[1.02] active:scale-[0.98] bg-white/5 border border-white/10 hover:bg-white/10 text-white"
-                            >
-                                <Download size={18} className="text-[#58A6FF]" />
-                                Завантажити
-                            </button>
-                        </div>
-                    </div>
-
-                    {/* Message Preview */}
-                    <div>
-                        <div className="flex items-center justify-between mb-3">
-                            <h3 className="text-[12px] font-bold uppercase text-[#8B949E] tracking-widest">
-                                Попередній перегляд
-                            </h3>
-                            <button
-                                onClick={handleCopy}
-                                className="flex items-center gap-2 px-3 py-1.5 bg-[#252526] border border-[#3A3A3A] rounded-lg text-[11px] font-bold text-[#E6EDF3] hover:border-[#58A6FF] transition-colors"
-                            >
-                                {copied ? (
-                                    <>
-                                        <Check size={12} className="text-[#3FB950]" />
-                                        Скопійовано
-                                    </>
-                                ) : (
-                                    <>
-                                        <Copy size={12} />
-                                        Копіювати
-                                    </>
-                                )}
-                            </button>
-                        </div>
-
-                        <div className="bg-[#0D1117] border border-[#3A3A3A] rounded-xl p-5 font-sans text-[13px] text-[#E6EDF3] leading-relaxed max-h-[300px] overflow-y-auto custom-scrollbar">
-                            <div className="space-y-4">
-                                {Object.entries(groupedByCategory).map(([category, data]: any) => (
-                                    <div key={category} className="space-y-1">
-                                        <div className="font-black text-[#58A6FF] border-b border-white/5 pb-1 mb-2">
-                                            {category.toUpperCase()}: {data.totalKg} кг
-                                        </div>
-                                        <div className="pl-2 space-y-1.5 opacity-90">
-                                            {data.items.map((item: any, idx: number) => (
-                                                <div key={idx} className="flex justify-between items-center text-[12px]">
-                                                    <span>• {item.productName}</span>
-                                                    <span className="font-bold text-[#52E8FF]">{item.kg} кг</span>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </div>
-                                ))}
-                                {Object.keys(groupedByCategory).length === 0 && (
-                                    <p className="text-center opacity-40 py-8">Немає вибраних товарів</p>
-                                )}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Footer */}
-                <div className="flex-shrink-0 px-6 py-4 border-t border-[#3A3A3A] bg-[#111823] z-10">
-                    <div className="flex items-center justify-center">
                         <button
-                            onClick={onClose}
-                            className="w-full px-10 py-3 bg-[#252526] border border-[#3A3A3A] rounded-xl text-[12px] font-bold text-[#E6EDF3] hover:bg-[#2D2D2D] hover:border-[#44454A] transition-all hover:scale-[1.01]"
+                            onClick={handleCopy}
+                            className="flex items-center gap-2 px-3 py-1.5 bg-white/5 border border-white/10 rounded-lg text-[11px] font-bold text-white/70 hover:text-white hover:border-white/20 hover:bg-white/10 transition-all"
                         >
-                            ЗАКРИТИ
+                            {copied ? (
+                                <>
+                                    <Check size={12} className="text-[#10B981]" />
+                                    Скопійовано
+                                </>
+                            ) : (
+                                <>
+                                    <Copy size={12} />
+                                    Копіювати
+                                </>
+                            )}
                         </button>
                     </div>
+
+                    <div className="bg-black/30 border border-white/5 rounded-xl p-5 font-sans text-[13px] text-white/80 leading-relaxed max-h-[280px] overflow-y-auto custom-scrollbar">
+                        <div className="space-y-4">
+                            {Object.entries(groupedByCategory).map(([category, data]: any) => (
+                                <div key={category} className="space-y-1">
+                                    <div className="font-black text-[#00D4FF] border-b border-white/5 pb-1 mb-2">
+                                        {category.toUpperCase()}: {data.totalKg} кг
+                                    </div>
+                                    <div className="pl-2 space-y-1.5 opacity-90">
+                                        {data.items.map((item: any, idx: number) => (
+                                            <div key={idx} className="flex justify-between items-center text-[12px]">
+                                                <span className="text-white/70">• {item.productName}</span>
+                                                <span className="font-bold text-[#00D4FF]">{item.kg} кг</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            ))}
+                            {Object.keys(groupedByCategory).length === 0 && (
+                                <p className="text-center opacity-40 py-8">Немає вибраних товарів</p>
+                            )}
+                        </div>
+                    </div>
                 </div>
-            </div>
-        </div>
+            </ModalBody>
+
+            {/* Footer */}
+            <ModalFooter>
+                <div className="flex justify-center">
+                    <ModalButton variant="secondary" onClick={onClose} className="w-full">
+                        Закрити
+                    </ModalButton>
+                </div>
+            </ModalFooter>
+        </Modal>
     );
 };

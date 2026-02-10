@@ -2,8 +2,8 @@
 
 import React from 'react';
 import useSWR from 'swr';
-import { X, ChefHat, Loader2, AlertCircle } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { ChefHat, Loader2, AlertCircle } from 'lucide-react';
+import { Modal, ModalHeader, ModalBody, ModalFooter, ModalButton } from '@/components/ui/Modal';
 
 interface ProductionDetailModalProps {
     isOpen: boolean;
@@ -22,87 +22,76 @@ export const ProductionDetailModal = ({ isOpen, onClose }: ProductionDetailModal
         { refreshInterval: 10000 }
     );
 
-    if (!isOpen) return null;
-
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
-            <div
-                className="bg-[#141829] border border-white/10 rounded-2xl w-full max-w-lg shadow-2xl relative overflow-hidden flex flex-col max-h-[85vh]"
-                onClick={(e) => e.stopPropagation()}
-            >
-                {/* Header */}
-                <div className="flex items-center justify-between p-5 border-b border-white/5 bg-[#1A1F3A]/50">
-                    <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-[#00D4FF]/10 flex items-center justify-center">
-                            <ChefHat size={20} className="text-[#00D4FF]" />
-                        </div>
-                        <div>
-                            <h2 className="text-lg font-bold text-white uppercase tracking-wide">Виробництво</h2>
-                            <p className="text-xs text-white/50 uppercase tracking-widest">Детальна статистика (24 год)</p>
-                        </div>
-                    </div>
-                    <button
-                        onClick={onClose}
-                        className="p-2 hover:bg-white/10 rounded-lg text-white/50 hover:text-white transition-colors"
-                    >
-                        <X size={20} />
-                    </button>
-                </div>
+        <Modal isOpen={isOpen} onClose={onClose} size="sm">
+            {/* Header */}
+            <ModalHeader icon={<ChefHat size={20} />}>
+                <h2 className="text-lg font-bold text-white uppercase tracking-wide">
+                    Виробництво
+                </h2>
+                <p className="text-xs text-white/40 uppercase tracking-widest mt-1">
+                    Детальна статистика (24 год)
+                </p>
+            </ModalHeader>
 
-                {/* Content */}
-                <div className="flex-1 overflow-y-auto custom-scrollbar p-2">
-                    {isLoading ? (
-                        <div className="flex flex-col items-center justify-center py-20 text-white/30 gap-3">
+            {/* Content */}
+            <ModalBody noPadding className="bg-[#0A0E14]">
+                {isLoading ? (
+                    <div className="flex flex-col items-center justify-center py-20 text-white/30 gap-3">
+                        <div className="relative">
                             <Loader2 size={32} className="animate-spin text-[#00D4FF]" />
-                            <span className="text-xs font-mono uppercase tracking-widest">Завантаження даних...</span>
+                            <div className="absolute inset-0 blur-xl bg-[#00D4FF]/20 animate-pulse" />
                         </div>
-                    ) : error ? (
-                        <div className="flex flex-col items-center justify-center py-20 text-[#E74856] gap-3">
+                        <span className="text-xs font-mono uppercase tracking-widest">Завантаження даних...</span>
+                    </div>
+                ) : error ? (
+                    <div className="flex flex-col items-center justify-center py-20 gap-3">
+                        <div className="w-16 h-16 rounded-full bg-[#EF4444]/10 flex items-center justify-center text-[#EF4444]">
                             <AlertCircle size={32} />
-                            <span className="text-sm font-bold">Помилка завантаження</span>
-                            <span className="text-xs font-mono opacity-70">{String(error)}</span>
                         </div>
-                    ) : data && data.length > 0 ? (
-                        <table className="w-full text-left border-collapse">
-                            <thead className="sticky top-0 bg-[#141829] z-10 text-[10px] uppercase font-bold tracking-widest text-white/40">
-                                <tr>
-                                    <th className="p-3 pl-4">Піца</th>
-                                    <th className="p-3 pr-4 text-right">Кількість</th>
+                        <span className="text-sm font-bold text-[#EF4444]">Помилка завантаження</span>
+                        <span className="text-xs font-mono text-white/30">{String(error)}</span>
+                    </div>
+                ) : data && data.length > 0 ? (
+                    <table className="w-full text-left border-collapse">
+                        <thead className="sticky top-0 bg-[#0D1117] z-10 text-[10px] uppercase font-bold tracking-widest text-white/30">
+                            <tr>
+                                <th className="p-4 pl-6">Піца</th>
+                                <th className="p-4 pr-6 text-right">Кількість</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-white/[0.03]">
+                            {data.map((item, i) => (
+                                <tr key={i} className="group hover:bg-white/[0.02] transition-colors">
+                                    <td className="p-4 pl-6 text-sm font-medium text-white/80 group-hover:text-white transition-colors">
+                                        {item.product_name}
+                                    </td>
+                                    <td className="p-4 pr-6 text-right">
+                                        <span className="inline-flex items-center justify-center px-3 py-1.5 rounded-lg bg-[#00D4FF]/10 text-[#00D4FF] font-mono text-sm font-bold min-w-[3.5rem]">
+                                            {item.baked_at_factory}
+                                        </span>
+                                    </td>
                                 </tr>
-                            </thead>
-                            <tbody className="divide-y divide-white/5">
-                                {data.map((item, i) => (
-                                    <tr key={i} className="group hover:bg-white/[0.02] transition-colors">
-                                        <td className="p-3 pl-4 text-sm font-medium text-white/90 group-hover:text-white">
-                                            {item.product_name}
-                                        </td>
-                                        <td className="p-3 pr-4 text-right">
-                                            <span className="inline-flex items-center justify-center px-2.5 py-1 rounded bg-[#00D4FF]/10 text-[#00D4FF] font-mono text-sm font-bold min-w-[3rem]">
-                                                {item.baked_at_factory}
-                                            </span>
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    ) : (
-                        <div className="flex flex-col items-center justify-center py-20 text-white/30">
-                            <ChefHat size={32} className="mb-3 opacity-20" />
-                            <span className="text-sm">Дані відсутні</span>
-                        </div>
-                    )}
-                </div>
+                            ))}
+                        </tbody>
+                    </table>
+                ) : (
+                    <div className="flex flex-col items-center justify-center py-20 text-white/30">
+                        <ChefHat size={40} className="mb-4 opacity-20" />
+                        <span className="text-sm font-medium">Дані відсутні</span>
+                        <span className="text-xs mt-1 opacity-60">Немає записів за останні 24 години</span>
+                    </div>
+                )}
+            </ModalBody>
 
-                {/* Footer */}
-                <div className="p-4 border-t border-white/5 bg-[#1A1F3A]/30 flex justify-end">
-                    <button
-                        onClick={onClose}
-                        className="px-6 py-2 bg-white/5 hover:bg-white/10 text-white text-xs font-bold uppercase tracking-widest rounded-lg transition-all border border-white/5 hover:border-white/20"
-                    >
+            {/* Footer */}
+            <ModalFooter>
+                <div className="flex justify-end">
+                    <ModalButton variant="secondary" onClick={onClose}>
                         Закрити
-                    </button>
+                    </ModalButton>
                 </div>
-            </div>
-        </div>
+            </ModalFooter>
+        </Modal>
     );
 };
