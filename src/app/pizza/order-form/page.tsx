@@ -7,11 +7,9 @@ import { transformPizzaData } from '@/lib/transformers';
 import { ProductionOpsTable } from '@/components/production/ProductionOrderTable';
 import { ChefHat } from 'lucide-react';
 
-const fetcher = async (url: string) => {
-    const res = await fetch(url);
-    if (!res.ok) throw new Error('Data fetch failed');
-    return res.json();
-};
+import { authedFetcher } from '@/lib/authed-fetcher';
+
+const fetcher = authedFetcher;
 
 export default function OrderFormPage() {
     // Reuse existing API to get full stats including stores and deficits

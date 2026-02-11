@@ -7,7 +7,9 @@ import { Activity, ArrowRight, BarChart2, ChefHat, LayoutGrid, Zap, Factory, Sto
 import { cn } from '@/lib/utils';
 import { CriticalCounter, StatusDot, Skeleton } from '@/components/ui';
 
-const fetcher = (url: string) => fetch(url).then((res) => res.json());
+import { authedFetcher } from '@/lib/authed-fetcher';
+
+const fetcher = authedFetcher;
 
 export default function CommandLevel1() {
   const [hoveredCard, setHoveredCard] = useState<string | null>(null);

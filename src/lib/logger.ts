@@ -1,85 +1,83 @@
-/**
- * Audit Logger Utility
- * Logs all user actions for security monitoring and compliance.
- * 
- * Usage:
- *   import { auditLog } from '@/lib/logger';
- *   await auditLog('LOGIN', 'auth', { email: user.email });
- */
+export type LogLevel = 'info' | 'warn' | 'error' | 'debug';
 
-import { supabase as clientSupabase } from './supabase';
+export interface LogEntry {
+    level: LogLevel;
+    message: string;
+    timestamp: string;
+    path?: string;
+    method?: string;
+    status?: number;
+    duration?: number;
+    userId?: string | null;
+    meta?: Record<string, unknown>;
+    error?: string;
+}
 
 export type AuditAction =
     | 'LOGIN'
     | 'LOGOUT'
     | 'VIEW_METRICS'
-    | 'VIEW_DEFICIT'
-    | 'VIEW_RESERVE_DEFICIT'
-    | 'VIEW_PERSONNEL'
+    | 'CREATE_ORDER'
+    | 'UPDATE_STOCK'
+    | 'DISTRIBUTION_RUN'
+    | 'DISTRIBUTION_CONFIRM'
     | 'EXPORT_EXCEL'
-    | 'SHARE_ORDER'
+    | 'VIEW_RESERVE_DEFICIT'
+    | 'VIEW_DEFICIT'
     | 'CHANGE_STORE'
-    | 'API_ACCESS'
+    | 'SHARE_ORDER'
     | 'ERROR';
 
-export interface AuditLogEntry {
-    user_id: string | null;
-    action: AuditAction;
-    target: string;
-    metadata?: Record<string, unknown>;
-    ip_address?: string;
-    user_agent?: string;
-}
-
-/**
- * Log an action to the audit_logs table in Supabase.
- * Falls back to console.log if Supabase insert fails.
- */
-export async function auditLog(
-    action: AuditAction,
-    target: string,
-    metadata?: Record<string, unknown>,
-    userId?: string | null
-): Promise<void> {
-    const entry: AuditLogEntry = {
-        user_id: userId ?? null,
-        action,
-        target,
-        metadata,
-    };
-
-    // Attempt to get user agent from browser context
-    if (typeof window !== 'undefined') {
-        entry.user_agent = navigator.userAgent;
+export class Logger {
+    private static format(entry: LogEntry): string {
+        return JSON.stringify(entry);
     }
 
-    const timestamp = new Date().toISOString();
+    static info(message: string, context?: Partial<LogEntry>) {
+        console.log(Logger.format({
+            level: 'info',
+            message,
+            timestamp: new Date().toISOString(),
+            ...context
+        }));
+    }
 
-    try {
-        const { error } = await clientSupabase
-            .from('audit_logs')
-            .insert({
-                ...entry,
-                created_at: timestamp,
-            });
+    static warn(message: string, context?: Partial<LogEntry>) {
+        console.warn(Logger.format({
+            level: 'warn',
+            message,
+            timestamp: new Date().toISOString(),
+            ...context
+        }));
+    }
 
-        if (error) {
-            console.warn('[AuditLog] Supabase insert failed:', error.message);
-            // Fallback: log to console for debugging
-            console.log('[AuditLog]', timestamp, entry);
+    static error(message: string, context?: Partial<LogEntry>) {
+        console.error(Logger.format({
+            level: 'error',
+            message,
+            timestamp: new Date().toISOString(),
+            ...context
+        }));
+    }
+
+    static debug(message: string, context?: Partial<LogEntry>) {
+        if (process.env.NODE_ENV === 'development') {
+            console.debug(Logger.format({
+                level: 'debug',
+                message,
+                timestamp: new Date().toISOString(),
+                ...context
+            }));
         }
-    } catch (err) {
-        console.error('[AuditLog] Exception:', err);
-        console.log('[AuditLog]', timestamp, entry);
     }
 }
 
 /**
- * Quick console logger for development.
- * Use this for non-critical logs that don't need to be stored.
+ * Client-side audit log helper.
+ * Currently just logs to console using Logger.
  */
-export function devLog(category: string, message: string, data?: unknown): void {
-    if (process.env.NODE_ENV === 'development') {
-        console.log(`[${category}] ${message}`, data ?? '');
-    }
+export async function auditLog(action: AuditAction, target: string, meta?: Record<string, unknown>) {
+    Logger.info(`[ClientAudit] ${action}`, {
+        meta: { target, ...meta }
+    });
 }

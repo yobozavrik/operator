@@ -1,9 +1,14 @@
 import { NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
+import { Logger } from '@/lib/logger';
+import { requireAuth } from '@/lib/auth-guard';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET() {
+    const auth = await requireAuth();
+    if (auth.error) return auth.error;
+
     try {
         // 1. KPI Data - Fetch from public.v_pub_analytics (expecting single row)
         const { data: kpi, error: kpiError } = await supabase
@@ -58,7 +63,7 @@ export async function GET() {
         });
 
     } catch (error) {
-        console.error('[Analytics API] Error:', error);
+        Logger.error('[Analytics API] Error', { error: String(error), path: '/api/pizza/analytics' });
         return NextResponse.json({ error: String(error) }, { status: 500 });
     }
 }

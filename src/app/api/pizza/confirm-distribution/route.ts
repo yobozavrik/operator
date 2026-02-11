@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
+import { requireAuth } from '@/lib/auth-guard';
 
 interface DistributionConfirmation {
     distributions: Array<{
@@ -18,6 +19,9 @@ const SOURCE_WAREHOUSE_ID = 15;
  * Executing distribution: creates movement documents in DB
  */
 export async function POST(request: NextRequest) {
+    const auth = await requireAuth();
+    if (auth.error) return auth.error;
+
     try {
         const body: DistributionConfirmation = await request.json();
         const { distributions, userId } = body;

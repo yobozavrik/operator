@@ -1,8 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { serverAuditLog } from '@/lib/logger.server';
+import { Logger } from '@/lib/logger';
 import { createClient } from '@/utils/supabase/server';
+import { requireAuth } from '@/lib/auth-guard';
 
 export async function GET(request: NextRequest) {
+    const auth = await requireAuth();
+    if (auth.error) return auth.error;
+
     const supabase = await createClient();
 
     await serverAuditLog('VIEW_METRICS', '/api/graviton/metrics', request, {
@@ -16,7 +21,7 @@ export async function GET(request: NextRequest) {
         .maybeSingle();
 
     if (error) {
-        console.error('Supabase error:', error);
+        Logger.error('Supabase error', { error: error.message, path: '/api/graviton/metrics' });
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
 

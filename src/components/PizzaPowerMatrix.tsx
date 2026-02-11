@@ -220,7 +220,7 @@ export const PizzaPowerMatrix = ({ data, onRefresh, initialViewMode = 'products'
     };
 
     // 🏭 PRODUCTION SUMMARY
-    const { data: productionSummary } = useSWR('/api/pizza/summary', (url) => fetch(url).then(r => r.json()), { refreshInterval: 30000 });
+    const { data: productionSummary } = useSWR('/api/pizza/summary', (url) => fetch(url, { credentials: 'include' }).then(r => r.json()), { refreshInterval: 30000 });
 
     // 🔥 WEBHOOK: Update stock from n8n
     const handleUpdateStock = async () => {

@@ -1,9 +1,13 @@
 import { createClient } from '@supabase/supabase-js';
 import { NextResponse, NextRequest } from 'next/server';
+import { requireAuth } from '@/lib/auth-guard';
 
 export const maxDuration = 300; // 5 minutes timeout for Vercel/Next.js
 
 export async function POST(request: NextRequest) {
+    const auth = await requireAuth();
+    if (auth.error) return auth.error;
+
     try {
         console.log('[Graviton] Starting distribution calculation...');
 

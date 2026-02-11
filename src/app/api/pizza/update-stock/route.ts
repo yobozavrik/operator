@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { requireAuth } from '@/lib/auth-guard';
 
 // Same webhook URLs as Graviton dashboard
 const WEBHOOK_URLS = [
@@ -7,6 +8,9 @@ const WEBHOOK_URLS = [
 ];
 
 export async function POST(request: NextRequest) {
+    const auth = await requireAuth();
+    if (auth.error) return auth.error;
+
     try {
         const body = await request.json();
 

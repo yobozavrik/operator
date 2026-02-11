@@ -1,8 +1,12 @@
 import { NextResponse } from 'next/server';
 import { OrderItem } from '@/types/order';
 import { formatOrderMessageHTML } from '@/lib/messageFormatter';
+import { requireAuth } from '@/lib/auth-guard';
 
 export async function POST(request: Request) {
+    const auth = await requireAuth();
+    if (auth.error) return auth.error;
+
     try {
         const { items, platform } = await request.json();
 

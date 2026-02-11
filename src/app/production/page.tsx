@@ -11,7 +11,9 @@ import { RotateCw, Globe } from 'lucide-react';
 import { UI_TOKENS } from '@/lib/design-tokens';
 import { useStore } from '@/context/StoreContext';
 
-const fetcher = (url: string) => fetch(url).then(r => r.json());
+import { authedFetcher } from '@/lib/authed-fetcher';
+
+const fetcher = authedFetcher;
 
 const HeaderKPI = ({ label, value }: { label: string; value: string | number }) => (
     <div className="px-5 py-3 bg-[#141C27] rounded-[10px] min-w-[150px] border border-[#1F2630] flex flex-col justify-center">

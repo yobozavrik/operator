@@ -9,7 +9,9 @@ import { transformSupabaseData } from '@/lib/transformers';
 import { SupabaseDeficitRow, BI_Metrics } from '@/types/bi';
 import { useStore } from '@/context/StoreContext';
 
-const fetcher = (url: string) => fetch(url).then(r => r.json());
+import { authedFetcher } from '@/lib/authed-fetcher';
+
+const fetcher = authedFetcher;
 
 export default function Dashboard() {
     const { data: rawDeficit, error: deficitError } = useSWR<SupabaseDeficitRow[]>('/api/graviton/deficit', fetcher, {

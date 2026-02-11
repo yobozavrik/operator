@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import { NextResponse } from 'next/server';
+import { requireAuth } from '@/lib/auth-guard';
 
 const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -7,6 +8,9 @@ const supabase = createClient(
 );
 
 export async function GET(request: Request) {
+    const auth = await requireAuth();
+    if (auth.error) return auth.error;
+
     const { searchParams } = new URL(request.url);
     const days = parseInt(searchParams.get('days') || '1');
 

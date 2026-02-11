@@ -19,7 +19,7 @@ interface ProductionItem {
 const ProductionDetailView = () => {
     const { data, error, isLoading } = useSWR<ProductionItem[]>(
         '/api/pizza/production-detail',
-        (url) => fetch(url).then(r => r.json()),
+        (url) => fetch(url, { credentials: 'include' }).then(r => r.json()),
         { refreshInterval: 10000 }
     );
 
@@ -95,7 +95,7 @@ export const ProductionTabs = ({ data, onRefresh, showTabs = true }: Props) => {
     const [showProductionModal, setShowProductionModal] = useState(false);
 
     // 🏭 PRODUCTION SUMMARY
-    const { data: productionSummary } = useSWR('/api/pizza/summary', (url) => fetch(url).then(r => r.json()), { refreshInterval: 30000 });
+    const { data: productionSummary } = useSWR('/api/pizza/summary', (url) => fetch(url, { credentials: 'include' }).then(r => r.json()), { refreshInterval: 30000 });
 
     // 🔥 WEBHOOK: Update stock from n8n
     const handleUpdateStock = async () => {

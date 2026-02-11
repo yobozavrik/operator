@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
+import { requireAuth } from '@/lib/auth-guard';
 
 interface DistributionRequest {
     productId: number;
@@ -26,6 +27,9 @@ interface StoreStats {
  * Calculates distribution plan based on 4-stage algorithm
  */
 export async function POST(request: NextRequest) {
+    const auth = await requireAuth();
+    if (auth.error) return auth.error;
+
     try {
         const body: DistributionRequest = await request.json();
         const { productId, productionQuantity } = body;

@@ -1,8 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { serverAuditLog } from '@/lib/logger.server';
 import { createClient } from '@/utils/supabase/server';
+import { requireAuth } from '@/lib/auth-guard';
 
 export async function GET(request: NextRequest) {
+    const auth = await requireAuth();
+    if (auth.error) return auth.error;
+
     const supabase = await createClient();
 
     // Логуємо звернення до API

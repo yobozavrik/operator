@@ -11,6 +11,7 @@ import { OrderConfirmationModal } from './OrderConfirmationModal';
 import { ShareOptionsModal } from './ShareOptionsModal';
 import { OrderItem, SharePlatform } from '@/types/order';
 import { generateExcel, groupItemsByCategory } from '@/lib/order-export';
+import { ProductCard } from './graviton/ProductCard';
 
 const CATEGORY_EMOJI: Record<string, string> = {};
 
@@ -807,137 +808,132 @@ export const BIPowerMatrix = ({
                     </div>
 
                     {/* Products */}
-                    {isCategoryExpanded && category.items.map((item: ProductionTask) => {
-                      const isProductExpanded = expandedProducts.has(item.productCode.toString());
-                      const allStoresSelected = item.stores.every(store => {
-                        const key = `${item.productCode}_${store.storeName}`;
-                        return selectedStores.has(key);
-                      });
+                    {/* Products Grid */}
+                    {isCategoryExpanded && (
+                      <div className="ml-6 mt-1 space-y-1">
+                        {category.items.map((item: ProductionTask) => {
+                          const isProductExpanded = expandedProducts.has(item.productCode.toString());
+                          const allStoresSelected = item.stores.every(store => {
+                            const key = `${item.productCode}_${store.storeName}`;
+                            return selectedStores.has(key);
+                          });
 
-                      return (
-                        <div key={item.productCode} className="border-b border-[var(--border)]/5 last:border-0">
-                          {/* Product Row */}
-                          <div className="pl-16 pr-6 py-2.5 hover:bg-white/[0.02] transition-colors">
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center gap-2 flex-1">
-                                <button
-                                  onClick={() => toggleProduct(item.productCode)}
-                                  className="p-0.5 hover:bg-white/5 rounded transition-colors"
-                                  aria-label={isProductExpanded ? "Згорнути деталі товару" : "Розгорнути деталі товару"}
-                                  aria-expanded={isProductExpanded}
-                                >
+                          return (
+                            <div key={item.productCode}>
+                              {/* Row Logic */}
+                              <div
+                                className="px-4 py-2 bg-white/[0.02] hover:bg-white/[0.04] rounded cursor-pointer transition-colors flex items-center justify-between group/row"
+                                onClick={() => toggleProduct(item.productCode)}
+                              >
+                                <div className="flex items-center gap-2">
                                   {isProductExpanded ?
                                     <ChevronDown size={12} className="text-[var(--text-muted)]" /> :
                                     <ChevronRight size={12} className="text-[var(--text-muted)]" />
                                   }
-                                </button>
-                                <button
-                                  onClick={() => toggleAllStoresForProduct(item)}
-                                  className={cn(
-                                    "w-4 h-4 rounded border flex items-center justify-center transition-all",
-                                    allStoresSelected
-                                      ? "bg-[var(--status-normal)] border-[var(--status-normal)]"
-                                      : "border-[var(--border)] hover:border-[var(--status-normal)]"
-                                  )}
-                                  aria-label={`Обрати всі магазини для товару ${item.name}`}
-                                  aria-checked={allStoresSelected}
-                                  role="checkbox"
-                                >
-                                  {allStoresSelected && <CheckCircle2 size={10} className="text-white" />}
-                                </button>
-                                <span className="text-[11px] font-semibold text-[var(--foreground)]">
-                                  {item.name}
-                                </span>
-                                <span className="text-[9px] text-[var(--text-muted)]">
-                                  ({item.stores.length} маг.)
-                                </span>
-                              </div>
-                              <span className="text-[12px] font-black text-[var(--status-normal)]">
-                                {(() => {
-                                  // DYNAMIC CALCULATION FOR PRODUCT ROW (AGGREGATE)
-                                  const totalDynamic = item.stores.reduce((sum, s) => {
-                                    const avg = parseFloat(String(s.avgSales)) || 0;
-                                    const stock = parseFloat(String(s.currentStock)) || 0;
-                                    // Formula: (Avg * Days) + (Avg * 4) - Stock
-                                    const needed = Math.ceil((avg * planningDays) + (avg * 4) - stock);
-                                    return sum + (needed > 0 ? needed : 0);
-                                  }, 0);
-                                  return totalDynamic;
-                                })()} кг
-                              </span>
-                            </div>
-                          </div>
 
-                          {/* Stores */}
-                          {isProductExpanded && (
-                            <div className="bg-[var(--background)] border-t border-[var(--border)]/10">
-                              {item.stores.map(store => {
-                                const storeKey = `${item.productCode}_${store.storeName}`;
-                                const isSelected = selectedStores.has(storeKey);
-
-                                return (
-                                  <div
-                                    key={storeKey}
-                                    className="pl-24 pr-6 py-2 hover:bg-white/[0.02] transition-colors flex items-center justify-between"
+                                  {/* Checkbox for Product (Select All Stores) */}
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      toggleAllStoresForProduct(item);
+                                    }}
+                                    className={cn(
+                                      "w-3.5 h-3.5 rounded border flex items-center justify-center transition-all mr-2",
+                                      allStoresSelected
+                                        ? "bg-[var(--status-normal)] border-[var(--status-normal)]"
+                                        : "border-[#3e3e42] hover:border-[var(--status-normal)]"
+                                    )}
                                   >
-                                    <div className="flex items-center gap-2">
-                                      <button
-                                        onClick={() => toggleStoreSelection(item.productCode, store.storeName)}
-                                        className={cn(
-                                          "w-3.5 h-3.5 rounded border flex items-center justify-center transition-all mt-0.5",
-                                          isSelected
-                                            ? "bg-[var(--status-normal)] border-[var(--status-normal)]"
-                                            : "border-[var(--border)] hover:border-[var(--status-normal)]"
-                                        )}
-                                        aria-label={`Обрати магазин ${store.storeName}`}
-                                        aria-checked={isSelected}
-                                        role="checkbox"
-                                      >
-                                        {isSelected && <CheckCircle2 size={8} className="text-white" />}
-                                      </button>
+                                    {allStoresSelected && <CheckCircle2 size={8} className="text-white" />}
+                                  </button>
 
-                                      <div>
-                                        <div className="flex items-center justify-between text-[12px] mb-1">
-                                          <span className="text-white/50">🏪 {store.storeName}</span>
-                                          <div className="font-mono">
-                                            <span className="text-white/60">факт:</span>{' '}
-                                            <span className={store.currentStock < 0 ? 'text-[#FF6B6B]' : 'text-[#52E8FF]'}>
-                                              {store.currentStock.toFixed(1)}
+                                  <div className="flex flex-col">
+                                    <span className="text-[11px] text-[var(--foreground)] group-hover/row:text-white transition-colors">
+                                      {item.name}
+                                    </span>
+                                  </div>
+                                </div>
+
+                                {/* Right Side: Total KG for this product */}
+                                <div className="flex items-center gap-4">
+                                  <span className="text-[11px] font-bold text-[#58a6ff]">
+                                    {Math.round(item.stores.reduce((acc, s) => acc + s.recommendedKg, 0))} кг
+                                  </span>
+                                </div>
+                              </div>
+
+                              {/* Expanded Stores List */}
+                              {isProductExpanded && (
+                                <div className="ml-8 mt-1 space-y-1 border-l border-white/5 pl-2">
+                                  {item.stores.map(store => {
+                                    const storeKey = `${item.productCode}_${store.storeName}`;
+                                    const isSelected = selectedStores.has(storeKey);
+                                    const avg = parseFloat(String(store.avgSales)) || 0;
+                                    const stock = parseFloat(String(store.currentStock)) || 0;
+                                    const min = parseFloat(String(store.minStock)) || 0;
+                                    const rec = store.recommendedKg;
+
+                                    return (
+                                      <div
+                                        key={storeKey}
+                                        className="px-4 py-2 bg-white/[0.01] hover:bg-white/[0.03] rounded transition-colors flex items-center justify-between"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          toggleStoreSelection(item.productCode, store.storeName);
+                                        }}
+                                      >
+                                        <div className="flex items-center gap-3">
+                                          <button
+                                            className={cn(
+                                              "w-3.5 h-3.5 rounded border flex items-center justify-center transition-all",
+                                              isSelected
+                                                ? "bg-[#3FB950] border-[#3FB950]"
+                                                : "border-[#3e3e42] hover:border-[#3FB950]"
+                                            )}
+                                          >
+                                            {isSelected && <CheckCircle2 size={8} className="text-white" />}
+                                          </button>
+
+                                          <div className="flex flex-col">
+                                            <span className="text-[11px] text-white/50">
+                                              {store.storeName.replace('Магазин "', '').replace('"', '')}
                                             </span>
-                                            <span className="text-white/30 mx-1">→</span>
-                                            <span className="text-white/60">мін:</span>{' '}
-                                            <span className="text-[#FFB84D]">{store.minStock.toFixed(1)}</span>
-                                            <span className="text-white/30 mx-1">→</span>
-                                            <span className="text-white/60">треба:</span>{' '}
-                                            <span className="text-[#3FB950] font-bold">{store.recommendedKg}</span> кг
+                                          </div>
+                                        </div>
+
+                                        <div className="flex items-center gap-6 text-[10px] font-mono">
+                                          <div className="flex flex-col items-end">
+                                            <span className="text-white/20 text-[8px] uppercase">Факт</span>
+                                            <span className={stock < min ? "text-[#FF6B6B]" : "text-[#52E8FF]"}>{stock.toFixed(1)}</span>
+                                          </div>
+                                          <div className="flex flex-col items-end">
+                                            <span className="text-white/20 text-[8px] uppercase">Мін</span>
+                                            <span className="text-[#FFB84D]">{min.toFixed(1)}</span>
+                                          </div>
+                                          <div className="flex flex-col items-end">
+                                            <span className="text-white/20 text-[8px] uppercase">Сер.</span>
+                                            <span className="text-white/60">{avg.toFixed(1)}</span>
+                                          </div>
+                                          <div className="flex flex-col items-end w-12">
+                                            <span className="text-white/20 text-[8px] uppercase">Треба</span>
+                                            <span className={cn(
+                                              "font-bold text-[12px]",
+                                              rec > 0 ? "text-[#3FB950]" : "text-white/10"
+                                            )}>
+                                              {Math.ceil(rec)}
+                                            </span>
                                           </div>
                                         </div>
                                       </div>
-                                    </div>
-
-                                    <div className="flex items-center gap-3">
-                                      {store.deficitKg > 0 && (
-                                        <span className="text-[10px] font-black text-[#FF6B6B] bg-[#FF6B6B]/10 px-1.5 py-0.5 rounded border border-[#FF6B6B]/20" title="Срочно пополнить буфер!">
-                                          🔥 {store.deficitKg} кг
-                                        </span>
-                                      )}
-                                      <span className="text-[11px] font-bold text-[#58a6ff]">
-                                        {(() => {
-                                          const avg = parseFloat(String(store.avgSales)) || 0;
-                                          const stock = parseFloat(String(store.currentStock)) || 0;
-                                          const dynamicOrder = Math.ceil((avg * planningDays) + (avg * 4) - stock);
-                                          return dynamicOrder > 0 ? dynamicOrder : 0;
-                                        })()} кг
-                                      </span>
-                                    </div>
-                                  </div>
-                                );
-                              })}
+                                    );
+                                  })}
+                                </div>
+                              )}
                             </div>
-                          )}
-                        </div>
-                      );
-                    })}
+                          );
+                        })}
+                      </div>
+                    )}
                   </div>
                 );
               })}
@@ -1076,6 +1072,7 @@ export const BIPowerMatrix = ({
                           </span>
                         </div>
 
+                        {/* Товари категорії */}
                         {/* Товари категорії */}
                         {isCategoryExpanded && (
                           <div className="ml-6 mt-1 space-y-1">

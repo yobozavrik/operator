@@ -18,16 +18,9 @@ interface ProductionStatus {
     prod_count: number;
 }
 
-const fetcher = async (url: string) => {
-    const res = await fetch(url);
+import { authedFetcher } from '@/lib/authed-fetcher';
 
-    if (!res.ok) {
-        const text = await res.text();
-        throw new Error(text);
-    }
-
-    return res.json();
-};
+const fetcher = authedFetcher;
 
 export const DistributionControlPanel = () => {
     // 1. Fetch Results (What has been distributed today?)

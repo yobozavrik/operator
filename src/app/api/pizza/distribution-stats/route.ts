@@ -1,11 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
+import { requireAuth } from '@/lib/auth-guard';
 
 /**
  * GET /api/pizza/distribution-stats
  * Fetches distribution statistics from v_pizza_distribution_stats view
  */
 export async function GET(request: NextRequest) {
+    const auth = await requireAuth();
+    if (auth.error) return auth.error;
+
     try {
         const { searchParams } = new URL(request.url);
         const productId = searchParams.get('product_id');

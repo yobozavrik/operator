@@ -7,11 +7,9 @@ import { DashboardLayout } from '@/components/layout';
 import { transformPizzaData } from '@/lib/transformers';
 import { ChefHat } from 'lucide-react';
 
-const fetcher = async (url: string) => {
-    const res = await fetch(url);
-    if (!res.ok) throw new Error('Data fetch failed');
-    return res.json();
-};
+import { authedFetcher } from '@/lib/authed-fetcher';
+
+const fetcher = authedFetcher;
 
 export default function PizzaDashboard() {
     const { data: allProductsData, error, isLoading, mutate } = useSWR<any[]>(

@@ -31,18 +31,20 @@ interface AnalyticsData {
     }[];
 }
 
+import { authedFetcher } from '@/lib/authed-fetcher';
+
 export const OrderFormTable = ({ data, onRefresh }: Props) => {
     // 1. Fetch Factory Stock
     const { data: factoryStockData, isLoading: isStockLoading } = useSWR<FactoryStockItem[]>(
         '/api/pizza/production-detail',
-        (url) => fetch(url).then(r => r.json()),
+        (url) => authedFetcher(url),
         { refreshInterval: 10000 }
     );
 
     // 1.1 Fetch Analytics Data
     const { data: analytics } = useSWR<AnalyticsData>(
         '/api/pizza/analytics',
-        (url) => fetch(url).then(r => r.json()),
+        (url) => authedFetcher(url),
         { refreshInterval: 30000 }
     );
 

@@ -1,10 +1,14 @@
 import { createClient } from '@supabase/supabase-js';
 import { NextResponse, NextRequest } from 'next/server';
+import { requireAuth } from '@/lib/auth-guard';
 
 export const dynamic = 'force-dynamic';
 
 export async function POST(request: NextRequest) {
-    console.log('🚧 DEV MODE: Starting distribution (Bypassing Auth)...');
+    const auth = await requireAuth();
+    if (auth.error) return auth.error;
+
+    console.log('Starting distribution...');
 
     // 1. Проверяем ключ (мы знаем, что он теперь верный!)
     const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;

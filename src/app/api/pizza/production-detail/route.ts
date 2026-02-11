@@ -1,9 +1,13 @@
 import { NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
+import { requireAuth } from '@/lib/auth-guard';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET() {
+    const auth = await requireAuth();
+    if (auth.error) return auth.error;
+
     try {
         const { data, error } = await supabase
             .from('v_pizza_production_only')

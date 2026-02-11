@@ -18,7 +18,7 @@ interface ProductionItem {
 export const ProductionDetailModal = ({ isOpen, onClose }: ProductionDetailModalProps) => {
     const { data, error, isLoading } = useSWR<ProductionItem[]>(
         isOpen ? '/api/pizza/production-detail' : null,
-        (url) => fetch(url).then(r => r.json()),
+        (url) => fetch(url, { credentials: 'include' }).then(r => r.json()),
         { refreshInterval: 10000 }
     );
 

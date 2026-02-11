@@ -19,17 +19,8 @@ import { BarChart2, RefreshCw, Activity, AlertTriangle, Users, Truck } from 'luc
 import { useStore } from '@/context/StoreContext';
 import { useToast, AlertBanner, CriticalCounter, SkeletonKPI, SkeletonTable } from '@/components/ui';
 
-const fetcher = async (url: string) => {
-    const res = await fetch(url);
-    if (!res.ok) {
-        const error = new Error('An error occurred while fetching the data.');
-        const info = await res.json().catch(() => ({}));
-        (error as any).info = info;
-        (error as any).status = res.status;
-        throw error;
-    }
-    return res.json();
-};
+import { authedFetcher } from '@/lib/authed-fetcher';
+const fetcher = authedFetcher;
 
 export const BIDashboard = () => {
     // Get store context

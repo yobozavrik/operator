@@ -8,9 +8,19 @@ export async function middleware(request: NextRequest) {
         },
     })
 
-    // 🚧 TEMPORARY: Allow admin bypass
-    if (request.cookies.get('bypass_auth')?.value === 'true') {
-        return response;
+    // Публічні шляхи — не потребують авторизації в middleware
+    // API routes захищені через requireAuth() в кожному handler
+    const pathname = request.nextUrl.pathname
+    const isPublic =
+        pathname === '/login' ||
+        pathname === '/' ||                          // ← TEMP: убрать після перевірки user=true
+        pathname === '/favicon.ico' ||
+        pathname.startsWith('/api/') ||              // API захищені через requireAuth() в handlers
+        pathname.startsWith('/.well-known') ||
+        pathname.startsWith('/_next');
+
+    if (isPublic) {
+        return response
     }
 
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -30,16 +40,8 @@ export async function middleware(request: NextRequest) {
                 },
                 setAll(cookiesToSet) {
                     cookiesToSet.forEach(({ name, value, options }) => {
-                        request.cookies.set(name, value)
-                    })
-                    response = NextResponse.next({
-                        request: {
-                            headers: request.headers,
-                        },
-                    })
-                    cookiesToSet.forEach(({ name, value, options }) =>
                         response.cookies.set(name, value, options)
-                    )
+                    })
                 },
             },
         }
@@ -49,36 +51,24 @@ export async function middleware(request: NextRequest) {
         data: { user },
     } = await supabase.auth.getUser()
 
-    // ПРОТЕКЦІЯ РОУТІВ
-    // Якщо користувач не залогінений і намагається зайти на закриті сторінки
-    const isProtectedPath =
-        request.nextUrl.pathname === '/' ||
-        request.nextUrl.pathname.startsWith('/bi') ||
-        request.nextUrl.pathname.startsWith('/hub') ||
-        request.nextUrl.pathname.startsWith('/production');
+    // 🔍 TEMP DEBUG LOG — удалить после проверки
+    console.log(`[MW] path=${pathname} user=${!!user}`)
 
-    if (!user && isProtectedPath) {
+    // Всё, что не public — требует user
+    if (!user) {
+        if (pathname.startsWith('/api/')) {
+            return NextResponse.json(
+                { error: 'Unauthorized', code: 'AUTH_REQUIRED' },
+                { status: 401 }
+            )
+        }
         const url = request.nextUrl.clone()
         url.pathname = '/login'
         return NextResponse.redirect(url)
     }
 
-    // Якщо користувач вже залогінений і намагається зайти на логін
-    if (user && request.nextUrl.pathname === '/login') {
-        const url = request.nextUrl.clone()
-        url.pathname = '/'
-        return NextResponse.redirect(url)
-    }
-
-    // Перенаправлення зі старої адреси /bi на нову головну
-    if (request.nextUrl.pathname.startsWith('/bi')) {
-        const url = request.nextUrl.clone()
-        url.pathname = '/'
-        return NextResponse.redirect(url)
-    }
-
-    // Перенаправлення зі старої адреси /bi на нову головну
-    if (request.nextUrl.pathname.startsWith('/bi')) {
+    // Залогінений на /login → на головну
+    if (user && pathname === '/login') {
         const url = request.nextUrl.clone()
         url.pathname = '/'
         return NextResponse.redirect(url)

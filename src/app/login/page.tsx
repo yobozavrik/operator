@@ -32,14 +32,6 @@ export default function LoginPage() {
         setLoading(true);
 
         try {
-            // 🚧 ТИМЧАСОВИЙ ВХІД (TEMPORARY ADMIN)
-            if (email === 'admin@admin.ua' && password === 'admin') {
-                document.cookie = "bypass_auth=true; path=/; max-age=86400"; // 24 hours
-                router.refresh();
-                router.push('/bi');
-                return;
-            }
-
             const { error } = await supabase.auth.signInWithPassword({
                 email,
                 password,
@@ -52,8 +44,8 @@ export default function LoginPage() {
             }
 
             // Successful login
-            router.refresh(); // Refresh server components to recognize header/cookie changes
-            router.push('/bi');
+            router.refresh();
+            router.replace('/');
         } catch (err) {
             setError('Сталася помилка при вході');
             setLoading(false);
