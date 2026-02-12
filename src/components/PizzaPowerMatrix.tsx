@@ -8,9 +8,6 @@ import { cn } from '@/lib/utils';
 import { BackToHome } from '@/components/BackToHome';
 import { DistributionModal } from './DistributionModal';
 import { ProductionDetailModal } from './ProductionDetailModal';
-import { ShopSelector } from './ShopSelector';
-import { GRAVITON_SHOPS } from '@/lib/transformers';
-import { supabase } from '@/lib/supabase';
 
 // 🟢 PIZZA LOGIC CONSTANTS
 const SAFETY_BUFFER = 2; // Days
@@ -216,26 +213,6 @@ export const PizzaPowerMatrix = ({ data, onRefresh, initialViewMode = 'products'
 
     const [showDistModal, setShowDistModal] = useState(false);
     const [showProductionModal, setShowProductionModal] = useState(false);
-    const [selectedShops, setSelectedShops] = useState<number[]>(GRAVITON_SHOPS.map(s => s.id));
-
-    const handleDistribute = async () => {
-        if (selectedShops.length === 0) {
-            alert('Оберіть хоча б один магазин!');
-            return;
-        }
-
-        const { data, error } = await supabase.rpc('fn_orchestrate_distribution', {
-            p_shop_ids: selectedShops.length === GRAVITON_SHOPS.length ? null : selectedShops
-        });
-
-        if (error) {
-            console.error('Error:', error);
-            alert('Помилка розподілу!');
-        } else {
-            alert(`✅ Розподіл запущено! Batch ID: ${data}`);
-            onRefresh();
-        }
-    };
 
     const handleRefresh = async () => {
         setIsRefreshing(true);
@@ -426,17 +403,6 @@ export const PizzaPowerMatrix = ({ data, onRefresh, initialViewMode = 'products'
 
     return (
         <div className="flex flex-col h-full w-full font-sans text-white bg-[#0B0E14]">
-            {/* SHOP SELECTOR & ACTIONS */}
-            <div className="px-4 pt-4 pb-2 bg-[#141829]/50 border-white/5">
-                <ShopSelector selectedShops={selectedShops} setSelectedShops={setSelectedShops} />
-                <button
-                    onClick={handleDistribute}
-                    className="w-full py-3 bg-[#00D4FF] hover:bg-[#00D4FF]/90 text-black font-black uppercase tracking-widest rounded-xl transition-all shadow-[0_0_20px_rgba(0,212,255,0.3)] flex items-center justify-center gap-2"
-                >
-                    <Truck size={20} strokeWidth={2.5} />
-                    Розподілити на вибрані магазини
-                </button>
-            </div>
 
             {/* VIEW MODE TOGGLE - COMPACT */}
             <div className="px-4 py-3 flex items-center justify-start gap-4 bg-[#141829]/50 border-b border-white/5">
