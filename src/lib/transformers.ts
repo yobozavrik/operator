@@ -1,13 +1,15 @@
 import { SupabaseDeficitRow, ProductionTask, PriorityKey, SKUCategory } from '@/types/bi';
 
-export const STORES = [
-    'Магазин "Садгора"',
-    'Магазин "Компас"',
-    'Магазин "Руська"',
-    'Магазин "Хотинська"',
-    'Магазин "Білоруська"',
-    'Магазин "Кварц"'
+export const GRAVITON_SHOPS = [
+    { id: 3, name: 'Кварц' },
+    { id: 6, name: 'Руська' },
+    { id: 10, name: 'Садгора' },
+    { id: 16, name: 'Хотинська' },
+    { id: 17, name: 'Компас' },
+    { id: 20, name: 'Білоруська' }
 ];
+
+export const STORES = GRAVITON_SHOPS.map(s => `Магазин "${s.name}"`);
 
 export interface SKU {
     id: string;

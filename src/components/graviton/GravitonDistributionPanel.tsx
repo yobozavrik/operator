@@ -4,6 +4,8 @@ import { Play, Loader2, RefreshCw, ShoppingBag, Truck, CheckCircle2 } from 'luci
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { generateDistributionExcel } from '@/lib/distribution-export';
+import { ShopSelector } from '../ShopSelector';
+import { GRAVITON_SHOPS } from '@/lib/transformers';
 
 interface GravitonResult {
     "Название продукта": string;
@@ -15,6 +17,7 @@ interface GravitonResult {
 export const GravitonDistributionPanel = () => {
     const [loading, setLoading] = useState(false);
     const [tableData, setTableData] = useState<GravitonResult[]>([]);
+    const [selectedShops, setSelectedShops] = useState<number[]>(GRAVITON_SHOPS.map(s => s.id));
     const [tableLoading, setTableLoading] = useState(false);
     const [lastRunMessage, setLastRunMessage] = useState<string | null>(null);
 
@@ -46,16 +49,16 @@ export const GravitonDistributionPanel = () => {
         setLoading(true);
         setLastRunMessage(null);
         try {
-            // Call the new API endpoint instead of direct RPC
-            const response = await fetch('/api/graviton/distribution/run', {
-                method: 'POST',
+            if (selectedShops.length === 0) {
+                throw new Error('Оберіть хоча б один магазин!');
+            }
+
+            // Call RPC directly
+            const { data, error } = await supabase.rpc('fn_orchestrate_distribution', {
+                p_shop_ids: selectedShops.length === GRAVITON_SHOPS.length ? null : selectedShops
             });
 
-            const result = await response.json();
-
-            if (!response.ok) {
-                throw new Error(result.message || result.error || 'Unknown error');
-            }
+            if (error) throw error;
 
             setLastRunMessage('Розподіл успішно завершено');
             await fetchTableData();
@@ -100,6 +103,7 @@ export const GravitonDistributionPanel = () => {
 
                 {/* Actions */}
                 <div className="flex flex-col items-end gap-2 w-full md:w-auto">
+                    <ShopSelector selectedShops={selectedShops} setSelectedShops={setSelectedShops} />
                     <div className="flex gap-2 w-full md:w-auto">
                         <button
                             onClick={handleRunDistribution}
