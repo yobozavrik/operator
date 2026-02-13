@@ -56,10 +56,13 @@ export const StoreSpecificView = ({ queue, storeName }: Props) => {
         });
     };
 
-    // Auto-expand first category if none expanded
-
-
-
+    // Auto-expand ALL categories on init
+    useEffect(() => {
+        if (categoryGroups.length > 0) {
+            const allCategories = new Set(categoryGroups.map(c => c.categoryName));
+            setExpandedCategories(allCategories);
+        }
+    }, [categoryGroups]);
     return (
         <div className="flex flex-col h-full bg-[#1A1A1A] rounded-xl border border-[#3A3A3A] overflow-hidden font-sans">
             {/* Header */}
@@ -83,8 +86,8 @@ export const StoreSpecificView = ({ queue, storeName }: Props) => {
             </div>
 
             {/* Content - GRID OF EXPANDABLE CARDS */}
-            <div className="flex-1 overflow-y-auto custom-scrollbar bg-[#0D1117] p-2 sm:p-4 flex flex-col justify-center">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 w-full max-w-[1800px] mx-auto auto-rows-min">
+            <div className="flex-1 overflow-y-auto custom-scrollbar bg-[#0D1117] p-2 sm:p-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 w-full max-w-[1800px] mx-auto">
                     {categoryGroups.map((category) => {
                         const isExpanded = expandedCategories.has(category.categoryName);
 

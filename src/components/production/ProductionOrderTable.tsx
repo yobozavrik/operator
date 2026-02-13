@@ -4,7 +4,8 @@ import React, { useState } from 'react';
 import useSWR from 'swr';
 import { ProductionTask } from '@/types/bi';
 import { cn } from '@/lib/utils';
-import { Activity, Percent, TrendingUp, Calculator, Package, AlertTriangle, ChevronDown } from 'lucide-react';
+import { generateProductionPlanExcel } from '@/lib/order-export';
+import { Activity, Percent, TrendingUp, Calculator, Package, AlertTriangle, ChevronDown, FileSpreadsheet, Loader2 } from 'lucide-react';
 
 interface Props {
     data: ProductionTask[];
@@ -20,6 +21,7 @@ export const ProductionOpsTable = ({ data, onRefresh }: Props) => {
 
     // 3. Execution State
     const [isLoading, setIsLoading] = useState(false);
+    const [isExporting, setIsExporting] = useState(false);
     const [isCalculated, setIsCalculated] = useState(false);
     const [planData, setPlanData] = useState<any[]>([]);
 
@@ -53,6 +55,21 @@ export const ProductionOpsTable = ({ data, onRefresh }: Props) => {
             alert("Помилка розрахунку");
         } finally {
             setIsLoading(false);
+        }
+    };
+
+    const handleExportExcel = async () => {
+        if (planData.length === 0) return;
+        setIsExporting(true);
+        try {
+            await generateProductionPlanExcel(planData, isShiftMode ? 3 : days);
+            setNotification('Файл успішно збережено!');
+            setTimeout(() => setNotification(null), 3000);
+        } catch (error) {
+            console.error('Export failed:', error);
+            alert('Помилка експорту');
+        } finally {
+            setIsExporting(false);
         }
     };
 
@@ -97,7 +114,7 @@ export const ProductionOpsTable = ({ data, onRefresh }: Props) => {
                             />
                             <span className={cn(
                                 "text-xs font-bold uppercase tracking-widest",
-                                isShiftMode ? "text-white/10" : "text-white/30"
+                                "text-white/30"
                             )}>Днів</span>
                         </div>
                     </div>
@@ -133,6 +150,21 @@ export const ProductionOpsTable = ({ data, onRefresh }: Props) => {
                 </div>
 
                 <div className="flex-1" />
+
+                {/* EXPORT BUTTON */}
+                {isCalculated && (
+                    <button
+                        onClick={handleExportExcel}
+                        disabled={isExporting}
+                        className={cn(
+                            "flex items-center gap-3 px-6 py-4 bg-[#10B981]/10 border border-[#10B981]/20 hover:bg-[#10B981]/20 active:scale-95 text-[#10B981] font-black uppercase tracking-[0.2em] text-xs rounded-2xl transition-all mr-4 disabled:opacity-50 disabled:cursor-not-allowed",
+                            isExporting && "animate-pulse"
+                        )}
+                    >
+                        {isExporting ? <Loader2 size={16} className="animate-spin" /> : <FileSpreadsheet size={18} strokeWidth={2.5} />}
+                        {isExporting ? "Експорт..." : "Excel звір"}
+                    </button>
+                )}
 
                 {/* Action Button */}
                 <button

@@ -15,7 +15,11 @@ export async function GET(request: Request) {
     const days = parseInt(searchParams.get('days') || '1');
 
     try {
-        const { data, error } = await supabase.rpc('f_generate_order_plan', { p_days: days });
+        // OLD (до 13.02.2026): использовал только физические остатки
+        // const { data, error } = await supabase.rpc('f_generate_order_plan', { p_days: days });
+
+        // NEW (с 13.02.2026): учитывает виртуальные остатки (pending распределение)
+        const { data, error } = await supabase.rpc('f_generate_order_plan_v2', { p_days: days });
 
         if (error) {
             console.error('RPC Error:', error.message);

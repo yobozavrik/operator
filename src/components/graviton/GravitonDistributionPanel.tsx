@@ -99,8 +99,6 @@ export const GravitonDistributionPanel = () => {
                     </div>
                 </div>
 
-
-
                 {/* Actions */}
                 <div className="flex flex-col items-end gap-2 w-full md:w-auto">
                     <ShopSelector selectedShops={selectedShops} setSelectedShops={setSelectedShops} />

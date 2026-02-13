@@ -368,3 +368,182 @@ export const generateDistributionExcel = async (data: DistributionResult[]) => {
     window.URL.revokeObjectURL(url);
     return fileName;
 };
+
+// --- PRODUCTION PLAN EXPORT ---
+
+export interface PlanItem {
+    p_day: number;
+    p_name: string;
+    p_stock: number;
+    p_order: number;
+    p_min: number;
+    p_avg: number;
+}
+
+export const generateProductionPlanExcel = async (planData: PlanItem[], daysCount: number) => {
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('План Виробництва');
+
+    // 1. MAIN HEADER
+    worksheet.mergeCells('A1:G1');
+    const titleCell = worksheet.getCell('A1');
+    titleCell.value = `ПЛАН ВИРОБНИЦТВА НА ${daysCount} ДН(ІВ)`;
+    titleCell.font = { bold: true, size: 16, color: { argb: 'FFFFFFFF' } };
+    titleCell.fill = {
+        type: 'pattern',
+        pattern: 'solid',
+        fgColor: { argb: 'FF1F4E79' } // Dark Blue
+    };
+    titleCell.alignment = { horizontal: 'center', vertical: 'middle' };
+    worksheet.getRow(1).height = 30;
+
+    // 2. METADATA
+    worksheet.mergeCells('A2:G2');
+    const dateCell = worksheet.getCell('A2');
+    dateCell.value = `Згенеровано: ${new Date().toLocaleString('uk-UA')}`;
+    dateCell.font = { italic: true, size: 10, color: { argb: 'FF595959' } };
+    dateCell.alignment = { horizontal: 'right', vertical: 'middle' };
+
+    // 3. DATA PREPARATION (Sort by Day -> Name)
+    const sortedData = [...planData].sort((a, b) => {
+        if (Number(a.p_day) !== Number(b.p_day)) return Number(a.p_day) - Number(b.p_day);
+        return (a.p_name || '').localeCompare(b.p_name || '');
+    });
+
+    const groupedByDay: Record<number, PlanItem[]> = {};
+    sortedData.forEach(item => {
+        const d = Number(item.p_day);
+        if (!groupedByDay[d]) groupedByDay[d] = [];
+        groupedByDay[d].push(item);
+    });
+
+    let rowIndex = 4;
+
+    Object.keys(groupedByDay).sort((a, b) => Number(a) - Number(b)).forEach(dayKey => {
+        const day = Number(dayKey);
+        const items = groupedByDay[day];
+
+        // DAY HEADER
+        worksheet.mergeCells(`A${rowIndex}:G${rowIndex}`);
+        const dayHeader = worksheet.getCell(`A${rowIndex}`);
+        dayHeader.value = `ДЕНЬ ${day} (${items.length} ПОЗИЦІЙ)`;
+        dayHeader.font = { bold: true, size: 12, color: { argb: 'FF000000' } }; // Black text
+
+        let headerColor = 'FF92D050'; // Green (default / Day 3+)
+        if (day === 1) headerColor = 'FFFF0000'; // Red
+        if (day === 2) headerColor = 'FFFFC000'; // Yellow
+
+        dayHeader.fill = {
+            type: 'pattern',
+            pattern: 'solid',
+            fgColor: { argb: headerColor }
+        };
+        dayHeader.alignment = { horizontal: 'left', vertical: 'middle', indent: 1 };
+        dayHeader.border = { top: { style: 'medium' }, bottom: { style: 'medium' }, left: { style: 'medium' }, right: { style: 'medium' } };
+        worksheet.getRow(rowIndex).height = 25;
+        rowIndex++;
+
+        // TABLE HEADERS
+        const headerRow = worksheet.getRow(rowIndex);
+        headerRow.values = ['ТОВАР', 'СЕР. ПРОДАЖІ', 'МІН. ЗАЛИШОК', 'ФАКТ', 'ЗАМОВЛЕННЯ', 'РАЗОМ', 'СТАТУС'];
+
+        const headerStyle = {
+            font: { bold: true, color: { argb: 'FFFFFFFF' } },
+            fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF203864' } } as ExcelJS.Fill,
+            alignment: { horizontal: 'center', vertical: 'middle' } as ExcelJS.Alignment,
+            border: { top: { style: 'thin' }, bottom: { style: 'thin' }, left: { style: 'thin' }, right: { style: 'thin' } } as ExcelJS.Borders
+        };
+
+        [1, 2, 3, 4, 5, 6, 7].forEach(col => {
+            const cell = headerRow.getCell(col);
+            cell.font = headerStyle.font;
+            cell.fill = headerStyle.fill;
+            cell.alignment = headerStyle.alignment;
+            cell.border = headerStyle.border;
+        });
+        rowIndex++;
+
+        // ITEMS
+        items.forEach((item, idx) => {
+            const row = worksheet.getRow(rowIndex);
+            const stock = Number(item.p_stock || 0);
+            const order = Number(item.p_order || 0);
+            const min = Number(item.p_min || 0);
+            const total = stock + order;
+
+            // Status Logic
+            let status = 'OK';
+            if (total < min) status = 'ДЕФІЦИТ';
+            else if (total < min * 1.1) status = 'РИЗИК';
+
+            row.values = [
+                item.p_name,
+                Number(item.p_avg || 0).toFixed(1),
+                min.toFixed(0),
+                stock.toFixed(0),
+                order.toFixed(0),
+                total.toFixed(0),
+                status
+            ];
+
+            // Styling
+            row.getCell(1).alignment = { horizontal: 'left' }; // Name
+            [2, 3, 4, 5, 6, 7].forEach(c => row.getCell(c).alignment = { horizontal: 'center' });
+
+            // Highlight Order column
+            row.getCell(5).font = { bold: true, color: { argb: 'FF0070C0' } };
+
+            // Status Coloring
+            const statusCell = row.getCell(7);
+            if (status === 'ДЕФІЦИТ') {
+                statusCell.font = { bold: true, color: { argb: 'FFFF0000' } };
+            } else if (status === 'РИЗИК') {
+                statusCell.font = { bold: true, color: { argb: 'FFED7D31' } }; // Orange
+            } else {
+                statusCell.font = { color: { argb: 'FF00B050' } }; // Green
+            }
+
+            // Zebra striping
+            if (idx % 2 !== 0) {
+                [1, 2, 3, 4, 5, 6, 7].forEach(col => {
+                    const cell = row.getCell(col);
+                    // cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFAFAFA' } }; // Careful not to overwrite font color? No, fill is compatible.
+                    // ExcelJS handles fill and font separately.
+                    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFAFAFA' } };
+                });
+            }
+
+            // Borders
+            [1, 2, 3, 4, 5, 6, 7].forEach(col => {
+                row.getCell(col).border = { top: { style: 'thin', color: { argb: 'FFD9D9D9' } }, bottom: { style: 'thin', color: { argb: 'FFD9D9D9' } }, left: { style: 'thin', color: { argb: 'FFD9D9D9' } }, right: { style: 'thin', color: { argb: 'FFD9D9D9' } } };
+            });
+
+            rowIndex++;
+        });
+
+        rowIndex++; // Spacer
+    });
+
+    // COL WIDTHS
+    worksheet.columns = [
+        { width: 35 }, // Product
+        { width: 15 }, // Avg
+        { width: 15 }, // Min
+        { width: 12 }, // Fact
+        { width: 15 }, // Order
+        { width: 15 }, // Total
+        { width: 15 }, // Status
+    ];
+
+    // DOWNLOAD
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    const fileName = `Production_Plan_${new Date().toISOString().slice(0, 10)}.xlsx`;
+    link.download = fileName;
+    link.click();
+    window.URL.revokeObjectURL(url);
+    return fileName;
+};
