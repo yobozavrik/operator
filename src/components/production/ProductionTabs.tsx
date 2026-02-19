@@ -88,7 +88,7 @@ interface Props {
 
 export const ProductionTabs = ({ data, onRefresh, showTabs = true }: Props) => {
     // UPDATED TABS: 'matrix' replaces old 'distribution', 'logistics' is NEW
-    const [activeTab, setActiveTab] = useState<'orders' | 'matrix' | 'production' | 'logistics'>('orders');
+    const [activeTab, setActiveTab] = useState<'orders' | 'matrix' | 'production' | 'logistics'>('matrix');
     const [isRefreshing, setIsRefreshing] = useState(false);
     const [isUpdatingStock, setIsUpdatingStock] = useState(false);
     const [showDistModal, setShowDistModal] = useState(false);

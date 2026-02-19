@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
-import { Play, Loader2, RefreshCw, ShoppingBag, Truck, CheckCircle2 } from 'lucide-react';
+import { Play, Loader2, RefreshCw, ShoppingBag, Truck, CheckCircle2, Send } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { generateDistributionExcel } from '@/lib/distribution-export';
@@ -82,74 +82,66 @@ export const GravitonDistributionPanel = () => {
     };
 
     return (
-        <div className="flex flex-col h-full bg-[#0B0E14] overflow-hidden font-sans rounded-2xl relative">
-
-            {/* Header / Controls */}
-            <div className="p-6 border-b border-white/5 bg-[#141829]/30 flex flex-col md:flex-row items-center justify-between gap-6">
-                {/* Title */}
-                <div className="flex items-start gap-4">
-                    <div className="w-12 h-12 rounded-xl bg-[#00D4FF]/10 border border-[#00D4FF]/20 flex items-center justify-center shrink-0">
-                        <Truck size={24} className="text-[#00D4FF]" />
+        <div className="w-full h-full flex flex-col gap-6 bg-[#0B0E14] text-slate-100 p-6 font-sans antialiased relative overflow-hidden">
+            {/* Header */}
+            <header className="flex flex-col md:flex-row md:items-center justify-between gap-6 shrink-0">
+                <div className="flex items-center gap-4">
+                    {/* Brand Icon Box */}
+                    <div className="w-14 h-14 bg-[#00D4FF]/10 border border-[#00D4FF] rounded-lg flex items-center justify-center shadow-[0_0_15px_rgba(0,212,255,0.4)]">
+                        <Truck className="text-[#00D4FF] w-8 h-8" />
                     </div>
-                    <div>
-                        <h2 className="text-xl font-bold text-white uppercase tracking-wide">Гравітон: Логістика</h2>
-                        <div className="text-[10px] text-white/40 uppercase font-black tracking-widest mt-1">
+                    {/* Title & Subtitle */}
+                    <div className="space-y-1">
+                        <h1 className="text-2xl md:text-3xl font-black tracking-[0.25em] uppercase text-white [text-shadow:0_0_8px_rgba(0,212,255,0.6)]">
+                            ГРАВІТОН: ЛОГІСТИКА
+                        </h1>
+                        <p className="text-xs font-semibold tracking-widest text-slate-400 uppercase">
                             Автоматичний розподіл продукції
-                        </div>
+                        </p>
                     </div>
                 </div>
 
-                {/* Actions */}
-                <div className="flex flex-col items-end gap-2 w-full md:w-auto">
+                {/* Header Controls */}
+                <div className="flex flex-wrap items-center gap-3">
                     <ShopSelector selectedShops={selectedShops} setSelectedShops={setSelectedShops} />
-                    <div className="flex gap-2 w-full md:w-auto">
-                        <button
-                            onClick={handleRunDistribution}
-                            disabled={loading}
-                            className={cn(
-                                "relative overflow-hidden h-12 px-6 rounded-xl font-black uppercase tracking-wider transition-all flex items-center gap-2 shadow-xl flex-1 md:flex-none justify-center",
-                                loading
-                                    ? "bg-[#1A1F3A] text-white/50 cursor-not-allowed border border-white/5"
-                                    : "bg-gradient-to-r from-[#00D4FF] to-[#0088FF] text-[#0B0E14] hover:shadow-[0_0_30px_rgba(0,212,255,0.3)] hover:scale-[1.02] active:scale-[0.98]"
-                            )}
-                        >
-                            {loading ? (
-                                <>
-                                    <Loader2 size={18} className="animate-spin" />
-                                    <span>Рахуємо...</span>
-                                </>
-                            ) : (
-                                <>
-                                    <Play size={18} fill="currentColor" />
-                                    <span>Сформувати</span>
-                                </>
-                            )}
-                        </button>
 
-                        <button
-                            onClick={handleExport}
-                            disabled={tableData.length === 0 || loading}
-                            className={cn(
-                                "relative overflow-hidden h-12 px-6 rounded-xl font-black uppercase tracking-wider transition-all flex items-center gap-2 shadow-xl flex-1 md:flex-none justify-center border",
-                                tableData.length === 0 || loading
-                                    ? "bg-[#1A1F3A] border-white/5 text-white/20 cursor-not-allowed"
-                                    : "bg-[#1A1F3A] border-[#00D4FF]/30 text-[#00D4FF] hover:bg-[#00D4FF]/10 hover:border-[#00D4FF] hover:shadow-[0_0_20px_rgba(0,212,255,0.15)] active:scale-[0.98]"
-                            )}
-                        >
-                            <Truck size={18} />
-                            <span>Відправити</span>
-                        </button>
-                    </div>
+                    <button
+                        onClick={handleRunDistribution}
+                        disabled={loading}
+                        className={cn(
+                            "flex items-center gap-2 px-6 py-2 rounded-md font-bold text-sm tracking-widest transition-all active:scale-95 shadow-[0_0_15px_rgba(0,212,255,0.4)]",
+                            loading
+                                ? "bg-slate-800 text-slate-500 cursor-not-allowed"
+                                : "bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white"
+                        )}
+                    >
+                        {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Play className="w-4 h-4 fill-current" />}
+                        <span>СФОРМУВАТИ</span>
+                    </button>
+
+                    <button
+                        onClick={handleExport}
+                        disabled={tableData.length === 0 || loading}
+                        className={cn(
+                            "flex items-center gap-2 border border-slate-700 px-6 py-2 rounded-md font-bold text-sm tracking-widest transition-all active:scale-95",
+                            tableData.length === 0 || loading
+                                ? "text-slate-600 border-slate-800 cursor-not-allowed"
+                                : "hover:bg-slate-800 text-slate-300"
+                        )}
+                    >
+                        <Send className="w-4 h-4" />
+                        <span>ВІДПРАВИТИ</span>
+                    </button>
 
                     <AnimatePresence>
                         {lastRunMessage && (
                             <motion.div
-                                initial={{ opacity: 0, y: -10 }}
-                                animate={{ opacity: 1, y: 0 }}
+                                initial={{ opacity: 0, x: 10 }}
+                                animate={{ opacity: 1, x: 0 }}
                                 exit={{ opacity: 0 }}
                                 className={cn(
-                                    "text-xs font-mono flex items-center gap-1.5",
-                                    lastRunMessage.startsWith('Помилка') ? "text-red-400" : "text-emerald-400"
+                                    "px-3 py-1 rounded text-xs font-mono flex items-center gap-1.5",
+                                    lastRunMessage.startsWith('Помилка') ? "bg-red-500/10 text-red-400" : "bg-emerald-500/10 text-emerald-400"
                                 )}
                             >
                                 {lastRunMessage.startsWith('Помилка') ? null : <CheckCircle2 size={12} />}
@@ -158,66 +150,79 @@ export const GravitonDistributionPanel = () => {
                         )}
                     </AnimatePresence>
                 </div>
-            </div>
+            </header>
 
-            {/* Table Area */}
-            <div className="flex-1 overflow-hidden p-6">
-                <div className="bg-[#141829]/50 border border-white/5 rounded-2xl h-full flex flex-col overflow-hidden">
-                    {/* Table Header */}
-                    <div className="grid grid-cols-12 gap-4 p-4 border-b border-white/5 bg-white/[0.02] text-[10px] uppercase font-bold tracking-widest text-white/40">
-                        <div className="col-span-1 text-center">#</div>
-                        <div className="col-span-5">Назва продукту</div>
-                        <div className="col-span-4">Магазин</div>
-                        <div className="col-span-2 text-right">Кількість</div>
+            {/* Main Content */}
+            <section className="bg-slate-900/60 backdrop-blur-xl border border-white/10 rounded-xl overflow-hidden shadow-2xl flex-1 flex flex-col relative min-h-0">
+                {/* Loading State Overlay */}
+                {tableLoading && (
+                    <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-slate-950/80 backdrop-blur-sm transition-opacity duration-300">
+                        <div className="w-12 h-12 border-4 border-t-[#00D4FF] border-slate-700 rounded-full animate-spin mb-4"></div>
+                        <p className="text-[#00D4FF] font-bold tracking-widest animate-pulse">РАХУЄМО...</p>
                     </div>
+                )}
 
-                    {/* Table Body */}
-                    <div className="flex-1 overflow-y-auto custom-scrollbar p-2">
-                        {tableLoading ? (
-                            <div className="flex flex-col items-center justify-center h-full text-white/20 gap-3">
-                                <Loader2 size={32} className="animate-spin text-[#00D4FF]" />
-                                <span className="text-xs tracking-widest">Завантаження даних...</span>
-                            </div>
-                        ) : tableData.length === 0 ? (
-                            <div className="flex flex-col items-center justify-center h-full text-white/20 gap-4">
-                                <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center">
-                                    <ShoppingBag size={32} />
-                                </div>
-                                <span className="text-xs uppercase tracking-widest font-bold">Розподіл ще не сформовано</span>
-                            </div>
-                        ) : (
-                            <div className="space-y-1">
+                {/* Empty State */}
+                {!tableLoading && tableData.length === 0 && (
+                    <div className="flex-1 flex flex-col items-center justify-center text-slate-500">
+                        <ShoppingBag className="w-16 h-16 mb-4 opacity-20" />
+                        <p className="text-sm font-bold tracking-widest uppercase">Розподіл ще не сформовано</p>
+                    </div>
+                )}
+
+                {/* Data Table */}
+                {tableData.length > 0 && (
+                    <div className="flex-1 overflow-auto custom-scrollbar">
+                        <table className="w-full text-left border-collapse relative">
+                            <thead className="sticky top-0 z-10">
+                                <tr className="border-b border-slate-800 bg-[#0F172A]">
+                                    <th className="py-5 px-6 text-[10px] font-black tracking-widest text-slate-500 uppercase sticky top-0">#</th>
+                                    <th className="py-5 px-6 text-[10px] font-black tracking-widest text-slate-500 uppercase sticky top-0">Назва продукту</th>
+                                    <th className="py-5 px-6 text-[10px] font-black tracking-widest text-slate-500 uppercase sticky top-0">Магазин</th>
+                                    <th className="py-5 px-6 text-[10px] font-black tracking-widest text-slate-500 uppercase text-right sticky top-0">Кількість</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-slate-800/50">
                                 {tableData.map((row, idx) => (
-                                    <motion.div
+                                    <motion.tr
                                         key={`${row['Название продукта']}-${row['Магазин']}-${idx}`}
-                                        initial={{ opacity: 0, x: -20 }}
-                                        animate={{ opacity: 1, x: 0 }}
-                                        transition={{ delay: idx * 0.02 }}
-                                        className="grid grid-cols-12 gap-4 p-3 rounded-lg hover:bg-white/5 transition-colors border border-transparent hover:border-white/5 items-center group"
+                                        initial={{ opacity: 0, y: 10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        transition={{ delay: idx * 0.01 }}
+                                        className="group hover:bg-white/5 transition-colors cursor-default"
                                     >
-                                        <div className="col-span-1 text-center text-white/20 font-mono text-xs">{idx + 1}</div>
-                                        <div className="col-span-5 font-medium text-white/90 text-sm group-hover:text-[#00D4FF] transition-colors">{row['Название продукта']}</div>
-                                        <div className="col-span-4 text-xs text-white/60">{row['Магазин']}</div>
-                                        <div className="col-span-2 text-right">
-                                            <span className="inline-flex items-center justify-center px-3 py-1 rounded bg-[#00D4FF]/10 text-[#00D4FF] text-xs font-black font-mono border border-[#00D4FF]/20 min-w-[3rem]">
+                                        <td className="py-3 px-6 text-sm font-mono text-slate-500 group-hover:text-[#00D4FF] transition-colors">{idx + 1}</td>
+                                        <td className="py-3 px-6 text-sm font-bold tracking-wide text-white">{row['Название продукта']}</td>
+                                        <td className="py-3 px-6 text-xs font-semibold text-slate-400">{row['Магазин']}</td>
+                                        <td className="py-3 px-6 text-right">
+                                            <span className="inline-block px-3 py-1 bg-[#00D4FF]/10 text-[#00D4FF] border border-[#00D4FF]/30 rounded font-mono text-sm font-bold min-w-[4rem] text-center">
                                                 {row['Количество']}
                                             </span>
-                                        </div>
-                                    </motion.div>
+                                        </td>
+                                    </motion.tr>
                                 ))}
-                            </div>
-                        )}
+                            </tbody>
+                        </table>
                     </div>
+                )}
 
-                    {/* Footer */}
-                    <div className="p-3 border-t border-white/5 bg-[#0B0E14]/50 flex justify-between items-center text-[10px] text-white/30 uppercase tracking-widest font-mono">
-                        <div>Всього позицій: {tableData.length}</div>
-                        <button onClick={fetchTableData} className="hover:text-white transition-colors">
-                            <RefreshCw size={12} />
-                        </button>
+                {/* Footer */}
+                <div className="flex items-center justify-between px-4 py-2 border-t border-slate-800/50 shrink-0 bg-[#0B0E14]/50">
+                    <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
+                        <p className="text-[10px] font-black tracking-widest text-slate-400 uppercase">
+                            Всього позицій: <span className="text-white">{tableData.length}</span>
+                        </p>
                     </div>
+                    <button
+                        onClick={fetchTableData}
+                        className="p-2 text-slate-500 hover:text-[#00D4FF] hover:bg-slate-800/50 rounded-full transition-all group"
+                        title="Оновити"
+                    >
+                        <RefreshCw className="w-4 h-4 group-active:rotate-180 transition-transform duration-500" />
+                    </button>
                 </div>
-            </div>
+            </section>
         </div>
     );
 };

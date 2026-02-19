@@ -43,6 +43,7 @@ export const Sidebar = () => {
         { label: 'Замовлення', icon: ClipboardList, path: '/pizza/order-form' }
     ];
 
+
     return (
         <>
             {/* Desktop Sidebar */}
@@ -225,15 +226,30 @@ export const Sidebar = () => {
 
 
 
-                <div className="px-4 mt-6 pt-4 border-t border-[var(--border)] z-10">
+                <div className="px-4 mt-6 pt-4 border-t border-[var(--border)] z-10 space-y-2">
+                    {/* Main Menu Button */}
+                    <button
+                        onClick={() => router.push('/')}
+                        className="w-full flex items-center gap-3 px-4 py-2 rounded-lg text-[var(--text-muted)] hover:text-white hover:bg-[var(--panel)]/50 text-xs font-semibold uppercase transition-colors"
+                    >
+                        <div className="w-5 h-5 rounded bg-slate-800 flex items-center justify-center border border-slate-700">
+                            <LayoutDashboard size={14} />
+                        </div>
+                        Головне меню
+                    </button>
+
+                    {/* Logout Button */}
                     <button
                         onClick={async () => {
                             await auditLog('LOGOUT', 'Sidebar', { timestamp: new Date().toISOString() });
                             // Clear auth cookie and redirect to login
                             document.cookie = 'auth-token=; Max-Age=0; path=/';
+                            const { createClient } = await import('@/utils/supabase/client');
+                            const supabase = createClient();
+                            await supabase.auth.signOut();
                             window.location.href = '/login';
                         }}
-                        className="w-full flex items-center justify-center gap-3 px-4 py-2 rounded-lg text-[var(--text-muted)] hover:text-white hover:bg-[var(--panel)]/50 text-xs font-semibold uppercase transition-colors"
+                        className="w-full flex items-center gap-3 px-4 py-2 rounded-lg text-red-400/70 hover:text-red-400 hover:bg-red-500/10 text-xs font-semibold uppercase transition-colors"
                     >
                         <LogOut size={16} />
                         Вихід

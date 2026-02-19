@@ -11,8 +11,12 @@ export default function GravitonDeliveryPage() {
     const { currentCapacity } = useStore();
 
     // Use a fixed date for static header or implement dynamic time if needed
-    const currentTime = new Date();
-    const formattedDate = new Intl.DateTimeFormat('uk-UA', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }).format(currentTime);
+    const [formattedDate, setFormattedDate] = React.useState<string>('');
+
+    React.useEffect(() => {
+        const currentTime = new Date();
+        setFormattedDate(new Intl.DateTimeFormat('uk-UA', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }).format(currentTime));
+    }, []);
 
     return (
         <DashboardLayout

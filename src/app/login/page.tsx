@@ -1,10 +1,30 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { Lock, Mail, Eye, EyeOff, AlertCircle } from 'lucide-react';
+import React, { useState } from 'react';
 import { createClient } from '@/utils/supabase/client';
 import { useRouter } from 'next/navigation';
+import { Orbitron, Rajdhani, JetBrains_Mono } from 'next/font/google';
+import { Mail, Lock, Eye, EyeOff, ChevronRight, Terminal, ShieldCheck } from 'lucide-react';
+import { cn } from '@/lib/utils'; // Assuming basic cn utility exists
+
+// Load fonts
+const orbitron = Orbitron({
+    subsets: ['latin'],
+    weight: ['400', '500', '700', '900'],
+    variable: '--font-orbitron'
+});
+
+const rajdhani = Rajdhani({
+    subsets: ['latin'],
+    weight: ['400', '500', '600', '700'],
+    variable: '--font-rajdhani'
+});
+
+const jbMono = JetBrains_Mono({
+    subsets: ['latin'],
+    weight: ['300', '400'],
+    variable: '--font-mono'
+});
 
 export default function LoginPage() {
     const router = useRouter();
@@ -14,17 +34,6 @@ export default function LoginPage() {
     const [showPassword, setShowPassword] = useState(false);
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
-    const [particles, setParticles] = useState<any[]>([]);
-
-    useEffect(() => {
-        setParticles([...Array(20)].map((_, i) => ({
-            id: i,
-            left: `${Math.random() * 100}%`,
-            top: `${Math.random() * 100}%`,
-            duration: 3 + Math.random() * 2,
-            delay: Math.random() * 2,
-        })));
-    }, []);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -53,186 +62,143 @@ export default function LoginPage() {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center relative overflow-hidden"
-            style={{
-                background: 'linear-gradient(135deg, #05080f 0%, #0F172A 50%, #05080f 100%)', // Darker background
-            }}>
+        <div className={cn(
+            "min-h-screen flex items-center justify-center overflow-hidden relative transition-colors duration-300",
+            "bg-[#F0F4F8] dark:bg-[#0B0F19]",
+            orbitron.variable, rajdhani.variable, jbMono.variable
+        )}>
+            {/* Background Layers */}
+            <div className="fixed inset-0 z-0 bg-particles opacity-30 dark:opacity-20 pointer-events-none"></div>
+            <div className="fixed inset-0 z-0 bg-gradient-to-b from-transparent via-transparent to-black/80 pointer-events-none"></div>
+            <div className="fixed top-[-10%] left-[-10%] w-[40%] h-[40%] bg-[#00C3FF]/10 rounded-full blur-[120px] animate-pulse-slow pointer-events-none"></div>
+            <div className="fixed bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-900/20 rounded-full blur-[120px] pointer-events-none"></div>
 
-            {/* Animated background particles - Reduced Visibility */}
-            <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                {particles.map((particle) => (
-                    <motion.div
-                        key={particle.id}
-                        className="absolute w-1 h-1 bg-[#00D4FF]/20 rounded-full" // Reduced opacity
-                        style={{
-                            left: particle.left,
-                            top: particle.top,
-                        }}
-                        animate={{
-                            y: [0, -30, 0],
-                            opacity: [0.1, 0.4, 0.1], // Fainter animation
-                        }}
-                        transition={{
-                            duration: particle.duration,
-                            repeat: Infinity,
-                            delay: particle.delay,
-                        }}
-                    />
-                ))}
-            </div>
+            <main className="relative z-10 w-full max-w-md p-6 font-sans">
+                <div className="group card-hover relative bg-white/60 dark:bg-[rgba(18,24,38,0.7)] glass-panel rounded-xl border border-gray-200 dark:border-[rgba(0,195,255,0.3)] shadow-glass p-8 md:p-10 transition-all duration-300 backdrop-blur-xl">
+                    {/* Corner Brackets */}
+                    <div className="corner-bracket corner-tl"></div>
+                    <div className="corner-bracket corner-tr"></div>
+                    <div className="corner-bracket corner-bl"></div>
+                    <div className="corner-bracket corner-br"></div>
 
-            {/* Glow effect behind card - Reduced */}
-            <div className="absolute w-[500px] h-[500px] rounded-full opacity-10"
-                style={{
-                    background: 'radial-gradient(circle, #00D4FF 0%, transparent 60%)',
-                    filter: 'blur(120px)',
-                }}
-            />
-
-            {/* Login Card */}
-            <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6 }}
-                className="relative z-10 w-full max-w-md mx-4"
-            >
-                <div
-                    className="rounded-3xl p-8 border"
-                    style={{
-                        background: 'rgba(15, 23, 42, 0.95)', // More solid background
-                        backdropFilter: 'blur(40px)',
-                        WebkitBackdropFilter: 'blur(40px)',
-                        borderColor: 'rgba(255, 255, 255, 0.15)', // Sharper border
-                        boxShadow: '0 40px 80px -20px rgba(0, 0, 0, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.1)',
-                    }}
-                >
-                    {/* Logo */}
-                    <div className="text-center mb-8">
-                        <div className="w-16 h-16 mx-auto mb-4 rounded-2xl flex items-center justify-center"
-                            style={{
-                                background: 'linear-gradient(135deg, #0088FF 0%, #00D4FF 100%)',
-                                boxShadow: '0 8px 32px rgba(0, 212, 255, 0.3)',
-                            }}>
-                            <span className="text-2xl font-black text-white">Г</span>
+                    {/* Header */}
+                    <div className="flex flex-col items-center mb-10 animate-float">
+                        <div className="w-16 h-16 bg-gradient-to-br from-[#00C3FF] to-blue-600 rounded-lg shadow-neon flex items-center justify-center mb-6 relative overflow-hidden">
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
+                            <span className={cn("text-white font-bold text-4xl drop-shadow-md select-none", orbitron.className)}>Г</span>
                         </div>
-                        <h1 className="text-xl font-bold text-white tracking-tight uppercase">Аналітична система Галя</h1>
-                        <p className="text-sm text-slate-400 mt-1">Production Hub</p>
+                        <h1 className={cn("text-center font-bold text-2xl md:text-3xl text-gray-900 dark:text-white tracking-wider mb-2 drop-shadow-[0_0_10px_rgba(0,195,255,0.3)]", orbitron.className)}>
+                            АНАЛІТИЧНА СИСТЕМА <br /> <span className="text-[#00C3FF]">ГАЛЯ</span>
+                        </h1>
+                        <div className="flex items-center space-x-2 text-[#00C3FF]/80 dark:text-[#00C3FF]/70">
+                            <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+                            <span className={cn("text-xs tracking-[0.2em] uppercase", jbMono.className)}>Production Hub</span>
+                        </div>
                     </div>
 
                     {/* Form */}
-                    <form onSubmit={handleSubmit} className="space-y-5">
-                        {/* Email Field */}
+                    <form onSubmit={handleSubmit} className="space-y-6">
+                        {/* Email */}
                         <div className="relative group">
-                            <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 group-focus-within:text-[#00D4FF] transition-colors" />
+                            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                <Mail className="text-gray-400 group-focus-within:text-[#00C3FF] transition-colors" size={20} />
+                            </div>
                             <input
+                                className={cn(
+                                    "block w-full pl-12 pr-4 py-3.5 bg-gray-100 dark:bg-[rgba(255,255,255,0.08)] border border-gray-300 dark:border-gray-700 rounded-lg",
+                                    "text-gray-900 dark:text-gray-100 placeholder-gray-500",
+                                    "focus:ring-2 focus:ring-[#00C3FF] focus:border-[#00C3FF] transition-all duration-300 outline-none backdrop-blur-sm shadow-inner",
+                                    rajdhani.className
+                                )}
+                                id="email"
+                                name="email"
+                                placeholder="Enter your email"
+                                required
                                 type="email"
-                                placeholder="Email Address"
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
-                                className="w-full pl-12 pr-4 py-4 rounded-xl text-white placeholder-slate-500 transition-all duration-300 focus:outline-none"
-                                style={{
-                                    background: 'rgba(0, 0, 0, 0.3)', // Darker input bg
-                                    border: '1px solid rgba(255, 255, 255, 0.2)', // Sharper border
-                                }}
-                                onFocus={(e) => {
-                                    e.target.style.borderColor = '#00D4FF';
-                                    e.target.style.background = 'rgba(0, 0, 0, 0.5)';
-                                    e.target.style.boxShadow = '0 0 0 4px rgba(0, 212, 255, 0.1)';
-                                }}
-                                onBlur={(e) => {
-                                    e.target.style.borderColor = 'rgba(255, 255, 255, 0.2)';
-                                    e.target.style.background = 'rgba(0, 0, 0, 0.3)';
-                                    e.target.style.boxShadow = 'none';
-                                }}
                             />
                         </div>
 
-                        {/* Password Field */}
+                        {/* Password */}
                         <div className="relative group">
-                            <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 group-focus-within:text-[#00D4FF] transition-colors" />
+                            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                <Lock className="text-gray-400 group-focus-within:text-[#00C3FF] transition-colors" size={20} />
+                            </div>
                             <input
-                                type={showPassword ? 'text' : 'password'}
-                                placeholder="Password"
+                                className={cn(
+                                    "block w-full pl-12 pr-12 py-3.5 bg-gray-100 dark:bg-[rgba(255,255,255,0.08)] border border-gray-300 dark:border-gray-700 rounded-lg",
+                                    "text-gray-900 dark:text-gray-100 placeholder-gray-500",
+                                    "focus:ring-2 focus:ring-[#00C3FF] focus:border-[#00C3FF] transition-all duration-300 outline-none backdrop-blur-sm shadow-inner tracking-widest",
+                                    jbMono.className
+                                )}
+                                id="password"
+                                name="password"
+                                placeholder="••••••••"
+                                required
+                                type={showPassword ? "text" : "password"}
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
-                                className="w-full pl-12 pr-12 py-4 rounded-xl text-white placeholder-slate-500 transition-all duration-300 focus:outline-none"
-                                style={{
-                                    background: 'rgba(0, 0, 0, 0.3)',
-                                    border: '1px solid rgba(255, 255, 255, 0.2)',
-                                }}
-                                onFocus={(e) => {
-                                    e.target.style.borderColor = '#00D4FF';
-                                    e.target.style.background = 'rgba(0, 0, 0, 0.5)';
-                                    e.target.style.boxShadow = '0 0 0 4px rgba(0, 212, 255, 0.1)';
-                                }}
-                                onBlur={(e) => {
-                                    e.target.style.borderColor = 'rgba(255, 255, 255, 0.2)';
-                                    e.target.style.background = 'rgba(0, 0, 0, 0.3)';
-                                    e.target.style.boxShadow = 'none';
-                                }}
                             />
-                            <button
-                                type="button"
+                            <div
+                                className="absolute inset-y-0 right-0 pr-4 flex items-center cursor-pointer hover:text-[#00C3FF] text-gray-400 transition-colors"
                                 onClick={() => setShowPassword(!showPassword)}
-                                className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white transition-colors"
                             >
-                                {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                            </button>
+                                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                            </div>
                         </div>
 
                         {/* Error Message */}
                         {error && (
-                            <motion.div
-                                initial={{ opacity: 0, y: -10 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                className="flex items-center gap-2 text-[#FF4D4D] text-sm bg-[#FF4D4D]/10 px-4 py-3 rounded-xl border border-[#FF4D4D]/20"
-                            >
-                                <AlertCircle className="w-4 h-4" />
+                            <div className="text-red-500 text-sm text-center bg-red-500/10 border border-red-500/20 p-3 rounded-lg animate-in fade-in slide-in-from-bottom-2">
                                 {error}
-                            </motion.div>
+                            </div>
                         )}
 
                         {/* Submit Button */}
-                        <motion.button
+                        <button
+                            className={cn(
+                                "w-full relative overflow-hidden rounded-lg btn-scan py-4 px-6 text-white font-bold text-lg tracking-wide uppercase shadow-neon group transform active:scale-[0.98] transition-transform flex items-center justify-center",
+                                orbitron.className,
+                                loading && "opacity-70 cursor-not-allowed"
+                            )}
                             type="submit"
                             disabled={loading}
-                            whileHover={{ scale: 1.02 }}
-                            whileTap={{ scale: 0.98 }}
-                            className="w-full py-4 rounded-xl font-bold text-white transition-all duration-300 disabled:opacity-50 mt-2"
-                            style={{
-                                background: 'linear-gradient(135deg, #0088FF 0%, #00D4FF 100%)',
-                                boxShadow: '0 8px 32px rgba(0, 136, 255, 0.3)',
-                                border: '1px solid rgba(255,255,255,0.1)'
-                            }}
                         >
-                            {loading ? (
-                                <span className="flex items-center justify-center gap-2">
-                                    <motion.div
-                                        className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full"
-                                        animate={{ rotate: 360 }}
-                                        transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
-                                    />
-                                    Вход...
-                                </span>
-                            ) : (
-                                'Увійти в систему'
-                            )}
-                        </motion.button>
-                    </form>
-
-                    {/* Forgot Password Link */}
-                    <div className="text-center mt-6">
-                        <button className="text-sm text-slate-400 hover:text-[#00D4FF] transition-colors">
-                            Забули пароль?
+                            <span className="relative z-10 flex items-center justify-center gap-2">
+                                {loading ? "Вхід..." : "Увійти в систему"}
+                                {!loading && <ChevronRight className="group-hover:translate-x-1 transition-transform" size={18} />}
+                            </span>
                         </button>
-                    </div>
+
+                        <div className="text-center pt-2">
+                            <a className="text-sm text-gray-500 dark:text-gray-400 hover:text-[#00C3FF] dark:hover:text-[#00C3FF] transition-colors duration-200" href="#">
+                                Забули пароль?
+                            </a>
+                        </div>
+                    </form>
                 </div>
 
-                {/* Footer */}
-                <p className="text-center text-xs text-slate-500 mt-6">
-                    © 2026 Аналітична система Галя. All rights reserved.
-                </p>
-            </motion.div>
+                <div className="mt-8 text-center flex flex-col gap-2 pointer-events-none">
+                    <p className={cn("text-[10px] text-gray-500 dark:text-gray-500/60 uppercase tracking-widest whitespace-nowrap", jbMono.className)}>
+                        © 2026 Аналітична система Галя. All rights reserved.
+                    </p>
+                    <p className={cn("text-[10px] text-[#00C3FF]/60 hover:text-[#00C3FF] uppercase tracking-widest transition-colors cursor-default whitespace-nowrap pointer-events-auto", jbMono.className)}>
+                        Produced by Tovstytskyi Dmytro
+                    </p>
+                </div>
+            </main>
+
+            {/* Bottom Status Indicators */}
+            <div className={cn("fixed bottom-6 left-6 hidden md:flex items-center gap-2 opacity-60 text-[10px] text-green-500 select-none", jbMono.className)}>
+                <Terminal size={14} className="animate-pulse" />
+                <span className="typing-effect">SYSTEM READY</span>
+            </div>
+
+            <div className={cn("fixed bottom-6 right-6 hidden md:flex items-center gap-2 opacity-60 text-[10px] text-[#00C3FF] select-none", jbMono.className)}>
+                <span>ENCRYPTION ACTIVE</span>
+                <ShieldCheck size={14} />
+            </div>
         </div>
     );
 }

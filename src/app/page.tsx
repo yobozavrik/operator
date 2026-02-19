@@ -1,25 +1,89 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import useSWR from 'swr';
-import { Activity, ArrowRight, BarChart2, ChefHat, LayoutGrid, Zap, Factory, Store, ShoppingBag } from 'lucide-react';
+import {
+  LayoutGrid,
+  BarChart2,
+  ChefHat,
+  Zap,
+  Activity,
+  Factory,
+  Store,
+  ShoppingBag,
+  Warehouse,
+  Truck,
+  ClipboardList,
+  ArrowRight,
+  LogOut
+} from 'lucide-react';
+import { createClient } from '@/utils/supabase/client';
 import { cn } from '@/lib/utils';
-import { CriticalCounter, StatusDot, Skeleton } from '@/components/ui';
-
+import { Chakra_Petch, JetBrains_Mono } from 'next/font/google';
 import { authedFetcher } from '@/lib/authed-fetcher';
+import { transformPizzaData } from '@/lib/transformers';
+
+// Font configuration
+const chakra = Chakra_Petch({
+  weight: ['300', '400', '500', '600', '700'],
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-chakra',
+});
+
+const jetbrains = JetBrains_Mono({
+  weight: ['400', '700'],
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-jetbrains',
+});
 
 const fetcher = authedFetcher;
 
 export default function CommandLevel1() {
   const [hoveredCard, setHoveredCard] = useState<string | null>(null);
-
-  // 🛰️ DATA FETCHING
-  const { data: gravitonData } = useSWR('/api/graviton/metrics', fetcher, { refreshInterval: 10000 });
-  const { data: pizzaData } = useSWR('/api/pizza/analytics', fetcher, { refreshInterval: 10000 });
-
-  // Simple time for the header
   const [time, setTime] = useState<Date | null>(null);
+  const supabase = createClient();
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    window.location.href = '/login';
+  };
+
+  // --- GRAVITON DATA ---
+  const { data: gravitonMetrics } = useSWR('/api/graviton/metrics', fetcher, { refreshInterval: 30000 });
+
+  // --- PIZZA DATA ---
+  const { data: pizzaRawData } = useSWR('/api/pizza/orders', fetcher, { refreshInterval: 60000 });
+  const { data: pizzaSummary } = useSWR('/api/pizza/summary', fetcher, { refreshInterval: 60000 });
+
+  const pizzaMetrics = useMemo(() => {
+    // Default values
+    let fact = 0;
+    let norm = 0;
+    let index = 0;
+
+    // 1. FACT: Calculate from raw products (sum of current stock)
+    // This matches ProductionTabs logic: totalNetworkStock
+    if (pizzaRawData) {
+      const products = transformPizzaData(pizzaRawData);
+      fact = products.reduce((sum, p) => sum + p.totalStockKg, 0);
+    }
+
+    // 2. NORM: Use summary API if available (matches Dashboard), fallback to sum of minStock
+    if (pizzaSummary?.total_norm) {
+      norm = pizzaSummary.total_norm;
+    } else if (pizzaRawData) {
+      const products = transformPizzaData(pizzaRawData);
+      norm = products.reduce((sum, p) => sum + p.minStockThresholdKg, 0);
+    }
+
+    // 3. INDEX: Calculate based on determined Fact/Norm
+    index = norm > 0 ? Math.round((fact / norm) * 100) : 0;
+
+    return { fact: Math.round(fact), norm: Math.round(norm), index };
+  }, [pizzaRawData, pizzaSummary]);
 
   useEffect(() => {
     setTime(new Date());
@@ -27,391 +91,274 @@ export default function CommandLevel1() {
     return () => clearInterval(timer);
   }, []);
 
+  // Format date: Субота, 14 Лютого
+  const formattedDate = time ? new Intl.DateTimeFormat('uk-UA', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long'
+  }).format(time) : '';
+
+  // Capitalize first letter of date
+  const capitalizedDate = formattedDate.charAt(0).toUpperCase() + formattedDate.slice(1);
+
   return (
-    <div className="min-h-screen bg-[#0B0E17] text-white overflow-hidden relative font-sans selection:bg-[#00D4FF]/30">
+    <div className={cn(
+      "h-screen bg-[#0B0F19] text-slate-200 font-sans relative overflow-hidden selection:bg-[#00E0FF] selection:text-black flex flex-col",
+      chakra.variable,
+      jetbrains.variable,
+      "font-[family-name:var(--font-chakra)]"
+    )}>
+      {/* Background Effects */}
+      <div className="fixed inset-0 z-0 opacity-10 pointer-events-none bg-[size:40px_40px]" style={{
+        backgroundImage: 'linear-gradient(to right, #1f2937 1px, transparent 1px), linear-gradient(to bottom, #1f2937 1px, transparent 1px)'
+      }}></div>
+      <div className="fixed top-0 left-0 w-full h-96 bg-[#00E0FF]/5 rounded-full blur-[120px] pointer-events-none transform -translate-y-1/2"></div>
+      <div className="fixed bottom-0 right-0 w-96 h-96 bg-[#FF2A55]/5 rounded-full blur-[100px] pointer-events-none transform translate-y-1/2 translate-x-1/2"></div>
 
-      {/* 🌌 AMBIENT BACKGROUND */}
-      <div className="fixed inset-0 pointer-events-none">
-        <div className="absolute top-[-20%] left-[-10%] w-[70vw] h-[70vw] bg-[#00D4FF]/5 blur-[150px] rounded-full mix-blend-screen animate-pulse-slow" />
-        <div className="absolute bottom-[-20%] right-[-10%] w-[70vw] h-[70vw] bg-[#7B61FF]/5 blur-[150px] rounded-full mix-blend-screen animate-pulse-slow delay-1000" />
-        <div className="absolute top-[50%] left-[50%] -translate-x-1/2 -translate-y-1/2 w-[100vw] h-[100vh] bg-[url('/noise.png')] opacity-[0.03] mix-blend-overlay" />
-      </div>
+      <div className="relative z-10 p-4 md:p-6 flex flex-col h-full max-w-[1920px] mx-auto w-full">
 
-      <div className="relative z-10 flex flex-col min-h-screen">
-
-        {/* 🏆 HEADER */}
-        <header className="px-8 py-6 flex justify-between items-center border-b border-white/5 bg-[#0B0E17]/50 backdrop-blur-xl sticky top-0 z-50">
+        {/* Header */}
+        <header className="flex flex-row justify-between items-center mb-4 gap-4 border-b border-white/10 pb-4 shrink-0">
           <div className="flex items-center gap-4">
-            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-[#00D4FF] to-[#0066FF] flex items-center justify-center shadow-[0_0_20px_rgba(0,212,255,0.3)]">
-              <LayoutGrid className="text-white" size={20} />
+            <div className="bg-[#00E0FF]/20 p-2 rounded-lg backdrop-blur-sm border border-[#00E0FF]/30">
+              <LayoutGrid className="text-[#00E0FF]" size={24} />
             </div>
             <div>
-              <h1 className="text-xl font-bold tracking-wider uppercase text-white">Галя Балувана</h1>
-              <p className="text-[10px] uppercase tracking-[0.2em] text-white/40 font-bold">Command Center • Level 1</p>
+              <h1 className="text-xl md:text-2xl font-bold uppercase tracking-wider text-white">Галя Балувана</h1>
+              <div className="flex items-center gap-2 text-[10px] font-mono text-[#00E0FF]/80 tracking-[0.2em] font-[family-name:var(--font-jetbrains)]">
+                <span>COMMAND CENTER</span>
+                <span className="w-1 h-1 bg-[#00E0FF] rounded-full"></span>
+                <span>LEVEL 1</span>
+              </div>
             </div>
           </div>
 
-          <div className="text-right hidden md:block">
-            <div className="text-lg font-mono font-bold text-[#00D4FF] drop-shadow-[0_0_8px_rgba(0,212,255,0.5)]">
-              {time?.toLocaleTimeString('uk-UA')}
+          <button
+            onClick={handleLogout}
+            className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-500 hover:text-red-400 transition-all text-xs font-bold uppercase tracking-wider font-[family-name:var(--font-jetbrains)]"
+          >
+            <LogOut size={14} />
+            <span>Вихід</span>
+          </button>
+
+          {gravitonMetrics?.criticalSKU > 0 && (
+            <div className="glass-panel bg-[#FF2A55]/10 px-4 py-1.5 rounded-full border border-[#FF2A55]/30 flex items-center gap-3 shadow-[0_0_15px_rgba(255,42,85,0.2)] animate-pulse absolute left-1/2 -translate-x-1/2 top-6">
+              <span className="w-2 h-2 bg-[#FF2A55] rounded-full animate-ping"></span>
+              <span className="text-[#FF2A55] font-mono text-xs font-bold uppercase tracking-wide font-[family-name:var(--font-jetbrains)]">
+                {gravitonMetrics.criticalSKU} критичних у Гравітоні
+              </span>
             </div>
-            <div className="text-[10px] uppercase tracking-widest text-white/40">
-              {time?.toLocaleDateString('uk-UA', { weekday: 'long', day: 'numeric', month: 'long' })}
+          )}
+
+          <div className="text-right">
+            <div className="text-2xl font-mono text-[#00E0FF] font-bold tabular-nums tracking-widest drop-shadow-[0_0_8px_rgba(0,224,255,0.6)] font-[family-name:var(--font-jetbrains)]">
+              {time?.toLocaleTimeString('uk-UA', { hour12: false }) || '00:00:00'}
+            </div>
+            <div className="text-[10px] text-slate-400 font-mono uppercase font-[family-name:var(--font-jetbrains)]">
+              {capitalizedDate || 'Завантаження...'}
             </div>
           </div>
         </header>
 
-        {/* 🚀 MAIN CONTENT AREA */}
-        <main className="flex-1 flex flex-col items-center justify-center px-4 lg:px-8 py-2">
+        {/* content */}
+        <main className="grid grid-cols-3 gap-4 flex-1 min-h-0">
 
-          {/* Critical Alert */}
-          {(gravitonData?.criticalSKU > 0 || (pizzaData?.kpi && Number(pizzaData.kpi.fillLevel) < 50)) && (
-            <div className="w-full max-w-[1400px] mb-4 flex items-center justify-center gap-4">
-              {gravitonData?.criticalSKU > 0 && (
-                <CriticalCounter
-                  count={gravitonData.criticalSKU}
-                  label="критичних у Гравітоні"
-                  onClick={() => window.location.href = '/graviton'}
-                />
-              )}
-              {pizzaData?.kpi && Number(pizzaData.kpi.fillLevel) < 50 && (
-                <CriticalCounter
-                  count={1}
-                  label="низький запас піци"
-                  onClick={() => window.location.href = '/pizza'}
-                />
-              )}
+          {/* Active Card: Graviton */}
+          <Link href="/graviton" className="glass-panel bg-[#131B2C] rounded-xl p-5 relative overflow-hidden group hover:shadow-[0_0_20px_rgba(0,224,255,0.15)] hover:border-[#00E0FF]/30 transition-all duration-300 hover:scale-[1.005] flex flex-col justify-between">
+            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-b from-transparent via-[#00E0FF]/50 to-transparent opacity-0 group-hover:opacity-100 animate-scan pointer-events-none"></div>
+
+            <div className="flex justify-between items-start mb-2">
+              <div className="p-2.5 rounded-xl bg-cyan-900/30 border border-cyan-500/20 text-[#00E0FF]">
+                <BarChart2 size={20} />
+              </div>
+              <div className="px-2.5 py-0.5 rounded-full bg-red-900/40 border border-[#FF2A55]/50 flex items-center gap-2">
+                {gravitonMetrics?.criticalSKU > 0 ? (
+                  <>
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#FF2A55] animate-pulse"></span>
+                    <span className="text-[9px] font-mono text-[#FF2A55] uppercase tracking-wider font-[family-name:var(--font-jetbrains)]">УВАГА</span>
+                  </>
+                ) : (
+                  <>
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.8)]"></span>
+                    <span className="text-[9px] font-mono text-emerald-400 uppercase tracking-wider font-[family-name:var(--font-jetbrains)]">ONLINE</span>
+                  </>
+                )}
+              </div>
             </div>
-          )}
 
-          <div className="w-full max-w-[1400px] grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 lg:gap-4">
+            <div>
+              <h2 className="text-xl font-bold text-white mb-0.5">ЦЕХ Гравітон</h2>
+              <p className="text-[10px] font-mono text-slate-400 uppercase tracking-wide mb-4 font-[family-name:var(--font-jetbrains)]">Виробництво заморозки</p>
+            </div>
 
-            {/* 🟦 CARD 1: GRAVITON */}
-            <WorkshopCard
-              href="/graviton"
-              title="ЦЕХ Гравітон"
-              subtitle="Виробництво заморозки"
-              icon={BarChart2}
-              color="#00D4FF"
-              isHovered={hoveredCard === 'graviton'}
-              onMouseEnter={() => setHoveredCard('graviton')}
-              onMouseLeave={() => setHoveredCard(null)}
-              stats={[
-                { label: 'Всього до виробництва', value: gravitonData ? `${Math.round(gravitonData.shopLoad)} кг` : '— кг' },
-                {
-                  label: 'Критично',
-                  value: gravitonData ? `${gravitonData.criticalSKU} SKU` : '— 🔥',
-                  valueColor: (gravitonData?.criticalSKU > 0) ? '#FF4D4D' : undefined
-                }
-              ]}
-              actionLabel="Управління замовленням"
-            />
+            <div className="grid grid-cols-2 gap-3 mt-auto">
+              <div className="bg-slate-900/50 p-2.5 rounded-lg border border-white/5">
+                <div className="text-[9px] text-slate-500 uppercase font-mono mb-0.5 font-[family-name:var(--font-jetbrains)]">Всього до виробництва</div>
+                <div className="text-lg font-bold text-white">
+                  {gravitonMetrics ? Math.round(gravitonMetrics.shopLoad) : '--'} <span className="text-xs text-slate-400 font-normal">кг</span>
+                </div>
+              </div>
+              <div className="bg-red-900/20 p-2.5 rounded-lg border border-[#FF2A55]/30">
+                <div className="text-[9px] text-red-300/70 uppercase font-mono mb-0.5 font-[family-name:var(--font-jetbrains)]">Критично</div>
+                <div className="text-lg font-bold text-[#FF2A55]">
+                  {gravitonMetrics ? gravitonMetrics.criticalSKU : '--'} <span className="text-xs font-normal">SKU</span>
+                </div>
+              </div>
+            </div>
+          </Link>
 
-            {/* 🟧 CARD 2: PIZZA */}
-            <WorkshopCard
-              href="/pizza"
-              title="ЦЕХ Піца"
-              subtitle="Випічка та пакування"
-              icon={ChefHat}
-              color="#FFB800"
-              isHovered={hoveredCard === 'pizza'}
-              onMouseEnter={() => setHoveredCard('pizza')}
-              onMouseLeave={() => setHoveredCard(null)}
-              stats={[
-                {
-                  label: 'Факт залишок',
-                  value: pizzaData?.kpi ? `${pizzaData.kpi.currentStock} шт.` : '— шт.',
-                  valueColor: (Number(pizzaData?.kpi?.fillLevel) < 50) ? '#FF4D4D' : undefined
-                },
-                { label: 'Норма', value: pizzaData?.kpi ? `${pizzaData.kpi.totalTarget} шт.` : '— шт.' },
-                {
-                  label: 'Індекс заповненості',
-                  value: pizzaData?.kpi ? `${pizzaData.kpi.fillLevel}%` : '— %',
-                  valueColor: Number(pizzaData?.kpi?.fillLevel) < 50 ? '#FF4D4D' :
-                    Number(pizzaData?.kpi?.fillLevel) < 80 ? '#FFA500' : undefined
-                }
-              ]}
-              actionLabel="Розподіл та логістика"
-            />
+          {/* Active Card: Pizza */}
+          <Link href="/pizza" className="glass-panel bg-[#131B2C] rounded-xl p-5 relative overflow-hidden group hover:shadow-[0_0_20px_rgba(0,224,255,0.15)] hover:border-[#00E0FF]/30 transition-all duration-300 hover:scale-[1.005] flex flex-col justify-between">
+            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-b from-transparent via-[#00E0FF]/50 to-transparent opacity-0 group-hover:opacity-100 animate-scan pointer-events-none"></div>
 
-            {/* 🟣 CARD 3: KRAFT BAKERY */}
-            <WorkshopCard
-              href="#"
-              title="Крафтова пекарня"
-              subtitle="Випічка хліба та булок"
-              icon={Zap}
-              color="#A855F7"
-              isHovered={hoveredCard === 'bakery'}
-              onMouseEnter={() => setHoveredCard('bakery')}
-              onMouseLeave={() => setHoveredCard(null)}
-              isLocked={true}
-              stats={[
-                { label: 'План на зміну', value: '— шт.' },
-                { label: 'Готовність', value: '— %' }
-              ]}
-              actionLabel="В розробці"
-            />
+            <div className="flex justify-between items-start mb-2">
+              <div className="p-2.5 rounded-xl bg-yellow-900/30 border border-yellow-500/20 text-yellow-400">
+                <ChefHat size={20} />
+              </div>
+              <div className="px-2.5 py-0.5 rounded-full bg-emerald-900/40 border border-emerald-500/50 flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.8)]"></span>
+                <span className="text-[9px] font-mono text-emerald-400 uppercase tracking-wider font-[family-name:var(--font-jetbrains)]">ONLINE</span>
+              </div>
+            </div>
 
-            {/* 🟢 CARD 4: FLORIDA */}
-            <WorkshopCard
-              href="#"
-              title="ЦЕХ Флорида"
-              subtitle="Кондитерські вироби"
-              icon={Activity}
-              color="#10B981"
-              isHovered={hoveredCard === 'florida'}
-              onMouseEnter={() => setHoveredCard('florida')}
-              onMouseLeave={() => setHoveredCard(null)}
-              isLocked={true}
-              stats={[
-                { label: 'Замовлення', value: '—' },
-                { label: 'Статус', value: 'Очікуємо' }
-              ]}
-              actionLabel="В розробці"
-            />
+            <div>
+              <h2 className="text-xl font-bold text-white mb-0.5">ЦЕХ Піца</h2>
+              <p className="text-[10px] font-mono text-slate-400 uppercase tracking-wide mb-4 font-[family-name:var(--font-jetbrains)]">Випічка та пакування</p>
+            </div>
 
-            {/* 🟡 CARD 5: SADOVA */}
-            <WorkshopCard
-              href="#"
-              title="ЦЕХ Садова"
-              subtitle="Випічка та кулінарія"
-              icon={Factory}
-              color="#F59E0B"
-              isHovered={hoveredCard === 'sadova'}
-              onMouseEnter={() => setHoveredCard('sadova')}
-              onMouseLeave={() => setHoveredCard(null)}
-              isLocked={true}
-              stats={[
-                { label: 'План', value: '—' },
-                { label: 'Статус', value: 'Очікуємо' }
-              ]}
-              actionLabel="В розробці"
-            />
+            <div className="grid grid-cols-3 gap-2 mt-auto">
+              <div className="bg-slate-900/50 p-2.5 rounded-lg border border-white/5">
+                <div className="text-[9px] text-slate-500 uppercase font-mono mb-0.5 font-[family-name:var(--font-jetbrains)]">Факт залишок</div>
+                <div className="text-base font-bold text-white">
+                  {pizzaMetrics.fact > 0 ? pizzaMetrics.fact : '--'} <span className="text-[10px] text-slate-400 font-normal">шт.</span>
+                </div>
+              </div>
+              <div className="bg-slate-900/50 p-2.5 rounded-lg border border-white/5">
+                <div className="text-[9px] text-slate-500 uppercase font-mono mb-0.5 font-[family-name:var(--font-jetbrains)]">Норма</div>
+                <div className="text-base font-bold text-white">
+                  {pizzaMetrics.norm > 0 ? pizzaMetrics.norm : '--'} <span className="text-[10px] text-slate-400 font-normal">шт.</span>
+                </div>
+              </div>
+              <div className="bg-slate-900/50 p-2.5 rounded-lg border border-white/5">
+                <div className="text-[9px] text-slate-500 uppercase font-mono mb-0.5 font-[family-name:var(--font-jetbrains)]">Індекс</div>
+                <div className={cn("text-base font-bold", pizzaMetrics.index >= 100 ? "text-emerald-400" : "text-yellow-400")}>
+                  {pizzaMetrics.index > 0 ? pizzaMetrics.index : '--'} <span className="text-[10px] text-slate-400 font-normal">%</span>
+                </div>
+              </div>
+            </div>
+          </Link>
 
-            {/* 🟣 CARD 6: ENTUZIASTIV */}
-            <WorkshopCard
-              href="#"
-              title="ЦЕХ Ентузіастів"
-              subtitle="Виробництво"
-              icon={Store}
-              color="#EC4899"
-              isHovered={hoveredCard === 'entuziastiv'}
-              onMouseEnter={() => setHoveredCard('entuziastiv')}
-              onMouseLeave={() => setHoveredCard(null)}
-              isLocked={true}
-              stats={[
-                { label: 'План', value: '—' },
-                { label: 'Статус', value: 'Очікуємо' }
-              ]}
-              actionLabel="В розробці"
-            />
+          {/* Inactive Cards */}
+          <InactiveCard
+            title="Крафтова"
+            subtitle="Випічка хліба"
+            icon={Zap}
+            iconBg="bg-purple-900/30"
+            iconBorder="border-purple-500/20"
+          />
 
-            {/* 🔵 CARD 7: BULVAR */}
-            <WorkshopCard
-              href="#"
-              title="ЦЕХ Бульвар"
-              subtitle="Центральна кухня"
-              icon={ShoppingBag}
-              color="#6366F1"
-              isHovered={hoveredCard === 'bulvar'}
-              onMouseEnter={() => setHoveredCard('bulvar')}
-              onMouseLeave={() => setHoveredCard(null)}
-              isLocked={true}
-              stats={[
-                { label: 'План', value: '—' },
-                { label: 'Статус', value: 'Очікуємо' }
-              ]}
-              actionLabel="В розробці"
-            />
+          <InactiveCard
+            title="ЦЕХ Фарма"
+            subtitle="Кондитерські вироби"
+            icon={Activity}
+            iconBg="bg-teal-900/30"
+            iconBorder="border-teal-500/20"
+          />
 
-            {/* 🍬 CARD 8: CONFECTIONERY */}
-            <WorkshopCard
-              href="#"
-              title="ЦЕХ Кондитерка"
-              subtitle="Солодощі та десерти"
-              icon={Zap}
-              color="#8B5CF6"
-              isHovered={hoveredCard === 'confectionery'}
-              onMouseEnter={() => setHoveredCard('confectionery')}
-              onMouseLeave={() => setHoveredCard(null)}
-              isLocked={true}
-              stats={[
-                { label: 'План', value: '—' },
-                { label: 'Статус', value: 'Очікуємо' }
-              ]}
-              actionLabel="В розробці"
-            />
+          <InactiveCard
+            title="ЦЕХ Склад"
+            subtitle="Випічка та кулінарія"
+            icon={Factory}
+            iconBg="bg-orange-900/30"
+            iconBorder="border-orange-500/20"
+          />
 
-            {/* 🏛️ CARD 9: HEROIV MAIDANU */}
-            <WorkshopCard
-              href="#"
-              title="ЦЕХ Героїв Майдану"
-              subtitle="Виробництво"
-              icon={Factory}
-              color="#14B8A6"
-              isHovered={hoveredCard === 'heroiv'}
-              onMouseEnter={() => setHoveredCard('heroiv')}
-              onMouseLeave={() => setHoveredCard(null)}
-              isLocked={true}
-              stats={[
-                { label: 'План', value: '—' },
-                { label: 'Статус', value: 'Очікуємо' }
-              ]}
-              actionLabel="В розробці"
-            />
+          <InactiveCard
+            title="ЦЕХ E-Com"
+            subtitle="Виробництво"
+            icon={Store}
+            iconBg="bg-pink-900/30"
+            iconBorder="border-pink-500/20"
+          />
 
-          </div>
+          <InactiveCard
+            title="ЦЕХ Б"
+            subtitle="Центральна кухня"
+            icon={ShoppingBag}
+            iconBg="bg-indigo-900/30"
+            iconBorder="border-indigo-500/20"
+          />
+
+          <InactiveCard
+            title="ЦЕХ К"
+            subtitle="Солодощі та десерти"
+            icon={Zap}
+            iconBg="bg-violet-900/30"
+            iconBorder="border-violet-500/20"
+          />
+
+          <InactiveCard
+            title="ЦЕХ Го"
+            subtitle="Виробництво"
+            icon={Warehouse}
+            iconBg="bg-cyan-900/30"
+            iconBorder="border-cyan-500/20"
+          />
 
         </main>
 
-        <footer className="py-4 text-center text-white/20 text-[10px] uppercase tracking-widest font-mono pointer-events-none">
-          System v2.0 • Antigravity Module
+        <footer className="mt-4 text-center border-t border-white/5 pt-3 shrink-0">
+          <p className="text-[10px] font-mono text-slate-500 uppercase tracking-[0.3em] font-[family-name:var(--font-jetbrains)]">Produced by Tovstytsky Dmytro</p>
         </footer>
       </div>
     </div>
   );
 }
 
-// ✨ COMPONENT: Workshop Card
-function WorkshopCard({
-  href,
+function InactiveCard({
   title,
   subtitle,
   icon: Icon,
-  color,
-  isHovered,
-  onMouseEnter,
-  onMouseLeave,
-  stats,
-  actionLabel,
-  isLocked = false
+  iconBg,
+  iconBorder
 }: {
-  href: string;
-  title: string;
-  subtitle: string;
-  icon: any;
-  color: string;
-  isHovered: boolean;
-  onMouseEnter: () => void;
-  onMouseLeave: () => void;
-  stats: { label: string; value: string; valueColor?: string }[];
-  actionLabel: string;
-  isLocked?: boolean;
+  title: string,
+  subtitle: string,
+  icon: any,
+  iconBg: string,
+  iconBorder: string
 }) {
   return (
-    <Link
-      href={isLocked ? '#' : href}
-      className={cn(
-        "group relative h-[210px] lg:h-[240px] flex flex-col rounded-3xl overflow-hidden transition-all duration-500 hover:scale-[1.02] active:scale-[0.98]",
-        isLocked && "cursor-not-allowed opacity-80"
-      )}
-      onMouseEnter={onMouseEnter}
-      onMouseLeave={onMouseLeave}
-      style={{
-        background: 'rgba(255, 255, 255, 0.02)',
-        border: `1px solid ${isHovered ? color : 'rgba(255, 255, 255, 0.08)'}`,
-        boxShadow: isHovered
-          ? `0 0 60px -20px ${color}40, inset 0 0 20px -5px ${color}20`
-          : '0 20px 40px -10px rgba(0,0,0,0.5)',
-      }}
-    >
-      {/* 🔦 Dynamic Glow */}
-      <div
-        className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700"
-        style={{
-          background: `radial-gradient(800px circle at 50% 0%, ${color}15, transparent 60%)`
-        }}
-      />
-
-      {/* 🖼️ Card Content */}
-      <div className="relative z-10 flex-1 p-6 lg:p-8 flex flex-col justify-between">
-
-        {/* Header */}
-        <div className="flex justify-between items-start">
-          <div>
-            <div
-              className="w-12 h-12 rounded-xl flex items-center justify-center mb-4 transition-transform duration-500 group-hover:scale-110 group-hover:rotate-3"
-              style={{
-                background: `${color}15`,
-                boxShadow: `0 0 30px ${color}10`,
-                border: `1px solid ${color}30`
-              }}
-            >
-              <Icon size={24} style={{ color: color }} />
-            </div>
-
-            <h2 className="text-2xl lg:text-3xl font-bold text-white mb-1 leading-tight tracking-tight">
-              {title}
-            </h2>
-            <p className="text-white/40 text-[10px] lg:text-xs font-medium uppercase tracking-widest">
-              {subtitle}
-            </p>
+    <div className="glass-panel bg-[#131B2C]/40 rounded-xl p-5 relative overflow-hidden opacity-80 select-none grayscale-[0.5] flex flex-col justify-between">
+      <div className="absolute inset-0 bg-black/40 z-10 backdrop-blur-[2px]"></div>
+      <div className="absolute inset-0 z-20 flex flex-col items-center justify-center">
+        <div className="caution-tape w-[110%] py-4 flex flex-col items-center justify-center transform -rotate-6 shadow-2xl relative">
+          <h3 className="text-3xl md:text-4xl font-black text-white uppercase tracking-tighter glitch-text">В РОЗРОБЦІ</h3>
+          <div className="flex items-center gap-2 mt-1">
+            <Zap className="text-[#00E0FF] animate-pulse" size={14} />
+            <span className="text-[10px] font-mono text-[#00E0FF] tracking-[0.3em] uppercase font-[family-name:var(--font-jetbrains)]">System Level 2</span>
           </div>
-
-          {isLocked ? (
-            <div className="bg-white/5 border border-white/10 px-3 py-1 rounded-full backdrop-blur-md">
-              <span className="text-[10px] font-bold text-white/40 uppercase tracking-tighter">🔒 Offline</span>
-            </div>
-          ) : (
-            <div className="flex items-center gap-2 bg-white/5 border border-white/10 px-3 py-1.5 rounded-full backdrop-blur-md">
-              <StatusDot status={stats.some(s => s.valueColor === '#FF4D4D') ? 'critical' : 'good'} pulse={stats.some(s => s.valueColor === '#FF4D4D')} />
-              <span className="text-[10px] font-bold text-white/60 uppercase tracking-tighter">
-                {stats.some(s => s.valueColor === '#FF4D4D') ? 'Увага' : 'Online'}
-              </span>
-            </div>
-          )}
         </div>
-
-        {/* Stats Grid */}
-        <div className={cn(
-          "grid gap-3 my-4",
-          stats.length === 3 ? "grid-cols-3" : "grid-cols-2"
-        )}>
-          {stats.map((stat, i) => (
-            <div key={i} className="bg-white/5 rounded-xl p-3 border border-white/5 group-hover:bg-white/10 group-hover:border-white/10 transition-colors">
-              <div className="text-[7px] lg:text-[8px] text-white/40 uppercase tracking-widest font-bold mb-0.5 truncate">
-                {stat.label}
-              </div>
-              <div
-                className="text-sm lg:text-lg font-mono font-bold truncate transition-colors duration-300"
-                style={{ color: stat.valueColor || '#FFF' }}
-              >
-                {stat.value}
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Action Button */}
-        <div
-          className="flex items-center justify-between py-3 px-5 rounded-xl transition-all duration-300 transform group-hover:translate-x-2"
-          style={{
-            background: isHovered && !isLocked ? color : 'rgba(255, 255, 255, 0.05)',
-            color: isHovered && !isLocked ? '#000' : '#FFF'
-          }}
-        >
-          <span className="font-bold uppercase tracking-widest text-[10px]">
-            {actionLabel}
-          </span>
-          <ArrowRight size={16} className={cn("transition-transform duration-300", isHovered && "translate-x-1")} />
-        </div>
-
       </div>
 
-      {/* 🏗️ IN DEVELOPMENT OVERLAY */}
-      {isLocked && (
-        <div className="absolute inset-0 z-20 flex items-center justify-center bg-[#0B0E17]/60 backdrop-blur-[2px] pointer-events-none group-hover:backdrop-blur-none transition-all duration-500">
-          <div className="px-6 py-3 border-y-2 border-white/10 bg-white/5 flex flex-col items-center gap-1 -rotate-6 shadow-[0_0_50px_rgba(255,255,255,0.05)]">
-            <span className="text-3xl lg:text-4xl font-black text-white/90 tracking-tighter uppercase text-center drop-shadow-2xl">
-              В РОЗРОБЦІ
-            </span>
-            <div className="flex items-center gap-2">
-              <Zap size={14} className="text-[#00D4FF] animate-pulse" />
-              <span className="text-[10px] font-bold text-[#00D4FF] uppercase tracking-[0.3em]">System Level 2</span>
-            </div>
+      <div className="opacity-30 filter blur-sm h-full flex flex-col">
+        <div className="flex justify-between items-start mb-2">
+          <div className={cn("p-2.5 rounded-xl border", iconBg, iconBorder)}>
+            <Icon size={20} />
+          </div>
+          <div className="px-2.5 py-0.5 rounded-full bg-slate-800 border border-slate-600">
+            <span className="text-[9px] font-mono text-slate-400 uppercase font-[family-name:var(--font-jetbrains)]">OFFLINE</span>
           </div>
         </div>
-      )}
-    </Link>
+
+        <div className="mb-auto">
+          <h2 className="text-xl font-bold text-white mb-0.5">{title}</h2>
+          <p className="text-[10px] font-mono text-slate-400 uppercase tracking-wide mb-4 font-[family-name:var(--font-jetbrains)]">{subtitle}</p>
+        </div>
+
+        {/* Placeholder for layout consistency */}
+        <div className="h-12 w-full mt-auto"></div>
+      </div>
+    </div>
   );
 }
