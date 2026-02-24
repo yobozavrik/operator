@@ -125,7 +125,9 @@ export function transformPizzaData(data: any[]): ProductionTask[] {
     if (!data || !Array.isArray(data)) return [];
 
     const productMap = new Map<string, ProductionTask>();
+    const storeIdMap = new Map<string, number>();
     let autoIdCounter = 1000; // Fallback counter for missing IDs
+    let autoStoreIdCounter = 1; // Fallback counter for missing store IDs
 
     // DEBUG: Log first row to see structure
     if (data.length > 0) {
@@ -167,10 +169,20 @@ export function transformPizzaData(data: any[]): ProductionTask[] {
             return;
         }
 
+        // Generate fallback storeId
+        const storeName = row.store_name || row.shop_name || row.spot_name || row.назва_магазину || 'Магазин';
+        let storeId = row.store_id || row.spot_id || row.code;
+        if (!storeId) {
+            if (!storeIdMap.has(storeName)) {
+                storeIdMap.set(storeName, autoStoreIdCounter++);
+            }
+            storeId = storeIdMap.get(storeName);
+        }
+
         // Build Store Object
         const storeObj = {
-            storeId: row.store_id || row.spot_id || row.code || 0,
-            storeName: row.store_name || row.shop_name || row.spot_name || row.назва_магазину || 'Магазин',
+            storeId: storeId,
+            storeName: storeName,
             currentStock: stock,
             minStock: min,
             deficitKg: Math.max(0, netNeed),

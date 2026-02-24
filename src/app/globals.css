@@ -1,55 +1,62 @@
 @import "tailwindcss";
+@source "../../src";
 
-:root {
-  /* OCEAN THEME: Deep Navy & Periwinkle */
-  --background: #0A1931;
-  --foreground: #F6FAFD;
+@theme {
+  --color-background-dark: var(--background);
+  --color-foreground: var(--foreground);
 
-  --panel: #112240;
-  --border: #1A3D63;
+  --color-panel: var(--panel);
+  --color-border: var(--border);
 
-  --text-primary: #F6FAFD;
-  --text-muted: #B3CFE5;
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-muted);
+  --color-text-muted: var(--text-muted);
 
-  /* Status Colors */
-  --status-critical: #EF4444;
-  --status-high: #F59E0B;
-  --status-reserve: #64FFDA;
-  /* Cyan Pop */
-  --status-normal: #10B981;
-  /* Emerald */
+  --color-status-success: var(--status-normal);
+  --color-status-warning: var(--status-high);
+  --color-status-critical: var(--status-critical);
+  --color-status-reserve: var(--status-reserve);
 
-  --radius-panel: 16px;
-  --page-margin: 40px;
-  --gutter: 24px;
-
-  /* 📐 RESPONSIVE TYPOGRAPHY with clamp() */
-  /* Format: clamp(min, preferred, max) */
-  --text-2xs: clamp(8px, 0.5vw + 5px, 10px);
-  --text-xs: clamp(9px, 0.55vw + 6px, 11px);
-  --text-sm: clamp(10px, 0.6vw + 7px, 13px);
-  --text-base: clamp(12px, 0.7vw + 8px, 16px);
-  --text-lg: clamp(14px, 0.9vw + 9px, 20px);
-  --text-xl: clamp(18px, 1.1vw + 11px, 28px);
-  --text-2xl: clamp(22px, 1.4vw + 14px, 36px);
-
-  /* 📐 RESPONSIVE SPACING with clamp() */
-  --space-xs: clamp(4px, 0.3vw + 2px, 8px);
-  --space-sm: clamp(6px, 0.5vw + 4px, 12px);
-  --space-md: clamp(10px, 0.8vw + 6px, 20px);
-  --space-lg: clamp(16px, 1.2vw + 8px, 32px);
-  --space-xl: clamp(24px, 1.8vw + 12px, 48px);
-
-  /* 📐 RESPONSIVE COMPONENTS */
-  --sidebar-width: clamp(180px, 15vw, 256px);
-  --card-padding: clamp(12px, 1vw + 8px, 24px);
-  --button-padding-x: clamp(12px, 0.8vw + 8px, 20px);
-  --button-padding-y: clamp(8px, 0.5vw + 5px, 14px);
-  --icon-size: clamp(14px, 1vw + 10px, 20px);
-  --kpi-value-size: clamp(14px, 1vw + 10px, 20px);
+  /* Mapping for existing classes */
+  --color-bg-primary: var(--background);
+  --color-bg-sidebar: var(--background);
+  --color-panel-bg: var(--panel);
+  --color-panel-border: var(--border);
+  --color-accent-primary: #00E0FF;
+  /* Cyan Action Color */
 }
 
 @layer base {
+  :root {
+    /* OCEAN THEME: Deep Navy & Periwinkle */
+    --background: #0A1931;
+    --foreground: #F6FAFD;
+
+    --panel: #112240;
+    --border: #1A3D63;
+
+    --text-primary: #F6FAFD;
+    --text-muted: #B3CFE5;
+
+    /* Status Colors */
+    --status-critical: #EF4444;
+    --status-high: #F59E0B;
+    --status-reserve: #64FFDA;
+    /* Cyan Pop */
+    --status-normal: #10B981;
+    /* Emerald */
+
+    --radius-panel: 16px;
+    --page-margin: 40px;
+    --gutter: 24px;
+
+    /* Legacy variables for compatibility */
+    --glass-bg: rgba(17, 34, 64, 0.6);
+    --glass-border: rgba(26, 61, 99, 0.5);
+    --glass-blur: blur(12px);
+    --nav-active: rgba(0, 224, 255, 0.1);
+  }
+
   body {
     background-color: var(--background);
     color: var(--foreground);
@@ -57,6 +64,8 @@
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
   }
 }
+
+
 
 .font-mono-bi {
   font-family: 'Roboto Mono', monospace;
@@ -124,6 +133,19 @@
   background: #4A7FA7;
 }
 
+/* Hide scrollbar for Chrome, Safari and Opera */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Hide scrollbar for IE, Edge and Firefox */
+.no-scrollbar {
+  -ms-overflow-style: none;
+  /* IE and Edge */
+  scrollbar-width: none;
+  /* Firefox */
+}
+
 /* 💎 PREMIUM UI UTILITIES 💎 */
 
 /* Noise Texture for that "Physical" feel */
@@ -145,11 +167,24 @@
     text-wrap: balance;
   }
 
+  /* NEW: Ocean Theme Glass Panel */
   .glass-panel {
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
     border: 1px solid rgba(255, 255, 255, 0.08);
     box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
+  }
+
+  .nav-item-active {
+    background: var(--nav-active);
+    color: #00E0FF;
+    border: 1px solid rgba(0, 224, 255, 0.2);
+  }
+
+  .search-glass {
+    background: rgba(15, 23, 42, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(8px);
   }
 
   .caution-tape {
@@ -161,6 +196,42 @@
 
   .glitch-text {
     text-shadow: 2px 0 rgba(255, 0, 0, 0.5), -2px 0 rgba(0, 255, 255, 0.5);
+  }
+
+  /* CELESTIAL SAAS SCSS VARIABLES (Light Theme) */
+  .saas-bg {
+    background-color: #f4f5f7;
+    color: #333333;
+  }
+
+  .saas-sidebar {
+    background-color: #1b1b29;
+    color: #939393;
+  }
+
+  .saas-card {
+    background-color: #ffffff;
+    border-radius: 12px;
+    border: 1px solid #ebedf2;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.03);
+    color: #333;
+  }
+
+  .saas-text-primary {
+    color: #001737;
+  }
+
+  .saas-text-secondary {
+    color: #939393;
+  }
+
+  .saas-accent {
+    color: #2b80ff;
+  }
+
+  .saas-accent-bg {
+    background-color: #2b80ff;
+    color: #fff;
   }
 }
 
@@ -277,6 +348,8 @@
 .priority-card:nth-child(3) {
   animation-delay: 0.2s;
 }
+
+/* Removed old stitch variables */
 
 /* ✨ PREMIUM DASHBOARD DESIGN ✨ */
 

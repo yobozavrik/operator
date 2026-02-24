@@ -8,6 +8,8 @@ import { cn } from '@/lib/utils';
 import { BackToHome } from '@/components/BackToHome';
 import { DistributionModal } from './DistributionModal';
 import { ProductionDetailModal } from './ProductionDetailModal';
+import { ProductDetailDrawer } from './production/ProductDetailDrawer';
+import { StoreDetailDrawer } from './production/StoreDetailDrawer';
 
 // 🟢 PIZZA LOGIC CONSTANTS
 const SAFETY_BUFFER = 2; // Days
@@ -96,10 +98,8 @@ const ProductAccordionItem = ({
     const totalDistributed = Object.values(distributionPlan).reduce((a, b) => a + b, 0);
     const criticalStoresCount = product.stores.filter((s: any) => s.computed.isUrgent).length;
 
-    // When used inside the new card grid, we only render the internal content (no header, no wrapper)
-    // The card grid already provides the header and expansion logic
     return (
-        <div className="border-t border-white/5 p-2">
+        <div className="border-t border-slate-100 p-2">
             {/* STORES GRID */}
             <div className="grid grid-cols-3 md:grid-cols-4 xl:grid-cols-6 gap-2 mb-3">
                 {[...product.stores].sort((a: any, b: any) => b.computed.avg - a.computed.avg).map((store: any) => {
@@ -109,8 +109,8 @@ const ProductAccordionItem = ({
 
                     // SOFT COLORS
                     const cardBg = isLowStock
-                        ? "bg-red-500/10 border-red-500/20"
-                        : "bg-emerald-500/10 border-emerald-500/20";
+                        ? "bg-red-50/50 border-red-100"
+                        : "bg-emerald-50/50 border-emerald-100";
 
                     return (
                         <div
@@ -121,31 +121,31 @@ const ProductAccordionItem = ({
                             )}
                         >
                             {/* Store Name - Compact */}
-                            <div className="text-xs font-bold uppercase tracking-wide truncate text-white/90 text-center" title={store.storeName}>
+                            <div className="text-xs font-bold uppercase tracking-wide truncate saas-text-primary text-center" title={store.storeName}>
                                 {store.storeName.replace('Магазин ', '').replace('"', '').replace('"', '')}
                             </div>
 
                             {/* Metrics Row - Compact */}
                             <div className="grid grid-cols-3 gap-1 text-[10px] font-mono leading-none mt-0.5">
                                 <div className="flex flex-col gap-0.5">
-                                    <span className="text-[9px] text-white/40 uppercase font-bold">Факт</span>
-                                    <span className={cn("font-bold text-lg", isLowStock ? "text-[#E74856]" : "text-emerald-400")}>
+                                    <span className="text-[9px] saas-text-secondary uppercase font-bold">Факт</span>
+                                    <span className={cn("font-bold text-lg", isLowStock ? "text-[#E74856]" : "text-emerald-500")}>
                                         {store.computed.stock.toFixed(0)}
                                     </span>
                                 </div>
                                 <div className="flex flex-col gap-0.5 text-center">
-                                    <span className="text-[9px] text-white/40 uppercase font-bold">Мін</span>
-                                    <span className="font-bold text-lg text-cyan-400">{store.computed.minStock.toFixed(0)}</span>
+                                    <span className="text-[9px] saas-text-secondary uppercase font-bold">Мін</span>
+                                    <span className="font-bold text-lg text-[#2b80ff]">{store.computed.minStock.toFixed(0)}</span>
                                 </div>
                                 <div className="flex flex-col gap-0.5 text-right">
-                                    <span className="text-[9px] text-white/40 uppercase font-bold">Сер</span>
-                                    <span className="font-bold text-lg text-[#FFB800]">{store.computed.avg.toFixed(1)}</span>
+                                    <span className="text-[9px] saas-text-secondary uppercase font-bold">Сер</span>
+                                    <span className="font-bold text-lg text-amber-500">{store.computed.avg.toFixed(1)}</span>
                                 </div>
                             </div>
 
                             {/* Input Field - Reduced */}
-                            <div className="pt-1.5 border-t border-white/10 mt-0.5 flex items-center justify-between">
-                                <span className="text-[9px] text-[#FFB800] font-bold uppercase">План</span>
+                            <div className="pt-1.5 border-t border-slate-100 mt-0.5 flex items-center justify-between">
+                                <span className="text-[9px] text-amber-500 font-bold uppercase">План</span>
                                 <input
                                     type="number"
                                     value={planVal || ''}
@@ -155,8 +155,8 @@ const ProductAccordionItem = ({
                                     }}
                                     onClick={(e) => e.stopPropagation()}
                                     className={cn(
-                                        "w-14 bg-[#FFB800]/10 border border-[#FFB800]/20 rounded h-6 text-center font-mono font-bold text-base focus:outline-none focus:border-[#FFB800]",
-                                        planVal > 0 ? "text-[#FFB800]" : "text-white/40"
+                                        "w-14 bg-white border border-slate-200 rounded h-6 text-center font-mono font-bold text-base focus:outline-none focus:border-amber-400",
+                                        planVal > 0 ? "text-amber-500 shadow-sm" : "saas-text-secondary"
                                     )}
                                     placeholder="-"
                                 />
@@ -167,9 +167,9 @@ const ProductAccordionItem = ({
             </div>
 
             {/* CONTROLS */}
-            <div className="p-3 bg-[#141829] rounded-lg border border-white/5 flex items-center gap-4">
+            <div className="p-3 bg-slate-50 rounded-lg border border-slate-200 flex items-center gap-4">
                 <div className="flex-1 max-w-xs">
-                    <label className="text-[10px] text-white/40 uppercase font-bold tracking-widest block mb-1">
+                    <label className="text-[10px] saas-text-secondary uppercase font-bold tracking-widest block mb-1">
                         Скільки випечено (шт)
                     </label>
                     <input
@@ -177,7 +177,7 @@ const ProductAccordionItem = ({
                         value={totalBaked || ''}
                         onChange={(e) => setTotalBaked(Number(e.target.value))}
                         onClick={(e) => e.stopPropagation()}
-                        className="w-full bg-white/5 border border-white/10 rounded-lg h-10 px-3 font-mono text-[#FFB800] text-xl font-bold focus:outline-none focus:border-[#FFB800]"
+                        className="w-full bg-white border border-slate-200 rounded-lg h-10 px-3 font-mono saas-text-primary text-xl font-bold focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 shadow-sm"
                         placeholder="0"
                     />
                 </div>
@@ -185,15 +185,15 @@ const ProductAccordionItem = ({
                 <button
                     onClick={handleDistribute}
                     disabled={!totalBaked || isDistributing}
-                    className="h-10 px-6 bg-[#FFB800] hover:bg-[#FFB800]/90 text-black font-bold uppercase text-xs tracking-wider rounded-lg transition-all disabled:opacity-50 mt-4 flex items-center gap-2"
+                    className="h-10 px-6 bg-amber-400 hover:bg-amber-500 text-white shadow font-bold uppercase text-xs tracking-wider rounded-lg transition-all disabled:opacity-50 mt-4 flex items-center gap-2"
                 >
                     <RotateCcw size={16} className={isDistributing ? "animate-spin" : ""} />
                     Розподілити
                 </button>
 
                 <div className="ml-auto mt-4 text-right">
-                    <div className="text-[10px] text-white/30 uppercase tracking-widest font-bold">Нерозподілено</div>
-                    <div className={cn("font-mono font-bold text-xl", (totalBaked - totalDistributed) < 0 ? "text-red-500" : "text-white")}>
+                    <div className="text-[10px] saas-text-secondary uppercase tracking-widest font-bold">Нерозподілено</div>
+                    <div className={cn("font-mono font-bold text-xl", (totalBaked - totalDistributed) < 0 ? "text-red-500" : "saas-text-primary")}>
                         {(totalBaked - totalDistributed).toFixed(0)}
                     </div>
                 </div>
@@ -206,9 +206,9 @@ export const PizzaPowerMatrix = ({ data, onRefresh, initialViewMode = 'products'
     // STATE
     const [planningDays, setPlanningDays] = useState<number>(3);
     const [isRefreshing, setIsRefreshing] = useState(false);
-    const [expandedItems, setExpandedItems] = useState<Set<number>>(new Set());
     const [viewMode, setViewMode] = useState<'products' | 'stores'>(initialViewMode);
-    const [expandedStores, setExpandedStores] = useState<Set<string>>(new Set());
+    const [selectedDrawerProductCode, setSelectedDrawerProductCode] = useState<number | null>(null);
+    const [selectedDrawerStoreId, setSelectedDrawerStoreId] = useState<number | null>(null);
     const [isUpdatingStock, setIsUpdatingStock] = useState(false);
 
     const [showDistModal, setShowDistModal] = useState(false);
@@ -247,24 +247,12 @@ export const PizzaPowerMatrix = ({ data, onRefresh, initialViewMode = 'products'
     };
 
 
-    const toggleItem = (code: number) => {
-        setExpandedItems(prev => {
-            const next = new Set(prev);
-            if (next.has(code)) {
-                next.delete(code);
-            } else {
-                next.add(code);
-            }
-            return next;
-        });
+    const handleCardClick = (code: number) => {
+        setSelectedDrawerProductCode(code);
     };
 
     const expandOne = (code: number) => {
-        setExpandedItems(new Set([code]));
-        setTimeout(() => {
-            const el = document.getElementById(`product-${code}`);
-            if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }, 100);
+        setSelectedDrawerProductCode(code);
     };
 
     // 1. CALCULATE PRODUCT LEVEL AGGREGATES
@@ -326,19 +314,6 @@ export const PizzaPowerMatrix = ({ data, onRefresh, initialViewMode = 'products'
         });
 
     }, [data, planningDays]);
-
-    // Toggle store expansion
-    const toggleStore = (storeName: string) => {
-        setExpandedStores(prev => {
-            const next = new Set(prev);
-            if (next.has(storeName)) {
-                next.delete(storeName);
-            } else {
-                next.add(storeName);
-            }
-            return next;
-        });
-    };
 
     // 1.5 GROUP BY STORES (inverted view)
     const storesGrouped = useMemo(() => {
@@ -402,171 +377,120 @@ export const PizzaPowerMatrix = ({ data, onRefresh, initialViewMode = 'products'
     }, [products]);
 
     return (
-        <div className="flex flex-col h-full w-full font-sans text-white bg-[#0B0E14]">
+        <div className="flex flex-col h-full w-full font-sans text-text-primary bg-bg-primary min-h-screen">
 
-            {/* VIEW MODE TOGGLE - COMPACT */}
-            <div className="px-4 py-3 flex items-center justify-start gap-4 bg-[#141829]/50 border-b border-white/5">
-                <button
-                    onClick={() => setViewMode('products')}
-                    className={cn(
-                        "px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all border flex items-center gap-2",
-                        viewMode === 'products'
-                            ? "bg-[#FFB800] border-[#FFB800] text-black shadow-[0_0_20px_rgba(255,184,0,0.4)] scale-105"
-                            : "bg-white/5 border-white/5 text-white/40 hover:text-white hover:bg-white/10 hover:border-white/20"
-                    )}
-                >
-                    <Package size={16} strokeWidth={3} className={viewMode === 'products' ? "text-black" : "text-white/40"} />
-                    За продуктами
-                </button>
-                <button
-                    onClick={() => setViewMode('stores')}
-                    className={cn(
-                        "px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all border flex items-center gap-2",
-                        viewMode === 'stores'
-                            ? "bg-[#00D4FF] border-[#00D4FF] text-black shadow-[0_0_20px_rgba(0,212,255,0.4)] scale-105"
-                            : "bg-white/5 border-white/5 text-white/40 hover:text-white hover:bg-white/10 hover:border-white/20"
-                    )}
-                >
-                    <Store size={16} strokeWidth={3} className={viewMode === 'stores' ? "text-black" : "text-white/40"} />
-                    За точками
-                </button>
+            {/* HEADER TOGGLE */}
+            <div className="px-6 py-4 flex items-center justify-start border-b border-white/5 z-10 sticky top-0 bg-[#0A1931]/80 backdrop-blur-md transition-colors duration-300 mt-2">
+                <div className="flex items-center gap-2 p-1 bg-[#112240]/60 rounded-xl border border-[#1A3D63]">
+                    <button
+                        onClick={() => setViewMode('products')}
+                        className={cn(
+                            "px-4 py-2 rounded-lg text-sm font-medium transition-all focus:outline-none uppercase font-[family-name:var(--font-chakra)]",
+                            viewMode === 'products'
+                                ? "bg-[#00E0FF]/20 text-[#00E0FF] shadow-[0_0_15px_rgba(0,224,255,0.15)] border border-[#00E0FF]/30"
+                                : "text-slate-400 hover:text-white hover:bg-white/5 border border-transparent"
+                        )}
+                    >
+                        Products
+                    </button>
+                    <button
+                        onClick={() => setViewMode('stores')}
+                        className={cn(
+                            "px-4 py-2 rounded-lg text-sm font-medium transition-all focus:outline-none uppercase font-[family-name:var(--font-chakra)]",
+                            viewMode === 'stores'
+                                ? "bg-[#00E0FF]/20 text-[#00E0FF] shadow-[0_0_15px_rgba(0,224,255,0.15)] border border-[#00E0FF]/30"
+                                : "text-slate-400 hover:text-white hover:bg-white/5 border border-transparent"
+                        )}
+                    >
+                        Locations
+                    </button>
+                </div>
             </div>
 
             {/* 🔥 CARD GRID LAYOUT */}
-            <main className="flex-1 overflow-y-auto custom-scrollbar p-4 pt-2">
+            <main className="flex-1 overflow-y-auto custom-scrollbar p-6">
                 {viewMode === 'products' ? (
                     /* PRODUCTS VIEW */
-                    <div className="grid grid-cols-4 xl:grid-cols-6 gap-3 pb-20">
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3 pb-20 mt-4">
                         {products.map(product => {
-                            const isExpanded = expandedItems.has(product.productCode);
                             const criticalStores = product.stores.filter((s: any) => s.computed.isUrgent).length;
                             const hasIssues = criticalStores > 0;
+                            const isOutOfStock = product.computed.totalStock === 0 && product.computed.totalRecommended > 0;
+
+                            const dotColorClass = hasIssues ? "bg-status-critical shadow-[0_0_8px_rgba(244,63,94,0.6)]" : "bg-status-success shadow-[0_0_8px_rgba(16,185,129,0.4)]";
+                            const actualColorClass = hasIssues ? "text-status-critical" : "text-white";
+                            const progressColorClass = hasIssues ? "bg-status-critical shadow-[0_0_10px_rgba(244,63,94,0.4)]" : "bg-status-success shadow-[0_0_10px_rgba(16,185,129,0.3)]";
+                            const fillPercent = Math.min(100, (product.computed.totalStock / (Math.max(1, product.computed.totalMinStock) * 1.5)) * 100);
 
                             return (
                                 <div
                                     key={product.id}
                                     id={`product-${product.productCode}`}
-                                    className={cn(
-                                        "relative flex flex-col rounded-xl border transition-all duration-300 overflow-hidden group select-none",
-                                        isExpanded ? "col-span-2 xl:col-span-3 row-span-2 z-10" : "min-h-[160px]", // Expand logic
-                                        hasIssues
-                                            ? "border-red-500/20 bg-red-900/5 hover:border-red-500/40"
-                                            : "border-white/10 bg-[#141829] hover:border-white/20",
-                                        isExpanded && "border-[#FFB800]/50 shadow-[0_0_30px_rgba(0,0,0,0.5)]"
-                                    )}
+                                    onClick={() => handleCardClick(product.productCode)}
+                                    className="glass-panel p-4 rounded-xl transition-all flex flex-col gap-2 group hover:shadow-[0_0_20px_rgba(0,224,255,0.15)] hover:border-[#00E0FF]/30 cursor-pointer min-h-[120px] bg-[#131B2C] relative overflow-hidden"
                                 >
-                                    {/* CARD CLICK AREA */}
-                                    <div
-                                        onClick={() => toggleItem(product.productCode)}
-                                        className="p-4 flex flex-col h-full cursor-pointer relative"
-                                    >
-                                        {/* Header: Icon + Name */}
-                                        <div className="flex items-start gap-3 mb-3">
-                                            <div className="text-xl">🍕</div>
-                                            <div className="flex flex-col min-w-0">
-                                                <div className="flex items-center gap-2">
-                                                    <span className="text-[10px] text-white/40 font-bold uppercase tracking-widest leading-none mb-1">Товар</span>
-                                                    {criticalStores > 0 && (
-                                                        <span className="flex items-center gap-1 text-[9px] text-[#E74856] font-bold uppercase border border-[#E74856]/30 px-1.5 rounded bg-[#E74856]/10 animate-pulse">
-                                                            <AlertTriangle size={10} />
-                                                            {criticalStores} маг.
-                                                        </span>
-                                                    )}
-                                                </div>
-                                                <h3 className={cn(
-                                                    "text-sm font-black uppercase tracking-wider leading-tight truncate text-white/90 pr-6",
-                                                    isExpanded && "text-[#FFB800]"
-                                                )}>
-                                                    {product.name}
-                                                </h3>
-                                            </div>
-
-                                            <ChevronDown
-                                                size={20}
-                                                className={cn(
-                                                    "absolute top-4 right-4 text-white/20 transition-transform",
-                                                    isExpanded && "rotate-180 text-[#FFB800]"
-                                                )}
-                                            />
-                                        </div>
-
-                                        {/* Primary Metrics Grid */}
-                                        <div className="grid grid-cols-2 gap-4 mt-auto mb-3">
-                                            {/* Left: Stock (Fact) */}
-                                            <div className="flex flex-col">
-                                                <span className="text-[8px] font-black uppercase tracking-[0.2em] text-white/30 mb-0.5">Факт</span>
-                                                <div className="flex items-baseline gap-1">
-                                                    <span className={cn(
-                                                        "text-2xl font-black font-mono leading-none",
-                                                        hasIssues ? "text-[#E74856]" : "text-emerald-400"
-                                                    )}>
-                                                        {product.computed.totalStock.toFixed(0)}
-                                                    </span>
-                                                    <span className="text-[9px] font-bold text-white/20 uppercase">шт</span>
-                                                </div>
-                                            </div>
-
-                                            {/* Right: Recommended (Need) */}
-                                            <div className="flex flex-col items-end">
-                                                <span className="text-[8px] font-black uppercase tracking-[0.2em] text-white/30 mb-0.5 text-right w-full">Треба</span>
-                                                <div className="flex items-baseline gap-1">
-                                                    <span className={cn(
-                                                        "text-2xl font-black font-mono leading-none",
-                                                        product.computed.totalRecommended > 0 ? "text-[#00D4FF]" : "text-white/20"
-                                                    )}>
-                                                        {product.computed.totalRecommended.toFixed(0)}
-                                                    </span>
-                                                    <span className="text-[9px] font-bold text-white/20 uppercase">шт</span>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        {/* Secondary Metrics (Min / Avg) */}
-                                        <div className="flex items-center justify-between py-2 border-t border-white/5 mx-[-16px] px-4 bg-black/20">
-                                            <div className="flex flex-col">
-                                                <span className="text-[8px] text-white/30 uppercase tracking-wider">Мін. залишок</span>
-                                                <span className="text-[10px] font-mono text-white/70">{product.computed.totalMinStock.toFixed(0)}</span>
-                                            </div>
-                                            <div className="flex flex-col items-end">
-                                                <span className="text-[8px] text-white/30 uppercase tracking-wider">Сер. продажі</span>
-                                                <span className="text-[10px] font-mono text-white/70">{product.computed.totalAvg.toFixed(1)}</span>
-                                            </div>
-                                        </div>
-
-                                        {/* Progress Bar */}
-                                        <div className="mt-auto h-1 w-full bg-white/5 relative overflow-hidden">
-                                            <div
-                                                className={cn(
-                                                    "h-full transition-all duration-500",
-                                                    hasIssues ? "bg-[#E74856]" : "bg-emerald-500"
-                                                )}
-                                                style={{
-                                                    width: `${Math.min(100, (product.computed.totalStock / (Math.max(1, product.computed.totalMinStock) * 1.5)) * 100)}%`
-                                                }}
-                                            />
-                                        </div>
+                                    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-b from-transparent via-[#00E0FF]/50 to-transparent opacity-0 group-hover:opacity-100 animate-scan pointer-events-none"></div>
+                                    <div className="flex justify-between items-start relative z-10">
+                                        <h3 className="text-sm font-bold text-white tracking-tight group-hover:text-[#00E0FF] transition-colors leading-tight line-clamp-2 font-[family-name:var(--font-chakra)] uppercase">
+                                            {product.name}
+                                        </h3>
+                                        <div className={`w-2 h-2 rounded-full ${dotColorClass} flex-shrink-0 mt-1`}></div>
                                     </div>
 
-                                    {/* EXPANDED CONTENT - Accordion */}
-                                    {isExpanded && (
-                                        <div className="bg-[#0B0E14]/50 border-t border-white/10 p-2 animate-in slide-in-from-top-2">
-                                            <ProductAccordionItem
-                                                product={product}
-                                                planningDays={planningDays}
-                                                isExpanded={true}
-                                                onToggle={() => toggleItem(product.productCode)}
-                                            />
+                                    {isOutOfStock ? (
+                                        <div className="flex-1 flex items-center justify-center italic text-[10px] text-status-critical/80 font-medium font-[family-name:var(--font-jetbrains)] uppercase tracking-[0.2em] text-center">
+                                            Out of stock / Deficit
                                         </div>
+                                    ) : (
+                                        <>
+                                            <div className="grid grid-cols-2 gap-2 my-1 relative z-10">
+                                                <div className="flex flex-col">
+                                                    <span className="text-[9px] uppercase font-bold text-slate-500 mb-0 font-[family-name:var(--font-jetbrains)] tracking-widest">Act</span>
+                                                    <span className={`text-2xl font-bold font-[family-name:var(--font-jetbrains)] ${actualColorClass} leading-none`}>
+                                                        {product.computed.totalStock.toFixed(0)}
+                                                    </span>
+                                                </div>
+                                                <div className="flex flex-col items-end">
+                                                    <span className="text-[9px] uppercase font-bold text-slate-500 mb-0 font-[family-name:var(--font-jetbrains)] tracking-widest">Tgt</span>
+                                                    <span className="text-2xl font-bold text-slate-300 font-[family-name:var(--font-jetbrains)] leading-none">
+                                                        {product.computed.totalRecommended.toFixed(0)}
+                                                    </span>
+                                                </div>
+                                            </div>
+
+                                            <div className="space-y-2 pt-2 border-t border-white/5 mt-auto relative z-10">
+                                                <div className="flex justify-between items-center text-xs">
+                                                    <span className="text-slate-400 font-[family-name:var(--font-jetbrains)] uppercase text-[9px] tracking-widest">Min. Stock</span>
+                                                    <span className="font-medium text-slate-200 bg-white/5 px-1.5 py-0.5 rounded font-[family-name:var(--font-jetbrains)] text-[10px]">
+                                                        {product.computed.totalMinStock.toFixed(0)}
+                                                    </span>
+                                                </div>
+                                                <div className="relative pt-0.5">
+                                                    <div className="h-1.5 w-full bg-slate-800 rounded-full overflow-hidden border border-white/5">
+                                                        <div
+                                                            className={`h-full rounded-full transition-all duration-500 ${progressColorClass}`}
+                                                            style={{ width: `${fillPercent}%` }}
+                                                        />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </>
                                     )}
                                 </div>
                             );
                         })}
+
+                        <div className="glass-panel bg-[#131B2C]/40 p-4 rounded-xl flex flex-col justify-center items-center gap-2 border-dashed border-2 border-white/10 hover:border-[#00E0FF]/30 hover:shadow-[0_0_15px_rgba(0,224,255,0.1)] transition-all cursor-pointer group min-h-[120px]">
+                            <div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center group-hover:bg-[#00E0FF]/20 transition-colors">
+                                <span className="text-slate-400 group-hover:text-[#00E0FF] text-xl font-light">+</span>
+                            </div>
+                            <span className="text-xs font-medium text-slate-400 group-hover:text-white mt-1 font-[family-name:var(--font-chakra)] uppercase tracking-wider text-center">Add Product</span>
+                        </div>
                     </div>
                 ) : (
                     /* STORES VIEW */
-                    <div className="grid grid-cols-4 xl:grid-cols-6 gap-3 pb-20">
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3 pb-20">
                         {storesGrouped.map(store => {
-                            const isExpanded = expandedStores.has(store.storeName);
                             const hasIssues = store.criticalProducts > 0;
                             const fillPercent = store.totalMinStock > 0
                                 ? (store.totalStock / store.totalMinStock) * 100
@@ -576,132 +500,72 @@ export const PizzaPowerMatrix = ({ data, onRefresh, initialViewMode = 'products'
                                 <div
                                     key={store.storeName}
                                     id={`store-${store.storeId}`}
-                                    className={cn(
-                                        "rounded-2xl border-2 overflow-hidden transition-all duration-300 bg-gradient-to-br",
-                                        hasIssues
-                                            ? "from-[#E74856]/10 to-[#E74856]/5 border-[#E74856]/30 hover:border-[#E74856]/50"
-                                            : "from-emerald-500/10 to-emerald-500/5 border-emerald-500/30 hover:border-emerald-500/50",
-                                        isExpanded && "col-span-2 xl:col-span-3 border-[#FFB800]/50 shadow-xl shadow-[#FFB800]/10"
-                                    )}
+                                    onClick={() => setSelectedDrawerStoreId(store.storeId)}
+                                    className="glass-panel rounded-2xl transition-all duration-300 overflow-hidden group hover:shadow-[0_0_20px_rgba(0,224,255,0.15)] hover:border-[#00E0FF]/30 bg-[#131B2C] cursor-pointer"
                                 >
                                     {/* STORE CARD HEADER */}
                                     <div
-                                        onClick={() => toggleStore(store.storeName)}
                                         className={cn(
-                                            "p-4 cursor-pointer transition-colors",
-                                            isExpanded ? "bg-white/5" : "hover:bg-white/5"
+                                            "p-4 transition-colors relative",
+                                            "hover:bg-white/[0.05]",
+                                            hasIssues && "bg-status-critical/[0.05]"
                                         )}
                                     >
-                                        <div className="flex items-center justify-between mb-3">
-                                            <h3 className="text-lg font-black text-white leading-tight truncate pr-2">
+                                        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-b from-transparent via-[#00E0FF]/50 to-transparent opacity-0 group-hover:opacity-100 animate-scan pointer-events-none"></div>
+                                        <div className="flex items-center justify-between mb-2 relative z-10">
+                                            <h3 className="text-base font-semibold text-white tracking-widest leading-tight truncate pr-2 uppercase font-[family-name:var(--font-chakra)] group-hover:text-[#00E0FF] transition-colors">
                                                 {store.storeName.replace('Магазин ', '').replace(/"/g, '')}
                                             </h3>
-                                            <ChevronDown
-                                                size={20}
-                                                className={cn(
-                                                    "text-white/40 transition-transform flex-shrink-0",
-                                                    isExpanded && "rotate-180 text-[#FFB800]"
-                                                )}
-                                            />
                                         </div>
 
-                                        <div className="grid grid-cols-3 gap-2">
-                                            <div className="bg-white/5 rounded-xl p-3 text-center">
-                                                <div className="text-[10px] text-white/40 uppercase font-bold tracking-wider mb-1">Залишок</div>
+                                        <div className="grid grid-cols-3 gap-2 relative z-10">
+                                            <div className="bg-white/5 rounded-xl p-2 text-center">
+                                                <div className="text-[9px] text-slate-400 uppercase tracking-widest mb-0.5 font-[family-name:var(--font-jetbrains)] font-bold">Stock</div>
                                                 <div className={cn(
-                                                    "text-2xl font-mono font-black",
-                                                    hasIssues ? "text-[#E74856]" : "text-emerald-400"
+                                                    "text-xl font-bold font-[family-name:var(--font-jetbrains)]",
+                                                    hasIssues ? "text-status-critical drop-shadow-[0_0_8px_rgba(244,63,94,0.5)]" : "text-status-success drop-shadow-[0_0_8px_rgba(16,185,129,0.3)]"
                                                 )}>
                                                     {store.totalStock.toFixed(0)}
                                                 </div>
-                                                <div className="text-[10px] text-white/30 font-bold">шт</div>
                                             </div>
                                             <div className={cn(
-                                                "rounded-xl p-3 text-center",
-                                                store.criticalProducts > 0 ? "bg-[#E74856]/20" : "bg-emerald-500/10"
+                                                "rounded-xl p-2 text-center border",
+                                                store.criticalProducts > 0 ? "bg-status-critical/10 border-status-critical/20" : "bg-status-success/5 border-status-success/20"
                                             )}>
-                                                <div className="text-[10px] text-white/40 uppercase font-bold tracking-wider mb-1">Критичні</div>
+                                                <div className="text-[9px] text-slate-400 uppercase tracking-widest mb-0.5 font-[family-name:var(--font-jetbrains)] font-bold">Critical</div>
                                                 <div className={cn(
-                                                    "text-2xl font-mono font-black",
-                                                    store.criticalProducts > 0 ? "text-[#E74856]" : "text-emerald-400"
+                                                    "text-xl font-bold font-[family-name:var(--font-jetbrains)]",
+                                                    store.criticalProducts > 0 ? "text-status-critical drop-shadow-[0_0_8px_rgba(244,63,94,0.5)]" : "text-status-success drop-shadow-[0_0_8px_rgba(16,185,129,0.3)]"
                                                 )}>
                                                     {store.criticalProducts}
                                                 </div>
-                                                <div className="text-[10px] text-white/30 font-bold">продуктів</div>
                                             </div>
 
-                                            {/* NEW: AVG SALES METRIC */}
-                                            <div className="bg-[#00D4FF]/10 rounded-xl p-3 text-center border border-[#00D4FF]/20 flex flex-col justify-center">
-                                                <div className="flex items-center justify-center gap-1 text-[9px] text-[#00D4FF]/80 uppercase font-bold mb-1 whitespace-nowrap">
+                                            {/* AVG SALES METRIC */}
+                                            <div className="bg-[#00E0FF]/10 rounded-xl p-2 text-center border border-[#00E0FF]/20 flex flex-col justify-center">
+                                                <div className="flex items-center justify-center gap-1 text-[8px] text-[#00E0FF] uppercase tracking-widest font-[family-name:var(--font-jetbrains)] font-bold mb-0.5 whitespace-nowrap">
                                                     <TrendingUp size={10} />
-                                                    <span>Прод/день</span>
+                                                    <span>Sales/Day</span>
                                                 </div>
-                                                <div className="text-2xl font-mono font-black text-[#00D4FF] leading-none">
+                                                <div className="text-xl font-bold text-[#00E0FF] leading-none drop-shadow-[0_0_8px_rgba(0,224,255,0.4)] font-[family-name:var(--font-jetbrains)]">
                                                     {store.totalAvgSales.toFixed(0)}
                                                 </div>
-                                                <div className="text-[10px] text-[#00D4FF]/50 font-bold mt-1">піц</div>
                                             </div>
                                         </div>
 
-                                        <div className="mt-3">
-                                            <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
+                                        <div className="mt-3 relative z-10">
+                                            <div className="h-1.5 bg-slate-800 rounded-full overflow-hidden border border-white/5">
                                                 <div
                                                     className={cn(
                                                         "h-full rounded-full transition-all",
-                                                        fillPercent >= 100 ? "bg-emerald-400" :
-                                                            fillPercent < 50 ? "bg-[#E74856]" : "bg-[#FFB800]"
+                                                        fillPercent >= 100 ? "bg-status-success shadow-[0_0_10px_rgba(16,185,129,0.4)]" :
+                                                            fillPercent < 50 ? "bg-status-critical shadow-[0_0_10px_rgba(244,63,94,0.5)]" : "bg-status-warning shadow-[0_0_10px_rgba(251,191,36,0.5)]"
                                                     )}
                                                     style={{ width: `${Math.min(100, fillPercent)}%` }}
                                                 />
                                             </div>
                                         </div>
                                     </div>
-
-                                    {/* EXPANDED CONTENT - Products in this store */}
-                                    {isExpanded && (
-                                        <div className="border-t border-white/5 p-3">
-                                            <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-2">
-                                                {store.products.sort((a, b) => b.avg - a.avg).map(product => (
-                                                    <div
-                                                        key={`${store.storeName}-${product.productCode}`}
-                                                        className={cn(
-                                                            "rounded-lg p-3 border transition-colors",
-                                                            product.isUrgent
-                                                                ? "bg-red-500/10 border-red-500/20"
-                                                                : "bg-emerald-500/10 border-emerald-500/20"
-                                                        )}
-                                                    >
-                                                        <div className="text-sm font-bold text-white truncate mb-2" title={product.productName}>
-                                                            🍕 {product.productName}
-                                                        </div>
-                                                        <div className="grid grid-cols-3 gap-1 text-center">
-                                                            <div>
-                                                                <div className="text-[9px] text-white/40 uppercase font-bold">Факт</div>
-                                                                <div className={cn(
-                                                                    "text-lg font-mono font-black",
-                                                                    product.isUrgent ? "text-[#E74856]" : "text-emerald-400"
-                                                                )}>
-                                                                    {product.stock.toFixed(0)}
-                                                                </div>
-                                                            </div>
-                                                            <div>
-                                                                <div className="text-[9px] text-white/40 uppercase font-bold">Мін</div>
-                                                                <div className="text-lg font-mono font-bold text-cyan-400">
-                                                                    {product.minStock.toFixed(0)}
-                                                                </div>
-                                                            </div>
-                                                            <div>
-                                                                <div className="text-[9px] text-white/40 uppercase font-bold">Сер</div>
-                                                                <div className="text-lg font-mono font-bold text-[#FFB800]">
-                                                                    {product.avg.toFixed(1)}
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    )}
                                 </div>
                             );
                         })}
@@ -720,6 +584,20 @@ export const PizzaPowerMatrix = ({ data, onRefresh, initialViewMode = 'products'
             <ProductionDetailModal
                 isOpen={showProductionModal}
                 onClose={() => setShowProductionModal(false)}
+            />
+
+            {/* PRODUCT DETAIL SIDE DRAWER */}
+            <ProductDetailDrawer
+                isOpen={selectedDrawerProductCode !== null}
+                onClose={() => setSelectedDrawerProductCode(null)}
+                product={products.find(p => p.productCode === selectedDrawerProductCode)}
+            />
+
+            {/* STORE DETAIL DRAWER */}
+            <StoreDetailDrawer
+                isOpen={selectedDrawerStoreId !== null}
+                onClose={() => setSelectedDrawerStoreId(null)}
+                store={storesGrouped.find(s => s.storeId === selectedDrawerStoreId)}
             />
         </div>
     );

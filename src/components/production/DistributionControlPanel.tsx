@@ -72,19 +72,19 @@ export const DistributionControlPanel = () => {
     };
 
     return (
-        <div className="flex flex-col h-full bg-[#0B0E14] overflow-hidden font-sans">
+        <div className="flex flex-col h-full bg-bg-primary overflow-hidden font-sans text-text-primary">
 
             {/* --- CONTROL HEADER --- */}
-            <div className="p-6 border-b border-white/5 bg-[#141829]/30 flex flex-col md:flex-row items-center justify-between gap-6">
+            <div className="p-4 lg:p-6 pb-2 lg:pb-4 flex flex-col md:flex-row items-center justify-between gap-6 z-10 shrink-0">
 
                 {/* Left: Info */}
                 <div className="flex items-start gap-4">
-                    <div className="w-12 h-12 rounded-xl bg-[#FFB800]/10 border border-[#FFB800]/20 flex items-center justify-center shrink-0">
-                        <Truck size={24} className="text-[#FFB800]" />
+                    <div className="w-12 h-12 rounded-xl bg-orange-500/10 border border-orange-500/20 flex items-center justify-center shrink-0">
+                        <Truck size={24} className="text-orange-500" />
                     </div>
                     <div>
-                        <h2 className="text-xl font-bold text-white uppercase tracking-wide">Панель Логіста</h2>
-                        <div className="text-[10px] text-white/40 uppercase font-black tracking-widest mt-1">
+                        <h2 className="text-xl font-bold text-text-primary uppercase tracking-wide font-[family-name:var(--font-chakra)]">Панель Логіста</h2>
+                        <div className="text-[10px] text-text-secondary uppercase font-black tracking-widest mt-1 font-[family-name:var(--font-jetbrains)]">
                             Керування розподілом продукції
                         </div>
                     </div>
@@ -98,15 +98,15 @@ export const DistributionControlPanel = () => {
                             onClick={handleExport}
                             disabled={isExporting || resultsLoading || !resultsData || resultsData.length === 0}
                             className={cn(
-                                "h-12 px-6 rounded-xl font-bold uppercase tracking-wider transition-all flex items-center gap-2 border border-white/10 shrink-0",
+                                "h-12 px-6 rounded-xl font-bold uppercase tracking-wider transition-all flex items-center gap-2 border shadow-[0_0_15px_rgba(0,0,0,0.2)] shrink-0",
                                 !resultsData || resultsData.length === 0
-                                    ? "bg-white/5 text-white/20 cursor-not-allowed"
-                                    : "bg-[#1A1F3A] text-[#00D4FF] hover:bg-[#00D4FF]/10 hover:border-[#00D4FF]/30 active:scale-[0.98]"
+                                    ? "bg-bg-primary border-panel-border text-text-muted cursor-not-allowed"
+                                    : "bg-panel-bg text-[#00E0FF] border-[#00E0FF]/30 hover:bg-[#00E0FF]/10 hover:border-[#00E0FF]/60 hover:shadow-[0_0_15px_rgba(0,224,255,0.2)] active:scale-[0.98]"
                             )}
                             title="Скачати Excel"
                         >
                             {isExporting ? <Loader2 size={18} className="animate-spin" /> : <Download size={18} />}
-                            <span className="hidden sm:inline text-xs">Excel</span>
+                            <span className="hidden sm:inline text-xs font-[family-name:var(--font-chakra)] tracking-widest">Excel</span>
                         </button>
 
                         {/* RUN BUTTON */}
@@ -114,16 +114,16 @@ export const DistributionControlPanel = () => {
                             onClick={handleRunDistribution}
                             disabled={isRunning}
                             className={cn(
-                                "relative overflow-hidden h-12 px-8 rounded-xl font-black uppercase tracking-wider transition-all flex items-center gap-3 shadow-xl w-full md:w-auto justify-center",
+                                "relative overflow-hidden h-12 px-8 rounded-xl font-black uppercase tracking-wider transition-all flex items-center gap-3 shadow-[0_0_15px_rgba(255,138,0,0.2)] w-full md:w-auto justify-center text-white",
                                 isRunning
-                                    ? "bg-[#1A1F3A] text-white/50 cursor-not-allowed border border-white/5"
-                                    : "bg-gradient-to-r from-[#FFB800] to-[#FF8A00] text-[#0B0E14] hover:shadow-[0_0_30px_rgba(255,184,0,0.3)] hover:scale-[1.02] active:scale-[0.98]"
+                                    ? "bg-bg-primary text-text-muted cursor-not-allowed border border-panel-border"
+                                    : "bg-orange-500 hover:bg-orange-400 hover:shadow-[0_0_20px_rgba(255,138,0,0.4)] hover:scale-[1.02] active:scale-[0.98] border border-orange-400/50"
                             )}
                         >
                             {isRunning ? (
                                 <>
-                                    <Loader2 size={20} className="animate-spin" />
-                                    <span>Розрахунок...</span>
+                                    <Loader2 size={20} className="animate-spin text-text-muted" />
+                                    <span className="text-text-muted">Розрахунок...</span>
                                 </>
                             ) : (
                                 <>
@@ -141,9 +141,9 @@ export const DistributionControlPanel = () => {
                                 initial={{ opacity: 0, y: -10 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 exit={{ opacity: 0 }}
-                                className="text-xs font-mono text-emerald-400 flex items-center gap-1.5"
+                                className="text-xs font-[family-name:var(--font-jetbrains)] text-emerald-400 flex items-center gap-1.5 font-medium"
                             >
-                                <CheckCircle2 size={12} />
+                                <CheckCircle2 size={14} />
                                 {lastRunResult}
                             </motion.div>
                         )}
@@ -152,11 +152,11 @@ export const DistributionControlPanel = () => {
             </div>
 
             {/* --- RESULTS TABLE --- */}
-            <div className="flex-1 overflow-hidden p-6">
-                <div className="bg-[#141829]/50 border border-white/5 rounded-2xl h-full flex flex-col overflow-hidden">
+            <div className="flex-1 overflow-hidden p-3 lg:p-4 pt-0">
+                <div className="bg-panel-bg h-full flex flex-col overflow-hidden rounded-2xl border border-panel-border shadow-[var(--panel-shadow)]">
 
                     {/* Table Header */}
-                    <div className="grid grid-cols-12 gap-4 p-4 border-b border-white/5 bg-white/[0.02] text-[10px] uppercase font-bold tracking-widest text-white/40">
+                    <div className="grid grid-cols-12 gap-4 p-4 border-b border-panel-border bg-[#131B2C]/50 text-[10px] uppercase font-bold tracking-widest text-text-secondary font-[family-name:var(--font-jetbrains)]">
                         <div className="col-span-1 text-center">#</div>
                         <div className="col-span-5">Товар</div>
                         <div className="col-span-4">Магазин</div>
@@ -166,16 +166,16 @@ export const DistributionControlPanel = () => {
                     {/* Table Body */}
                     <div className="flex-1 overflow-y-auto custom-scrollbar p-2">
                         {resultsLoading ? (
-                            <div className="flex flex-col items-center justify-center h-full text-white/20 gap-3">
-                                <Loader2 size={32} className="animate-spin text-[#FFB800]" />
-                                <span className="text-xs tracking-widest">Завантаження даних...</span>
+                            <div className="flex flex-col items-center justify-center h-full text-text-secondary gap-3">
+                                <Loader2 size={32} className="animate-spin text-orange-500" />
+                                <span className="text-xs tracking-widest font-[family-name:var(--font-jetbrains)]">Завантаження даних...</span>
                             </div>
                         ) : !Array.isArray(resultsData) || resultsData.length === 0 ? (
-                            <div className="flex flex-col items-center justify-center h-full text-white/20 gap-4">
-                                <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center">
-                                    <ShoppingBag size={32} />
+                            <div className="flex flex-col items-center justify-center h-full text-text-muted gap-4">
+                                <div className="w-16 h-16 rounded-2xl bg-panel-border/30 flex items-center justify-center border border-panel-border">
+                                    <ShoppingBag size={32} className="text-text-secondary opacity-50" />
                                 </div>
-                                <span className="text-xs uppercase tracking-widest font-bold">Розподіл ще не сформовано</span>
+                                <span className="text-xs uppercase tracking-widest font-bold text-text-secondary">Розподіл ще не сформовано</span>
                             </div>
                         ) : (
                             <div className="space-y-1">
@@ -185,17 +185,17 @@ export const DistributionControlPanel = () => {
                                         initial={{ opacity: 0, x: -20 }}
                                         animate={{ opacity: 1, x: 0 }}
                                         transition={{ delay: idx * 0.05 }}
-                                        className="grid grid-cols-12 gap-4 p-3 rounded-lg hover:bg-white/5 transition-colors border border-transparent hover:border-white/5 items-center group"
+                                        className="grid grid-cols-12 gap-4 p-3 rounded-lg hover:bg-bg-primary transition-colors border border-transparent hover:border-panel-border items-center group"
                                     >
-                                        <div className="col-span-1 text-center text-white/20 font-mono text-xs">{idx + 1}</div>
-                                        <div className="col-span-5 font-medium text-white/90 text-sm group-hover:text-[#FFB800] transition-colors line-clamp-1" title={row.product_name}>
+                                        <div className="col-span-1 text-center text-text-secondary font-[family-name:var(--font-jetbrains)] text-[11px]">{idx + 1}</div>
+                                        <div className="col-span-5 font-bold text-text-primary text-sm group-hover:text-orange-400 transition-colors line-clamp-1" title={row.product_name}>
                                             {row.product_name}
                                         </div>
-                                        <div className="col-span-4 text-xs text-white/60 line-clamp-1" title={row.spot_name}>
+                                        <div className="col-span-4 text-xs text-text-secondary line-clamp-1 font-medium group-hover:text-text-primary transition-colors" title={row.spot_name}>
                                             {row.spot_name}
                                         </div>
                                         <div className="col-span-2 text-right">
-                                            <span className="inline-flex items-center justify-center px-3 py-1 rounded bg-[#FFB800]/10 text-[#FFB800] text-xs font-black font-mono border border-[#FFB800]/20 min-w-[3rem]">
+                                            <span className="inline-flex items-center justify-center px-4 py-1.5 rounded-lg bg-orange-500/10 text-orange-400 text-sm font-black font-[family-name:var(--font-jetbrains)] border border-orange-500/20 min-w-[3.5rem] shadow-[0_0_10px_rgba(255,138,0,0.1)]">
                                                 {row.quantity_to_ship}
                                             </span>
                                         </div>
@@ -206,12 +206,12 @@ export const DistributionControlPanel = () => {
                     </div>
 
                     {/* Footer Info */}
-                    <div className="p-3 border-t border-white/5 bg-[#0B0E14]/50 flex justify-between items-center text-[10px] text-white/30 uppercase tracking-widest font-mono">
-                        <div>Всього позицій: {resultsData?.length || 0}</div>
+                    <div className="p-3 border-t border-panel-border bg-[#131B2C]/50 flex justify-between items-center text-[10px] text-text-secondary uppercase tracking-widest font-[family-name:var(--font-jetbrains)] font-medium">
+                        <div>Всього позицій: <span className="text-text-primary font-bold">{resultsData?.length || 0}</span></div>
                         <div className="flex items-center gap-2">
-                            <span>Останнє оновлення: {new Date().toLocaleTimeString()}</span>
-                            <button onClick={() => refreshResults()} className="hover:text-white transition-colors">
-                                <RefreshCw size={12} />
+                            <span>Останнє оновлення: <span className="text-text-primary font-bold">{new Date().toLocaleTimeString()}</span></span>
+                            <button onClick={() => refreshResults()} className="p-1.5 hover:text-[#00E0FF] hover:bg-[#00E0FF]/10 rounded-md transition-colors shadow-sm border border-transparent hover:border-[#00E0FF]/30">
+                                <RefreshCw size={14} />
                             </button>
                         </div>
                     </div>

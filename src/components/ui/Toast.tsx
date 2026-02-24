@@ -44,27 +44,27 @@ export const useToast = () => {
 const toastConfig: Record<ToastType, { icon: typeof CheckCircle2; color: string; bg: string; border: string }> = {
     success: {
         icon: CheckCircle2,
-        color: 'text-[#10B981]',
-        bg: 'bg-[#10B981]/10',
-        border: 'border-[#10B981]/30',
+        color: 'text-status-success',
+        bg: 'bg-status-success/10',
+        border: 'border-status-success/30',
     },
     error: {
         icon: XCircle,
-        color: 'text-[#EF4444]',
-        bg: 'bg-[#EF4444]/10',
-        border: 'border-[#EF4444]/30',
+        color: 'text-status-critical',
+        bg: 'bg-status-critical/10',
+        border: 'border-status-critical/30',
     },
     warning: {
         icon: AlertTriangle,
-        color: 'text-[#F59E0B]',
-        bg: 'bg-[#F59E0B]/10',
-        border: 'border-[#F59E0B]/30',
+        color: 'text-status-warning',
+        bg: 'bg-status-warning/10',
+        border: 'border-status-warning/30',
     },
     info: {
         icon: Info,
-        color: 'text-[#00D4FF]',
-        bg: 'bg-[#00D4FF]/10',
-        border: 'border-[#00D4FF]/30',
+        color: 'text-accent-primary',
+        bg: 'bg-accent-primary/10',
+        border: 'border-accent-primary/30',
     },
 };
 
@@ -88,7 +88,7 @@ const ToastItem = ({ toast, onRemove }: { toast: Toast; onRemove: () => void }) 
             transition={{ duration: 0.2, ease: 'easeOut' }}
             className={cn(
                 'relative flex items-start gap-3 p-4 rounded-xl border backdrop-blur-xl',
-                'bg-[#0D1117]/95 shadow-2xl shadow-black/30',
+                'bg-panel-bg/95 shadow-[var(--panel-shadow)]',
                 'min-w-[320px] max-w-[420px]',
                 config.border
             )}
@@ -100,11 +100,11 @@ const ToastItem = ({ toast, onRemove }: { toast: Toast; onRemove: () => void }) 
 
             {/* Content */}
             <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-white">
+                <p className="text-sm font-semibold text-text-primary">
                     {toast.title}
                 </p>
                 {toast.description && (
-                    <p className="text-xs text-white/60 mt-1 leading-relaxed">
+                    <p className="text-xs text-text-secondary mt-1 leading-relaxed">
                         {toast.description}
                     </p>
                 )}
@@ -113,7 +113,7 @@ const ToastItem = ({ toast, onRemove }: { toast: Toast; onRemove: () => void }) 
             {/* Close button */}
             <button
                 onClick={onRemove}
-                className="flex-shrink-0 p-1 rounded-lg text-white/30 hover:text-white hover:bg-white/10 transition-all"
+                className="flex-shrink-0 p-1 rounded-lg text-text-muted hover:text-text-primary hover:bg-bg-primary/50 transition-all"
             >
                 <X size={14} />
             </button>

@@ -43,4 +43,7 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 .claude/ 
-.claude/ 
+
+# agent skills
+.agent/
+.agents/

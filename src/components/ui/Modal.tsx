@@ -154,17 +154,14 @@ export const Modal = ({
                 >
                     {/* Backdrop with blur */}
                     <div
-                        className="absolute inset-0 bg-black/85 backdrop-blur-xl"
-                        style={{
-                            background: 'radial-gradient(ellipse at center, rgba(10, 25, 49, 0.95) 0%, rgba(0, 0, 0, 0.95) 100%)',
-                        }}
+                        className="absolute inset-0 bg-bg-primary/80 backdrop-blur-xl"
                     />
 
                     {/* Subtle gradient overlay */}
                     <div
                         className="absolute inset-0 pointer-events-none opacity-30"
                         style={{
-                            background: 'radial-gradient(circle at 30% 20%, rgba(0, 212, 255, 0.1) 0%, transparent 40%), radial-gradient(circle at 70% 80%, rgba(0, 136, 255, 0.08) 0%, transparent 40%)',
+                            background: 'radial-gradient(circle at 30% 20%, rgba(var(--color-accent-primary), 0.1) 0%, transparent 40%), radial-gradient(circle at 70% 80%, rgba(var(--color-accent-primary), 0.08) 0%, transparent 40%)',
                         }}
                     />
 
@@ -173,8 +170,8 @@ export const Modal = ({
                         ref={modalRef}
                         className={cn(
                             'relative w-full flex flex-col overflow-hidden',
-                            'bg-[#0D1117] border border-white/10 rounded-2xl',
-                            'shadow-[0_0_0_1px_rgba(255,255,255,0.05),0_25px_50px_-12px_rgba(0,0,0,0.8),0_0_100px_-20px_rgba(0,136,255,0.15)]',
+                            'bg-panel-bg border border-panel-border rounded-2xl',
+                            'shadow-[var(--panel-shadow)]',
                             'max-h-[90vh]',
                             maxWidth || sizeClasses[size],
                             className
@@ -189,7 +186,7 @@ export const Modal = ({
                         <div
                             className="absolute top-0 left-0 right-0 h-[1px] overflow-hidden"
                             style={{
-                                background: 'linear-gradient(90deg, transparent, rgba(0, 212, 255, 0.5), rgba(0, 136, 255, 0.5), transparent)',
+                                background: 'linear-gradient(90deg, transparent, rgba(var(--color-accent-primary), 0.5), rgba(var(--color-accent-primary), 0.3), transparent)',
                             }}
                         />
 
@@ -202,11 +199,10 @@ export const Modal = ({
                                 className={cn(
                                     'absolute top-4 right-4 z-10',
                                     'p-2 rounded-xl',
-                                    'bg-white/5 hover:bg-white/10',
-                                    'text-white/40 hover:text-white',
-                                    'border border-white/5 hover:border-white/20',
+                                    'bg-panel-border/30 hover:bg-panel-border/50',
+                                    'text-text-muted hover:text-text-primary',
                                     'transition-all duration-200',
-                                    'focus:outline-none focus:ring-2 focus:ring-[#00D4FF]/50'
+                                    'focus:outline-none focus:ring-2 focus:ring-accent-primary/50'
                                 )}
                                 aria-label="Close modal"
                             >
@@ -230,13 +226,13 @@ export interface ModalHeaderProps {
 
 export const ModalHeader = ({ children, icon, className }: ModalHeaderProps) => (
     <div className={cn(
-        'flex-shrink-0 px-6 py-5 border-b border-white/5',
-        'bg-gradient-to-r from-[#0D1117] to-[#111823]',
+        'flex-shrink-0 px-6 py-5 border-b border-panel-border',
+        'bg-panel-bg',
         className
     )}>
         <div className="flex items-center gap-3 pr-10">
             {icon && (
-                <div className="w-10 h-10 rounded-xl bg-[#00D4FF]/10 flex items-center justify-center text-[#00D4FF]">
+                <div className="w-10 h-10 rounded-xl bg-accent-primary/10 flex items-center justify-center text-accent-primary">
                     {icon}
                 </div>
             )}
@@ -256,7 +252,7 @@ export interface ModalBodyProps {
 export const ModalBody = ({ children, className, noPadding }: ModalBodyProps) => (
     <div className={cn(
         'flex-1 overflow-y-auto custom-scrollbar',
-        'bg-[#0D1117]',
+        'bg-bg-primary',
         !noPadding && 'p-6',
         className
     )}>
@@ -271,8 +267,8 @@ export interface ModalFooterProps {
 
 export const ModalFooter = ({ children, className }: ModalFooterProps) => (
     <div className={cn(
-        'flex-shrink-0 px-6 py-4 border-t border-white/5',
-        'bg-gradient-to-r from-[#111823] to-[#0D1117]',
+        'flex-shrink-0 px-6 py-4 border-t border-panel-border',
+        'bg-panel-bg',
         className
     )}>
         {children}
@@ -313,31 +309,29 @@ export const ModalButton = ({
 
     const variantClasses = {
         primary: cn(
-            'bg-gradient-to-r from-[#0088FF] to-[#00D4FF]',
-            'text-white',
-            'shadow-lg shadow-[#0088FF]/20',
-            'hover:shadow-xl hover:shadow-[#00D4FF]/30',
+            'bg-accent-primary text-bg-primary',
+            'shadow-[0_0_15px_rgba(var(--color-accent-primary),0.3)]',
+            'hover:shadow-[0_0_20px_rgba(var(--color-accent-primary),0.5)]',
             'hover:scale-[1.02] active:scale-[0.98]',
-            'focus:ring-[#00D4FF]'
+            'focus:ring-accent-primary'
         ),
         secondary: cn(
-            'bg-white/5 border border-white/10',
-            'text-white/80 hover:text-white',
-            'hover:bg-white/10 hover:border-white/20',
-            'focus:ring-white/30'
+            'bg-panel-border/20 border border-panel-border',
+            'text-text-secondary hover:text-text-primary',
+            'hover:bg-panel-border/40 hover:border-text-muted',
+            'focus:ring-panel-border'
         ),
         ghost: cn(
-            'text-white/60 hover:text-white',
-            'hover:bg-white/5',
-            'focus:ring-white/20'
+            'text-text-muted hover:text-text-primary',
+            'hover:bg-bg-primary/50',
+            'focus:ring-panel-border/50'
         ),
         danger: cn(
-            'bg-gradient-to-r from-[#EF4444] to-[#F87171]',
-            'text-white',
-            'shadow-lg shadow-[#EF4444]/20',
-            'hover:shadow-xl hover:shadow-[#EF4444]/30',
+            'bg-status-critical text-bg-primary',
+            'shadow-[0_0_15px_rgba(var(--color-status-critical),0.3)]',
+            'hover:shadow-[0_0_20px_rgba(var(--color-status-critical),0.5)]',
             'hover:scale-[1.02] active:scale-[0.98]',
-            'focus:ring-[#EF4444]'
+            'focus:ring-status-critical'
         ),
     };
 

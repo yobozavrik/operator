@@ -38,37 +38,37 @@ interface AlertBannerProps {
 const alertConfig = {
     critical: {
         icon: XCircle,
-        bg: 'bg-[#EF4444]/10',
-        border: 'border-[#EF4444]/40',
-        iconColor: 'text-[#EF4444]',
-        titleColor: 'text-[#EF4444]',
+        bg: 'bg-status-critical/10',
+        border: 'border-status-critical/40',
+        iconColor: 'text-status-critical',
+        titleColor: 'text-status-critical',
         pulse: 'animate-pulse',
-        glow: 'shadow-[0_0_20px_rgba(239,68,68,0.2)]',
+        glow: 'shadow-[0_0_20px_rgba(var(--color-status-critical),0.2)]',
     },
     warning: {
         icon: AlertTriangle,
-        bg: 'bg-[#F59E0B]/10',
-        border: 'border-[#F59E0B]/40',
-        iconColor: 'text-[#F59E0B]',
-        titleColor: 'text-[#F59E0B]',
+        bg: 'bg-status-warning/10',
+        border: 'border-status-warning/40',
+        iconColor: 'text-status-warning',
+        titleColor: 'text-status-warning',
         pulse: '',
         glow: '',
     },
     info: {
         icon: Info,
-        bg: 'bg-[#00D4FF]/10',
-        border: 'border-[#00D4FF]/40',
-        iconColor: 'text-[#00D4FF]',
-        titleColor: 'text-[#00D4FF]',
+        bg: 'bg-accent-primary/10',
+        border: 'border-accent-primary/40',
+        iconColor: 'text-accent-primary',
+        titleColor: 'text-accent-primary',
         pulse: '',
         glow: '',
     },
     success: {
         icon: CheckCircle2,
-        bg: 'bg-[#10B981]/10',
-        border: 'border-[#10B981]/40',
-        iconColor: 'text-[#10B981]',
-        titleColor: 'text-[#10B981]',
+        bg: 'bg-status-success/10',
+        border: 'border-status-success/40',
+        iconColor: 'text-status-success',
+        titleColor: 'text-status-success',
         pulse: '',
         glow: '',
     },
@@ -122,7 +122,7 @@ export const AlertBanner = ({
                                 {title}
                             </p>
                             {description && (
-                                <p className="text-xs text-white/60 mt-1 leading-relaxed">
+                                <p className="text-xs text-text-secondary mt-1 leading-relaxed">
                                     {description}
                                 </p>
                             )}
@@ -132,8 +132,8 @@ export const AlertBanner = ({
                                     className={cn(
                                         'mt-3 inline-flex items-center gap-1 text-xs font-bold',
                                         'px-3 py-1.5 rounded-lg',
-                                        'bg-white/10 hover:bg-white/20',
-                                        'text-white transition-colors',
+                                        'bg-panel-border/30 hover:bg-panel-border/50',
+                                        'text-text-primary transition-colors',
                                     )}
                                 >
                                     {action.label}
@@ -146,7 +146,7 @@ export const AlertBanner = ({
                         {dismissible && (
                             <button
                                 onClick={onDismiss}
-                                className="flex-shrink-0 p-1 rounded-lg text-white/30 hover:text-white hover:bg-white/10 transition-all"
+                                className="flex-shrink-0 p-1 rounded-lg text-text-muted hover:text-text-primary hover:bg-panel-border/30 transition-all"
                             >
                                 <X size={16} />
                             </button>
@@ -155,7 +155,7 @@ export const AlertBanner = ({
 
                     {/* Pulsing border effect for critical */}
                     {type === 'critical' && pulse && (
-                        <div className="absolute inset-0 rounded-xl border border-[#EF4444]/50 animate-ping pointer-events-none" />
+                        <div className="absolute inset-0 rounded-xl border border-status-critical/50 animate-ping pointer-events-none" />
                     )}
                 </motion.div>
             )}

@@ -11,7 +11,9 @@ import { cn } from '@/lib/utils';
 import { BackToHome } from '@/components/BackToHome';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { BIPowerMatrix } from '@/components/BIPowerMatrix';
+import { StoreSpecificView } from '@/components/StoreSpecificView';
 import { PersonnelView } from '@/components/PersonnelView';
+import { CraftBreadAnalytics } from '@/components/analytics/CraftBreadAnalytics';
 import { useStore } from '@/context/StoreContext';
 import { useToast, AlertBanner } from '@/components/ui';
 
@@ -188,10 +190,39 @@ export const BIDashboard = () => {
     const handleStoreClick = (id: string) => {
         if (id === 'logistics') {
             router.push('/graviton/delivery');
+        } else if (id === 'Планування') {
+            router.push('/production/graviton/plan');
         } else {
             setSelectedStore(id);
         }
     };
+
+    // Aggregate Product Deficits
+    const aggregatedProducts = useMemo(() => {
+        return deficitQueue
+            .map(task => {
+                const totalDeficit = task.stores.reduce((sum, store) => sum + (store.deficitKg || 0), 0);
+                return { name: task.name, deficit: totalDeficit };
+            })
+            .filter(p => p.deficit > 0)
+            .sort((a, b) => b.deficit - a.deficit);
+    }, [deficitQueue]);
+
+    const isSpecificStore = selectedStore !== 'Усі' && selectedStore !== 'Персонал' && selectedStore !== 'Планування';
+    const storeSpecificQueue = useMemo(() => {
+        if (!isSpecificStore) return [];
+        return deficitQueue
+            .map(task => {
+                const storeData = task.stores.find(s => s.storeName === selectedStore);
+                if (!storeData || (!storeData.deficitKg && !storeData.recommendedKg)) return null;
+                return {
+                    ...task,
+                    stores: [storeData],
+                    recommendedQtyKg: storeData.deficitKg > 0 ? storeData.deficitKg : storeData.recommendedKg, // Prioritize urgent deficit explicitly
+                } as ProductionTask;
+            })
+            .filter((item): item is ProductionTask => item !== null);
+    }, [deficitQueue, selectedStore, isSpecificStore]);
 
     if (deficitError || metricsError || allProductsError) {
         return (
@@ -219,25 +250,23 @@ export const BIDashboard = () => {
     const loadPercent = recommendedLoad > 0 ? Math.round((displayTotalKg / recommendedLoad) * 100) : 0;
 
     return (
-        <div className="bg-[#F0F4F8] dark:bg-[#0B0F19] text-slate-300 antialiased overflow-hidden h-screen flex font-body">
+        <div className="bg-bg-primary text-text-primary antialiased overflow-hidden h-screen flex font-sans">
             {/* Fonts Injection */}
             <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet" />
 
             <SyncOverlay isVisible={isRefreshing} />
-            <div className="scanlines dark:opacity-30 opacity-0"></div>
 
             {/* Sidebar */}
-            <aside className="w-64 h-full flex flex-col border-r border-slate-800 bg-[#080B12] z-20 relative flex-shrink-0">
+            <aside className="w-64 h-full flex flex-col border-r border-panel-border bg-panel-bg z-20 relative flex-shrink-0 shadow-[var(--panel-shadow)]">
                 <div className="p-6 mb-4">
-                    <div className="glass-panel p-4 rounded-xl relative overflow-hidden group">
-                        <div className="absolute inset-0 bg-gradient-to-tr from-[#00D4FF]/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                    <div className="bg-bg-primary/50 border border-panel-border p-4 rounded-2xl relative overflow-hidden group">
                         <div className="flex items-center space-x-3 relative z-10">
-                            <div className="p-2 bg-gradient-to-br from-[#00D4FF] to-blue-600 rounded-lg shadow-neon-cyan">
-                                <MapPin className="text-white" size={20} />
+                            <div className="p-2 bg-accent-primary/20 rounded-xl">
+                                <MapPin className="text-accent-primary" size={20} />
                             </div>
                             <div>
-                                <div className="text-[10px] text-[#00D4FF] tracking-widest font-display">АНАЛІТИЧНА СИСТЕМА</div>
-                                <div className="text-xl font-bold text-white font-display tracking-wide">ГАЛЯ</div>
+                                <div className="text-[10px] text-accent-primary tracking-widest font-display font-medium">АНАЛІТИЧНА СИСТЕМА</div>
+                                <div className="text-xl font-bold text-text-primary font-display tracking-wide">ГАЛЯ</div>
                             </div>
                         </div>
                     </div>
@@ -275,6 +304,63 @@ export const BIDashboard = () => {
                                         </div>
                                         <span className="text-sm font-medium tracking-wide font-display group-hover:text-white transition-colors">
                                             Логістика
+                                        </span>
+                                    </div>
+                                </button>
+                            </li>
+                            <li>
+                                <button
+                                    onClick={() => router.push('/graviton/stores/sadgora')}
+                                    className="w-full flex items-center px-4 py-3 rounded-lg transition-colors border-l-4 text-left group relative overflow-hidden text-slate-400 hover:text-white hover:bg-white/5 border-transparent"
+                                >
+                                    <div className="relative z-10 flex items-center space-x-3">
+                                        <div className="w-6 h-6 rounded flex items-center justify-center bg-[#00D4FF]/10 text-[#00D4FF] group-hover:bg-[#00D4FF]/20 transition-colors">
+                                            <MapPin size={16} />
+                                        </div>
+                                        <span className="text-sm font-medium tracking-wide font-display text-slate-400 group-hover:text-white transition-colors">
+                                            СадгораТест
+                                        </span>
+                                    </div>
+                                </button>
+                            </li>
+                            <li>
+                                <button
+                                    onClick={() => handleStoreClick('Планування')}
+                                    className={cn(
+                                        "w-full flex items-center px-4 py-3 rounded-lg transition-colors border-l-4 text-left group relative overflow-hidden",
+                                        selectedStore === 'Планування'
+                                            ? "bg-gradient-to-r from-[#00D4FF]/20 to-transparent border-[#00D4FF] text-white shadow-neon-cyan"
+                                            : "text-slate-400 hover:text-white hover:bg-white/5 border-transparent"
+                                    )}
+                                >
+                                    {selectedStore === 'Планування' && <span className="absolute inset-0 bg-[#00D4FF]/10 animate-pulse pointer-events-none"></span>}
+                                    <div className="relative z-10 flex items-center space-x-3">
+                                        <div className={cn("w-6 h-6 rounded flex items-center justify-center transition-colors", selectedStore === 'Планування' ? "bg-[#00D4FF]/20 text-[#00D4FF]" : "bg-white/5 text-slate-400 group-hover:text-white")}>
+                                            <ClipboardList size={16} />
+                                        </div>
+                                        <span className={cn("text-sm font-medium tracking-wide font-display transition-colors", selectedStore === 'Планування' ? "text-white" : "group-hover:text-white")}>
+                                            Планування
+                                        </span>
+                                    </div>
+                                </button>
+                            </li>
+                            <li>
+                                <button
+                                    onClick={() => handleStoreClick('Аналітика: Крафтовий Хліб')}
+                                    className={cn(
+                                        "w-full flex items-center px-4 py-3 rounded-lg transition-colors border-l-4 text-left group relative overflow-hidden",
+                                        selectedStore === 'Аналітика: Крафтовий Хліб'
+                                            ? "bg-gradient-to-r from-[#00D4FF]/20 to-transparent border-[#00D4FF] text-white shadow-neon-cyan"
+                                            : "text-slate-400 hover:text-white hover:bg-white/5 border-transparent"
+                                    )}
+                                >
+                                    {selectedStore === 'Аналітика: Крафтовий Хліб' && <span className="absolute inset-0 bg-[#00D4FF]/10 animate-pulse pointer-events-none"></span>}
+                                    <div className="relative z-10 flex items-center space-x-3">
+                                        <div className={cn("w-6 h-6 rounded flex items-center justify-center transition-colors", selectedStore === 'Аналітика: Крафтовий Хліб' ? "bg-[#00D4FF]/20 text-[#00D4FF]" : "bg-white/5 text-slate-400 group-hover:text-white")}>
+                                            <Activity size={16} />
+                                        </div>
+                                        <span className={cn("text-sm font-medium tracking-wide font-display transition-colors", selectedStore === 'Аналітика: Крафтовий Хліб' ? "text-white" : "group-hover:text-white")}>
+                                            Аналітика: Хліб
                                         </span>
                                     </div>
                                 </button>
@@ -343,31 +429,29 @@ export const BIDashboard = () => {
             </aside>
 
             {/* Main Content */}
-            <main className="flex-1 flex flex-col h-full overflow-hidden relative z-10 bg-[url('https://images.unsplash.com/photo-1534796636912-3b95b3ab5986?ixlib=rb-4.0.3&auto=format&fit=crop&w=2342&q=80')] bg-cover bg-center">
-                <div className="absolute inset-0 bg-[#0B0F19]/90 backdrop-blur-sm z-0"></div>
-
+            <main className="flex-1 flex flex-col h-full overflow-hidden relative z-10 bg-transparent">
                 <div className="flex-1 flex flex-col p-6 space-y-6 relative z-10 overflow-y-auto custom-scrollbar">
 
                     {/* Header Panel */}
-                    <div className="glass-panel rounded-2xl p-6 flex justify-between items-center bracket-corner shrink-0">
+                    <div className="bg-panel-bg shadow-[var(--panel-shadow)] border border-panel-border p-6 flex justify-between items-center shrink-0 rounded-2xl">
                         <div className="flex items-center space-x-6">
-                            <button onClick={() => router.push('/')} className="text-slate-400 hover:text-white transition-colors">
+                            <button onClick={() => router.push('/')} className="text-text-muted hover:text-text-primary transition-colors">
                                 <ArrowLeft size={24} />
                             </button>
-                            <div className="h-8 w-[1px] bg-slate-700"></div>
+                            <div className="h-8 w-[1px] bg-panel-border"></div>
                             <div className="flex items-center space-x-4">
-                                <div className="p-3 bg-slate-800/50 rounded-lg border border-slate-700">
-                                    <BarChart2 className="text-[#00D4FF]" size={24} />
+                                <div className="p-3 bg-accent-primary/10 rounded-xl border border-accent-primary/20">
+                                    <BarChart2 className="text-accent-primary" size={24} />
                                 </div>
                                 <div>
-                                    <h1 className="text-2xl font-bold text-white tracking-wider font-display">ГАЛЯ БАЛУВАНА</h1>
-                                    <p className="text-xs text-slate-400 uppercase tracking-widest font-display">ВИРОБНИЧИЙ КОНТРОЛЬ • GRAVITON</p>
+                                    <h1 className="text-2xl font-bold text-text-primary tracking-wider font-display">ГАЛЯ БАЛУВАНА</h1>
+                                    <p className="text-xs text-text-secondary uppercase tracking-widest font-display">ВИРОБНИЧИЙ КОНТРОЛЬ • GRAVITON</p>
                                 </div>
                             </div>
                         </div>
                         <div className="text-right">
-                            <div className="text-xs text-slate-400 font-medium mb-1 font-display">{formattedDate}</div>
-                            <div className="text-3xl font-bold text-[#00D4FF] font-display shadow-cyan-500 drop-shadow-[0_0_8px_rgba(0,212,255,0.8)] tabular-nums">
+                            <div className="text-xs text-text-muted font-medium mb-1 font-display">{formattedDate}</div>
+                            <div className="text-3xl font-bold text-accent-primary font-display tabular-nums">
                                 {formattedTime}
                             </div>
                         </div>
@@ -379,62 +463,61 @@ export const BIDashboard = () => {
                             <button
                                 onClick={handleRefresh}
                                 disabled={isRefreshing}
-                                className="glass-button flex-1 py-4 px-6 rounded-xl flex items-center space-x-4 group border-l-4 border-l-[#00D4FF]/50 hover:border-l-[#00D4FF] relative overflow-hidden bg-[#00D4FF]/10 transition-all hover:bg-[#00D4FF]/15 active:scale-[0.98]"
+                                className="bg-panel-bg shadow-[var(--panel-shadow)] flex-1 py-4 px-6 flex items-center space-x-4 group border border-panel-border border-l-4 border-l-accent-primary/50 hover:border-l-accent-primary relative overflow-hidden transition-all hover:bg-bg-primary/50 active:scale-[0.98] rounded-2xl"
                             >
-                                <div className="absolute inset-0 bg-[#00D4FF]/5 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000"></div>
-                                <RefreshCw className={cn("text-[#00D4FF]", isRefreshing ? "animate-spin" : "group-hover:rotate-180 transition-transform duration-500")} size={24} />
+                                <RefreshCw className={cn("text-accent-primary", isRefreshing ? "animate-spin" : "group-hover:rotate-180 transition-transform duration-500")} size={24} />
                                 <div className="text-left">
-                                    <div className="text-[10px] text-[#00D4FF] uppercase font-bold tracking-widest font-display">{isRefreshing ? 'СИНХРОНІЗАЦІЯ...' : 'СИНХРОНІЗАЦІЯ'}</div>
-                                    <div className="text-white font-bold font-display text-lg leading-none">ОНОВИТИ<br />ЗАЛИШКИ</div>
+                                    <div className="text-[10px] text-accent-primary uppercase font-bold tracking-widest font-display">{isRefreshing ? 'СИНХРОНІЗАЦІЯ...' : 'СИНХРОНІЗАЦІЯ'}</div>
+                                    <div className="text-text-primary font-bold font-display text-lg leading-none">ОНОВИТИ<br />ЗАЛИШКИ</div>
                                 </div>
                             </button>
 
                             <button
                                 onClick={() => setSelectedStore('Персонал')}
                                 className={cn(
-                                    "glass-button flex-1 py-4 px-6 rounded-xl flex items-center space-x-4 group active:scale-[0.98]",
-                                    selectedStore === 'Персонал' ? "border-[#00D4FF] bg-[#00D4FF]/10" : ""
+                                    "bg-panel-bg shadow-[var(--panel-shadow)] border border-panel-border rounded-2xl flex-1 py-4 px-6 flex items-center space-x-4 group active:scale-[0.98] transition-all hover:bg-bg-primary/50",
+                                    selectedStore === 'Персонал' ? "border-accent-primary bg-accent-primary/5" : ""
                                 )}
                             >
-                                <Users size={24} className={cn("group-hover:text-white transition-colors", selectedStore === 'Персонал' ? "text-[#00D4FF]" : "text-slate-400")} />
+                                <Users size={24} className={cn("group-hover:text-accent-primary transition-colors", selectedStore === 'Персонал' ? "text-accent-primary" : "text-text-muted")} />
                                 <div className="text-left">
-                                    <div className="text-[10px] text-slate-500 uppercase font-bold tracking-widest group-hover:text-slate-300 font-display">УПРАВЛІННЯ</div>
-                                    <div className={cn("font-bold font-display text-lg group-hover:text-white", selectedStore === 'Персонал' ? "text-white" : "text-slate-200")}>ПЕРСОНАЛ</div>
+                                    <div className="text-[10px] text-text-secondary uppercase font-bold tracking-widest group-hover:text-text-muted font-display">УПРАВЛІННЯ</div>
+                                    <div className={cn("font-bold font-display text-lg", selectedStore === 'Персонал' ? "text-accent-primary" : "text-text-primary")}>ПЕРСОНАЛ</div>
                                 </div>
                             </button>
 
                             <button
                                 onClick={() => router.push('/graviton/delivery')}
-                                className="glass-button flex-1 py-4 px-6 rounded-xl flex items-center space-x-4 group active:scale-[0.98]"
+                                className="bg-panel-bg shadow-[var(--panel-shadow)] border border-panel-border rounded-2xl flex-1 py-4 px-6 flex items-center space-x-4 group active:scale-[0.98] transition-all hover:bg-bg-primary/50"
                             >
-                                <Truck size={24} className="text-slate-400 group-hover:text-white transition-colors" />
+                                <Truck size={24} className="text-text-muted group-hover:text-accent-primary transition-colors" />
                                 <div className="text-left">
-                                    <div className="text-[10px] text-slate-500 uppercase font-bold tracking-widest group-hover:text-slate-300 font-display">ЛОГІСТИКА</div>
-                                    <div className="text-slate-200 font-bold font-display text-lg group-hover:text-white">РОЗПОДІЛ</div>
+                                    <div className="text-[10px] text-text-secondary uppercase font-bold tracking-widest group-hover:text-text-muted font-display">ЛОГІСТИКА</div>
+                                    <div className="text-text-primary font-bold font-display text-lg">РОЗПОДІЛ</div>
                                 </div>
                             </button>
                         </div>
 
                         <div className="col-span-12 lg:col-span-4 grid grid-cols-3 gap-4">
-                            <div className="glass-panel p-3 rounded-xl flex flex-col justify-center items-center border-t border-t-emerald-500/30 shadow-glass">
-                                <Activity size={24} className="text-emerald-400 mb-1" />
-                                <div className="text-[9px] text-slate-400 uppercase text-center font-display tracking-wider">ЗАГАЛОМ КГ</div>
-                                <div className="text-2xl font-bold text-white font-display">{Math.round(displayTotalKg)}</div>
+                            <div className="bg-panel-bg shadow-[var(--panel-shadow)] border border-panel-border rounded-2xl p-3 flex flex-col justify-center items-center">
+                                <Activity size={24} className="text-status-success mb-1" />
+                                <div className="text-[9px] text-text-secondary uppercase text-center font-display tracking-wider">ЗАГАЛОМ КГ</div>
+                                <div className="text-2xl font-bold text-text-primary font-display">{Math.round(displayTotalKg)}</div>
                             </div>
-                            <div className="glass-panel p-3 rounded-xl flex flex-col justify-center items-center border-t border-t-red-500/30 bg-red-500/5 shadow-glass">
-                                <AlertTriangle size={24} className="text-[#E74856] mb-1" />
-                                <div className="text-[9px] text-slate-400 uppercase text-center font-display tracking-wider">КРИТИЧНІ SKU</div>
-                                <div className="text-2xl font-bold text-white font-display">{displayCriticalSKU}</div>
+                            <div className="bg-panel-bg shadow-[var(--panel-shadow)] border border-status-critical/30 rounded-2xl p-3 flex flex-col justify-center items-center">
+                                <AlertTriangle size={24} className="text-status-critical mb-1" />
+                                <div className="text-[9px] text-status-critical uppercase text-center font-display tracking-wider">КРИТИЧНІ SKU</div>
+                                <div className="text-2xl font-bold text-status-critical font-display">{displayCriticalSKU}</div>
                             </div>
-                            <div className="glass-panel p-3 rounded-xl flex flex-col justify-center items-center relative overflow-hidden shadow-glass">
+                            <div className="bg-panel-bg shadow-[var(--panel-shadow)] border border-panel-border rounded-2xl p-3 flex flex-col justify-center items-center relative overflow-hidden">
                                 <div className="absolute inset-0 flex items-center justify-center opacity-10">
-                                    <div className={cn("w-12 h-12 border-4 border-[#00D4FF] rounded-full border-t-transparent", isRefreshing ? "animate-spin" : "")}></div>
+                                    <div className={cn("w-12 h-12 border-4 border-accent-primary rounded-full border-t-transparent", isRefreshing ? "animate-spin" : "")}></div>
                                 </div>
-                                <div className="w-8 h-8 rounded-full border-2 border-slate-700 flex items-center justify-center mb-1 text-[10px] text-[#00D4FF] font-bold font-display">
+                                <div className="w-8 h-8 rounded-full border border-panel-border flex items-center justify-center mb-1 text-[10px] text-accent-primary font-bold font-display">
                                     {loadPercent}%
                                 </div>
-                                <div className="text-[9px] text-slate-400 uppercase text-center leading-tight font-display tracking-wider">
-                                    ЗАВАНТАЖЕННЯ<br /><span className="text-white font-bold">{Math.round(displayTotalKg)}</span> / {recommendedLoad} кг
+                                <div className="text-[9px] text-text-secondary uppercase text-center leading-tight font-display tracking-wider">
+                                    ЗАВАНТАЖЕННЯ<br /><span className="text-text-primary font-bold">{Math.round(displayTotalKg)}</span> / {recommendedLoad} кг
                                 </div>
                             </div>
                         </div>
@@ -442,18 +525,17 @@ export const BIDashboard = () => {
 
                     {/* Critical Alert Banner */}
                     {displayCriticalSKU > 0 && selectedStore !== 'Персонал' && (
-                        <div className="glass-panel rounded-xl p-4 border border-[#E74856]/30 bg-[#E74856]/5 pulse-red-border flex items-center justify-between relative overflow-hidden shrink-0">
-                            <div className="absolute inset-0 opacity-5" style={{ backgroundImage: "repeating-linear-gradient(45deg, #E74856 0, #E74856 10px, transparent 10px, transparent 20px)" }}></div>
+                        <div className="bg-panel-bg shadow-[var(--panel-shadow)] border border-status-critical/50 p-4 rounded-2xl flex items-center justify-between relative overflow-hidden shrink-0">
                             <div className="flex items-center space-x-4 relative z-10">
-                                <div className="p-2 rounded-full bg-[#E74856]/20 border border-[#E74856] text-[#E74856] animate-pulse">
+                                <div className="p-2 rounded-full bg-status-critical/20 text-status-critical animate-pulse">
                                     <AlertCircle size={24} />
                                 </div>
                                 <div>
-                                    <h3 className="text-[#E74856] font-bold font-display text-lg tracking-wide uppercase">КРИТИЧНИЙ ДЕФІЦИТ: {displayCriticalSKU} позицій</h3>
-                                    <p className="text-slate-400 text-sm font-body">Потрібне термінове виробництво для запобігання втраті продажів</p>
+                                    <h3 className="text-status-critical font-bold font-display text-lg tracking-wide uppercase">КРИТИЧНИЙ ДЕФІЦИТ: {displayCriticalSKU} позицій</h3>
+                                    <p className="text-text-secondary text-sm font-sans">Потрібне термінове виробництво для запобігання втраті продажів</p>
                                 </div>
                             </div>
-                            <button onClick={() => setShowBreakdownModal(true)} className="relative z-10 bg-slate-800 hover:bg-slate-700 text-white text-sm py-2 px-4 rounded border border-slate-600 flex items-center transition-colors font-display tracking-wider">
+                            <button onClick={() => setShowBreakdownModal(true)} className="relative z-10 bg-bg-primary hover:bg-bg-primary/80 border border-panel-border text-text-primary shadow-sm text-sm py-2 px-4 rounded-xl flex items-center transition-colors font-display tracking-wider">
                                 Переглянути список
                                 <ChevronRight size={16} className="ml-1" />
                             </button>
@@ -463,10 +545,14 @@ export const BIDashboard = () => {
                     {/* Content Columns */}
                     <div className="grid grid-cols-12 gap-6 flex-1 min-h-0">
                         {/* Main Interaction Area */}
-                        <div className="col-span-12 xl:col-span-8 flex flex-col h-full min-h-[400px] bg-[#0B0F19]/40 rounded-xl border border-white/5 backdrop-blur-sm overflow-hidden shadow-2xl">
+                        <div className="col-span-12 xl:col-span-8 flex flex-col h-full min-h-[400px] bg-panel-bg shadow-[var(--panel-shadow)] border border-panel-border rounded-2xl overflow-hidden">
                             <ErrorBoundary>
                                 {selectedStore === 'Персонал' ? (
                                     <PersonnelView />
+                                ) : selectedStore === 'Аналітика: Крафтовий Хліб' ? (
+                                    <CraftBreadAnalytics />
+                                ) : isSpecificStore ? (
+                                    <StoreSpecificView queue={storeSpecificQueue} storeName={selectedStore} />
                                 ) : (
                                     <BIPowerMatrix
                                         deficitQueue={deficitQueue}
@@ -483,85 +569,80 @@ export const BIDashboard = () => {
 
                         {/* Right Analytics Panel */}
                         <div className="col-span-12 xl:col-span-4 flex flex-col space-y-4 h-full min-h-[400px] overflow-hidden">
-                            <h2 className="text-[#00D4FF] font-display font-bold text-sm tracking-widest uppercase pl-1 border-l-2 border-[#00D4FF] shrink-0">Оперативна Аналітика</h2>
+                            <h2 className="text-accent-primary font-display font-bold text-sm tracking-widest uppercase pl-1 border-l-2 border-accent-primary shrink-0">Оперативна Аналітика</h2>
 
-                            <div className="glass-panel p-1 rounded-lg border border-[#E74856]/20 shrink-0">
-                                <button onClick={() => toast.info("Сповіщення надіслано", "Менеджери отримали повідомлення")} className="w-full bg-[#E74856]/10 hover:bg-[#E74856]/20 border border-[#E74856]/30 text-[#E74856] rounded p-2 text-xs font-bold uppercase tracking-wider flex items-center justify-center space-x-2 transition-colors font-display">
+                            <div className="bg-panel-bg shadow-[var(--panel-shadow)] border border-panel-border rounded-2xl p-1 shrink-0">
+                                <button onClick={() => toast.info("Сповіщення надіслано", "Менеджери отримали повідомлення")} className="w-full bg-status-critical/10 hover:bg-status-critical/20 border border-status-critical/30 text-status-critical rounded-xl p-2 text-xs font-bold uppercase tracking-wider flex items-center justify-center space-x-2 transition-colors font-display">
                                     <AlertTriangle size={16} />
                                     <span>Звернути Увагу</span>
                                 </button>
                             </div>
 
-                            <div className="glass-panel rounded-xl p-4 relative overflow-hidden group shrink-0 shadow-glass">
-                                <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-bl from-[#E74856]/20 to-transparent rounded-bl-full"></div>
+                            <div className="bg-panel-bg shadow-[var(--panel-shadow)] border border-panel-border rounded-2xl p-4 relative overflow-hidden group shrink-0">
+                                <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-bl from-status-critical/10 to-transparent rounded-bl-full"></div>
                                 <div className="flex items-start space-x-3 mb-4">
-                                    <div className="p-2 bg-slate-800 rounded-lg border border-slate-700 text-[#E74856]">
-                                        <MapPin size={20} />
+                                    <div className="p-2 bg-status-critical/10 rounded-xl border border-status-critical/20 text-status-critical">
+                                        <Package size={20} />
                                     </div>
                                     <div>
-                                        <h3 className="text-white font-bold text-sm uppercase font-display">Ризики Дефіциту</h3>
-                                        <p className="text-xs text-slate-500 font-body">Топ-3 критичних локацій</p>
+                                        <h3 className="text-text-primary font-bold text-sm uppercase font-display">Топ-5 Дефіцитів</h3>
+                                        <p className="text-xs text-text-secondary font-sans">Сумарна нестача по мережі</p>
                                     </div>
                                 </div>
                                 <div className="space-y-2">
-                                    {Array.from(new Set(deficitQueue.flatMap(t => t.stores).filter(s => s.deficitKg > 0).map(s => s.storeName)))
-                                        .slice(0, 3)
-                                        .map((storeName, i) => {
-                                            const storeDeficitCount = deficitQueue.filter(t => t.stores.some(s => s.storeName === storeName && s.deficitKg > 0)).length;
-                                            return (
-                                                <div key={i} className="bg-slate-900/80 p-3 rounded border border-slate-800 flex justify-between items-center group/item hover:border-[#E74856]/30 transition-colors">
-                                                    <div>
-                                                        <div className="text-white text-xs font-bold uppercase font-body">{storeName.replace('Магазин ', '').replace(/"/g, '')}</div>
-                                                        <div className="text-[10px] text-slate-500">{storeDeficitCount} позицій</div>
-                                                    </div>
-                                                    <div className="text-right">
-                                                        <div className="text-[#E74856] font-bold font-mono text-sm">{storeDeficitCount}</div>
-                                                        <div className="text-[8px] text-[#E74856] uppercase tracking-widest font-display">ДЕФІЦИТ</div>
-                                                    </div>
-                                                </div>
-                                            );
-                                        })}
-                                    {deficitQueue.length === 0 && (
-                                        <div className="text-center text-xs text-slate-500 py-2">Немає критичних ризиків</div>
+                                    {aggregatedProducts.slice(0, 5).map((prod, i) => (
+                                        <div key={i} className="bg-bg-primary/50 p-3 rounded-xl border border-panel-border flex justify-between items-center group/item hover:border-status-critical/50 transition-colors">
+                                            <div className="flex-1 min-w-0 pr-2">
+                                                <div className="text-text-primary text-xs font-bold uppercase font-sans truncate" title={prod.name}>{prod.name}</div>
+                                                <div className="text-[10px] text-text-secondary">Пріоритет {i + 1}</div>
+                                            </div>
+                                            <div className="text-right shrink-0">
+                                                <div className="text-status-critical font-bold font-mono text-sm">{Math.round(prod.deficit)}</div>
+                                                <div className="text-[8px] text-status-critical uppercase tracking-widest font-display">КГ</div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                    {aggregatedProducts.length === 0 && (
+                                        <div className="text-center text-xs text-text-muted py-2">Дефіцитів немає</div>
                                     )}
                                 </div>
                             </div>
 
                             {/* AI Chart Widget */}
-                            <div className="glass-panel rounded-xl p-4 flex-1 border border-[#00D4FF]/20 relative overflow-hidden shadow-glass flex flex-col min-h-[200px]">
-                                <div className="absolute inset-0 bg-gradient-to-b from-[#00D4FF]/5 to-transparent pointer-events-none"></div>
+                            <div className="bg-panel-bg shadow-[var(--panel-shadow)] border border-panel-border rounded-2xl p-4 flex-1 relative overflow-hidden flex flex-col min-h-[200px]">
+                                <div className="absolute inset-0 bg-gradient-to-b from-accent-primary/5 to-transparent pointer-events-none"></div>
                                 <div className="flex items-start space-x-3 mb-4 relative z-10 shrink-0">
-                                    <div className="p-2 bg-slate-800 rounded-lg border border-slate-700 text-[#00D4FF] shadow-[0_0_10px_rgba(0,212,255,0.2)]">
+                                    <div className="p-2 bg-accent-primary/10 rounded-xl border border-accent-primary/20 text-accent-primary">
                                         <TrendingUp size={20} />
                                     </div>
                                     <div>
-                                        <h3 className="text-white font-bold text-sm uppercase font-display">Прогноз</h3>
-                                        <p className="text-xs text-slate-500 font-body">AI Моделювання</p>
+                                        <h3 className="text-text-primary font-bold text-sm uppercase font-display">Прогноз</h3>
+                                        <p className="text-xs text-text-secondary font-sans">AI Моделювання</p>
                                     </div>
                                 </div>
-                                <div className="flex-1 w-full bg-slate-900/50 rounded-lg border border-slate-800 relative overflow-hidden flex items-end justify-center mb-4 min-h-[100px]">
-                                    <div className="absolute inset-0" style={{ backgroundImage: "linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px)", backgroundSize: "20px 20px" }}></div>
+                                <div className="flex-1 w-full bg-bg-primary/50 rounded-xl border border-panel-border relative overflow-hidden flex items-end justify-center mb-4 min-h-[100px]">
+                                    <div className="absolute inset-0" style={{ backgroundImage: "linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px)", backgroundSize: "20px 20px" }}></div>
                                     <svg className="w-full h-24 absolute bottom-0" preserveAspectRatio="none" viewBox="0 0 100 50">
-                                        <path d="M0,50 C20,40 30,10 50,25 C70,40 80,0 100,20 L100,50 L0,50 Z" fill="url(#grad1)" stroke="rgba(0,212,255,0.5)" strokeWidth="0.5"></path>
+                                        <path d="M0,50 C20,40 30,10 50,25 C70,40 80,0 100,20 L100,50 L0,50 Z" fill="url(#grad2)" stroke="#00D4FF" strokeWidth="0.8" opacity="0.5"></path>
                                         <defs>
-                                            <linearGradient id="grad1" x1="0%" x2="0%" y1="0%" y2="100%">
-                                                <stop offset="0%" style={{ stopColor: "rgba(0,212,255,0.2)", stopOpacity: 1 }}></stop>
-                                                <stop offset="100%" style={{ stopColor: "rgba(0,212,255,0)", stopOpacity: 1 }}></stop>
+                                            <linearGradient id="grad2" x1="0%" x2="0%" y1="0%" y2="100%">
+                                                <stop offset="0%" style={{ stopColor: "#00D4FF", stopOpacity: 0.1 }}></stop>
+                                                <stop offset="100%" style={{ stopColor: "#00D4FF", stopOpacity: 0 }}></stop>
                                             </linearGradient>
                                         </defs>
                                     </svg>
-                                    <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center">
-                                        <div className="text-[10px] text-slate-400 font-display tracking-widest uppercase">AI АНАЛІЗ</div>
-                                        <div className="text-[8px] text-slate-600 animate-pulse">LIVE STREAM...</div>
+                                    <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center bg-panel-bg/80 p-2 rounded-xl backdrop-blur border border-panel-border shadow-[var(--panel-shadow)]">
+                                        <div className="text-[10px] text-accent-primary font-display tracking-widest uppercase">AI АНАЛІЗ</div>
+                                        <div className="text-[8px] text-text-secondary animate-pulse">ОЧІКУВАННЯ ДАНИХ...</div>
                                     </div>
                                 </div>
 
-                                <div className="bg-slate-900/80 rounded-lg p-3 border border-slate-800 flex items-center justify-between shrink-0">
+                                <div className="bg-bg-primary/50 rounded-xl p-3 border border-panel-border flex items-center justify-between shrink-0 relative z-10">
                                     <div className="flex items-center space-x-2">
-                                        <Info className="text-yellow-500" size={16} />
-                                        <div className="text-[9px] leading-tight text-slate-300 font-bold uppercase font-display">Смарт-<br />Асистент</div>
+                                        <Info className="text-accent-primary" size={16} />
+                                        <div className="text-[9px] leading-tight text-text-primary font-bold uppercase font-display">Смарт-<br />Асистент</div>
                                     </div>
-                                    <button onClick={() => toast.success("AI Асистент активовоано")} className="bg-emerald-600 hover:bg-emerald-500 text-white text-[10px] font-bold uppercase py-2 px-3 rounded transition-colors shadow-lg shadow-emerald-900/50 font-display">
+                                    <button onClick={() => toast.success("AI Асистент активовоано")} className="bg-accent-primary/10 hover:bg-accent-primary/20 text-accent-primary border border-accent-primary/50 text-[10px] font-bold uppercase py-2 px-3 rounded-lg transition-colors shadow-[0_0_10px_rgba(var(--color-accent-primary),0.3)] font-display">
                                         ЗГЕНЕРУВАТИ
                                     </button>
                                 </div>
@@ -572,74 +653,6 @@ export const BIDashboard = () => {
             </main>
 
             <style jsx global>{`
-                .glass-panel {
-                    background: rgba(19, 27, 45, 0.5);
-                    backdrop-filter: blur(12px);
-                    -webkit-backdrop-filter: blur(12px);
-                    border: 1px solid rgba(255, 255, 255, 0.08);
-                }
-                .glass-button {
-                    background: linear-gradient(180deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%);
-                    border: 1px solid rgba(255, 255, 255, 0.1);
-                    backdrop-filter: blur(4px);
-                    transition: all 0.3s ease;
-                }
-                .glass-button:hover {
-                    background: rgba(255, 255, 255, 0.1);
-                    border-color: rgba(0, 212, 255, 0.5);
-                    box-shadow: 0 0 15px rgba(0, 212, 255, 0.2);
-                }
-                .scanlines {
-                    position: fixed;
-                    top: 0;
-                    left: 0;
-                    width: 100%;
-                    height: 100%;
-                    background: repeating-linear-gradient(
-                        0deg,
-                        rgba(0, 0, 0, 0.15),
-                        rgba(0, 0, 0, 0.15) 1px,
-                        transparent 1px,
-                        transparent 2px
-                    );
-                    pointer-events: none;
-                    z-index: 50;
-                }
-                .pulse-red-border {
-                    animation: pulse-red 2s infinite;
-                }
-                @keyframes pulse-red {
-                    0% { box-shadow: 0 0 0 0 rgba(231, 72, 86, 0.4); border-color: rgba(231, 72, 86, 0.4); }
-                    70% { box-shadow: 0 0 0 10px rgba(231, 72, 86, 0); border-color: rgba(231, 72, 86, 0.8); }
-                    100% { box-shadow: 0 0 0 0 rgba(231, 72, 86, 0); border-color: rgba(231, 72, 86, 0.4); }
-                }
-                .bracket-corner {
-                    position: relative;
-                }
-                .bracket-corner::before, .bracket-corner::after {
-                    content: '';
-                    position: absolute;
-                    width: 8px;
-                    height: 8px;
-                    border-color: rgba(0, 212, 255, 0.3);
-                    border-style: solid;
-                    transition: all 0.3s ease;
-                }
-                .bracket-corner::before {
-                    top: 0;
-                    left: 0;
-                    border-width: 1px 0 0 1px;
-                }
-                .bracket-corner::after {
-                    bottom: 0;
-                    right: 0;
-                    border-width: 0 1px 1px 0;
-                }
-                .bracket-corner:hover::before, .bracket-corner:hover::after {
-                    width: 100%;
-                    height: 100%;
-                    border-color: rgba(0, 212, 255, 0.6);
-                }
                 .animate-spin-slow {
                     animation: spin 3s linear infinite;
                 }
@@ -650,23 +663,17 @@ export const BIDashboard = () => {
                     background: transparent;
                 }
                 .custom-scrollbar::-webkit-scrollbar-thumb {
-                    background: rgba(255, 255, 255, 0.1);
+                    background: rgba(0, 0, 0, 0.1);
                     border-radius: 3px;
                 }
                 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-                    background: rgba(255, 255, 255, 0.2);
+                    background: rgba(0, 0, 0, 0.2);
                 }
                 .font-display {
                     font-family: 'Rajdhani', sans-serif;
                 }
                 .font-body {
                     font-family: 'Inter', sans-serif;
-                }
-                .shadow-neon-cyan {
-                    box-shadow: 0 0 10px rgba(0, 212, 255, 0.5), 0 0 20px rgba(0, 212, 255, 0.3);
-                }
-                .shadow-glass {
-                    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
                 }
             `}</style>
         </div>

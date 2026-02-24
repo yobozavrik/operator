@@ -7,7 +7,7 @@ import React from 'react';
 
 const SLUG_TO_LABEL: Record<string, string> = {
     'all': 'Усі',
-    'sadova': 'Магазин "Садгора"',
+    'sadgora': 'Магазин "Садгора"',
     'kompas': 'Магазин "Компас"',
     'ruska': 'Магазин "Руська"',
     'hotynska': 'Магазин "Хотинська"',

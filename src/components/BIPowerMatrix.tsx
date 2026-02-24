@@ -105,9 +105,9 @@ export const BIPowerMatrix = ({
 
         let finalOrder = 0;
         if (selectedStore !== 'Усі') {
-          finalOrder = Math.max(0, Math.ceil(minStock - stock));
+          finalOrder = Math.max(0, Number((minStock - stock).toFixed(1)));
         } else {
-          finalOrder = Math.max(0, Math.ceil(minStock + (avg * planningDays) - stock));
+          finalOrder = Math.max(0, Number((minStock + (avg * Math.max(0, planningDays - 1)) - stock).toFixed(1)));
         }
 
         const urgentOrder = finalOrder;
@@ -168,7 +168,7 @@ export const BIPowerMatrix = ({
         if (selectedStores.has(key)) total += store.recommendedKg;
       });
     });
-    return Math.round(total);
+    return Number(total.toFixed(1));
   }, [filteredQueue, selectedStores]);
 
   // Simplify hierarchy for flattening
@@ -295,7 +295,7 @@ export const BIPowerMatrix = ({
       item.stores.forEach(store => {
         const key = `${item.productCode}_${store.storeName}`;
         if (selectedStores.has(key)) {
-          const smartQuantity = Math.max(0, Math.ceil(store.minStock + (store.avgSales * planningDays) - store.currentStock));
+          const smartQuantity = Math.max(0, Number((store.minStock + (store.avgSales * Math.max(0, planningDays - 1)) - store.currentStock).toFixed(1)));
           items.push({
             id: key, productCode: item.productCode, productName: item.name, category: item.category, storeName: store.storeName,
             quantity: smartQuantity, kg: smartQuantity, minRequired: store.recommendedKg, maxRecommended: smartQuantity, priority: item.priority
@@ -334,25 +334,27 @@ export const BIPowerMatrix = ({
   }
 
   return (
-    <div className="flex flex-col h-full w-full font-body overflow-hidden">
+    <div className="flex flex-col h-full w-full font-sans text-text-primary overflow-hidden">
       {/* Header logic from HTML mockup */}
-      <div className="flex flex-col sm:flex-row items-center justify-between bg-slate-900/50 p-2 rounded-lg border border-slate-800 shrink-0 mb-2 gap-2 sm:gap-0">
+      <div className="flex flex-col sm:flex-row items-center justify-between bg-panel-bg shadow-[var(--panel-shadow)] border border-panel-border rounded-xl p-2 shrink-0 mb-4 gap-2 sm:gap-0">
         <div className="flex items-center space-x-3 px-2">
-          <ClipboardList className="text-slate-400" size={20} />
-          <span className="font-bold font-display text-white tracking-wide uppercase">ФОРМУВАННЯ ЗАМОВЛЕННЯ</span>
+          <div className="p-1.5 bg-accent-primary/10 rounded-lg text-accent-primary">
+            <ClipboardList size={18} />
+          </div>
+          <span className="font-bold font-display text-text-primary tracking-wide uppercase">ФОРМУВАННЯ ЗАМОВЛЕННЯ</span>
         </div>
 
-        <div className="flex items-center space-x-2 bg-slate-950 p-1 rounded border border-slate-800 overflow-x-auto max-w-full">
-          <span className="text-xs text-slate-500 px-2 font-display uppercase whitespace-nowrap">ПЛАН (ДНІВ):</span>
+        <div className="flex items-center space-x-2 bg-bg-primary p-1 rounded-lg border border-panel-border overflow-x-auto max-w-full">
+          <span className="text-xs text-text-secondary px-2 font-display uppercase whitespace-nowrap font-bold tracking-wider">ПЛАН (ДНІВ):</span>
           {[1, 2, 3, 4, 7, 14].map(d => (
             <button
               key={d}
               onClick={() => handleSetPlanningDays(d)}
               className={cn(
-                "h-6 w-8 flex items-center justify-center rounded text-xs transition-colors font-bold",
+                "h-7 w-9 flex items-center justify-center rounded text-xs transition-all font-bold",
                 planningDays === d
-                  ? "bg-[#00D4FF] text-black shadow-[0_0_10px_rgba(0,212,255,0.4)]"
-                  : "text-slate-400 hover:text-white hover:bg-slate-800"
+                  ? "bg-accent-primary text-bg-primary shadow-[0_0_10px_rgba(var(--color-accent-primary),0.5)]"
+                  : "text-text-muted hover:text-text-primary hover:bg-panel-bg"
               )}
             >
               {d}
@@ -360,164 +362,159 @@ export const BIPowerMatrix = ({
           ))}
         </div>
 
-        <div className="flex items-center space-x-2 px-3">
-          <div className={cn("w-2 h-2 rounded-full shadow-[0_0_5px_rgba(0,212,255,1)]", selectedWeight > 0 ? "bg-[#00D4FF]" : "bg-slate-700")}></div>
-          <span className="text-xs text-slate-400 font-display">Вибрано: <span className="text-[#00D4FF] font-bold">{selectedWeight} кг</span> / {currentCapacity || '—'} кг</span>
+        <div className="flex items-center space-x-2 px-3 bg-bg-primary border border-panel-border rounded-lg py-1.5">
+          <div className={cn("w-2 h-2 rounded-full", selectedWeight > 0 ? "bg-accent-primary animate-pulse shadow-[0_0_5px_rgba(var(--color-accent-primary),0.8)]" : "bg-panel-border")}></div>
+          <span className="text-xs text-text-secondary font-display font-medium uppercase tracking-wider">Вибрано: <span className="text-accent-primary font-bold">{selectedWeight} кг</span> / {currentCapacity || '—'} кг</span>
         </div>
       </div>
 
       {/* Main List */}
-      <div className="flex-1 overflow-y-auto custom-scrollbar glass-panel rounded-xl border-slate-800 p-2 space-y-1">
+      <div className="flex-1 overflow-y-auto custom-scrollbar bg-panel-bg shadow-[var(--panel-shadow)] border border-panel-border rounded-xl p-0 space-y-0 relative">
         {/* Table Header */}
-        <div className="grid grid-cols-12 gap-4 px-4 py-2 text-xs font-bold text-slate-500 uppercase tracking-wider border-b border-slate-800 mb-2 sticky top-0 bg-[#0B0F19]/90 backdrop-blur z-10">
+        <div className="grid grid-cols-12 gap-4 px-6 py-3 text-xs font-bold text-text-secondary uppercase tracking-widest border-b border-panel-border sticky top-0 bg-panel-bg/95 backdrop-blur z-10 font-display">
           <div className="col-span-8 sm:col-span-6">Категорія</div>
           <div className="col-span-4 sm:col-span-6 text-right">Вага (кг)</div>
         </div>
 
-        {flatCategories.map(cat => {
-          const isExpanded = expandedCategories.has(cat.name);
-          const isCritical = cat.priority === 'critical';
+        <div className="p-2 space-y-1">
+          {flatCategories.map(cat => {
+            const isExpanded = expandedCategories.has(cat.name);
+            const isCritical = cat.priority === 'critical';
 
-          return (
-            <div key={cat.name} className="flex flex-col">
-              <div
-                className={cn(
-                  "group flex items-center justify-between p-3 rounded transition-colors border cursor-pointer",
-                  isExpanded ? "bg-white/10 border-slate-700" : "hover:bg-white/5 border-transparent hover:border-slate-700",
-                  isCritical && !isExpanded ? "border-l-2 border-l-[#E74856]" : ""
-                )}
-                onClick={() => toggleCategory(cat.name)}
-              >
-                <div className="flex items-center space-x-4">
-                  <ChevronRight size={16} className={cn("text-slate-600 group-hover:text-[#00D4FF] transition-transform duration-200", isExpanded ? "rotate-90 text-[#00D4FF]" : "")} />
-                  <span className="font-display font-bold text-white tracking-wide uppercase">
-                    {cat.name}
-                    <span className="text-slate-500 text-xs font-sans ml-2 normal-case">({cat.itemsCount} поз.)</span>
-                  </span>
-                </div>
-                <div className={cn("font-mono font-bold", cat.totalKg > 0 ? "text-[#E74856]" : "text-slate-500")}>
-                  {Math.round(cat.totalKg)} кг
-                </div>
-              </div>
-
-              {/* Expanded Content */}
-              {isExpanded && (
-                <div className="ml-4 pl-4 border-l border-slate-800 my-1 space-y-1 animate-in slide-in-from-top-1 duration-200">
-                  <div className="flex justify-end p-2">
-                    <button onClick={() => toggleSelectAllByCategory(cat.name, cat.items)} className="text-[10px] text-[#00D4FF] hover:underline uppercase font-bold tracking-wider">
-                      Обрати всю категорію
-                    </button>
+            return (
+              <div key={cat.name} className="flex flex-col">
+                <div
+                  className={cn(
+                    "group flex items-center justify-between py-2.5 px-4 rounded-xl transition-colors border cursor-pointer",
+                    isExpanded ? "bg-bg-primary border-panel-border" : "hover:bg-bg-primary/50 border-transparent hover:border-panel-border",
+                    isCritical && !isExpanded ? "border-l-4 border-l-status-critical" : ""
+                  )}
+                  onClick={() => toggleCategory(cat.name)}
+                >
+                  <div className="flex items-center space-x-4">
+                    <ChevronRight size={16} className={cn("text-text-muted group-hover:text-accent-primary transition-transform duration-200", isExpanded ? "rotate-90 text-accent-primary" : "")} />
+                    <span className="font-display font-bold text-text-primary tracking-wide uppercase">
+                      {cat.name}
+                      <span className="text-text-muted text-xs font-sans ml-2 normal-case font-medium">({cat.itemsCount} поз.)</span>
+                    </span>
                   </div>
-                  {cat.items.map(item => (
-                    <div key={item.productCode} className="group/item flex flex-col p-2 rounded hover:bg-white/5">
-                      <div className="flex justify-between items-center">
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs text-slate-300 font-medium">{item.name}</span>
-                        </div>
-                        <span className="text-xs font-mono text-slate-400">{Math.round(item.recommendedQtyKg)} кг</span>
-                      </div>
-                      {/* Stores Breakdown */}
-                      <div className="mt-1 pl-2 space-y-1">
-                        {item.stores.map(store => {
-                          const key = `${item.productCode}_${store.storeName}`;
-                          const isSelected = selectedStores.has(key);
-                          return (
-                            <div
-                              key={store.storeName}
-                              className={cn(
-                                "flex justify-between items-center text-[10px] p-1 rounded cursor-pointer transition-colors",
-                                isSelected ? "bg-[#00D4FF]/10 text-[#00D4FF]" : "text-slate-500 hover:text-slate-300"
-                              )}
-                              onClick={() => toggleStoreSelection(item.productCode, store.storeName)}
-                            >
-                              <div className="flex items-center gap-2">
-                                <div className={cn("w-2 h-2 rounded-full border", isSelected ? "bg-[#00D4FF] border-[#00D4FF]" : "border-slate-600")}></div>
-                                <span>{store.storeName.replace('Магазин ', '').replace(/"/g, '')}</span>
-                              </div>
-                              <div className="flex gap-2 font-mono">
-                                <span>Факт: {store.currentStock}</span>
-                                <span className={store.deficitKg > 0 ? "text-[#E74856] font-bold" : ""}>Треба: {store.recommendedKg}</span>
-                              </div>
-                            </div>
-                          )
-                        })}
-                      </div>
-                    </div>
-                  ))}
+                  <div className={cn("font-mono font-bold", cat.totalKg > 0 ? "text-status-critical" : "text-text-muted")}>
+                    {Number(cat.totalKg).toFixed(1)} кг
+                  </div>
                 </div>
-              )}
-            </div>
-          )
-        })}
+
+                {/* Expanded Content */}
+                {isExpanded && (
+                  <div className="ml-6 pl-4 border-l-2 border-panel-border my-1 space-y-1 animate-in slide-in-from-top-1 duration-200">
+                    <div className="flex justify-end p-2">
+                      <button onClick={() => toggleSelectAllByCategory(cat.name, cat.items)} className="text-[10px] text-accent-primary hover:text-accent-secondary hover:underline uppercase font-bold tracking-wider font-display">
+                        Обрати всю категорію
+                      </button>
+                    </div>
+                    {cat.items.map((item, itemIndex) => (
+                      <div key={`${item.productCode}_${itemIndex}`} className="group/item flex flex-col p-2.5 rounded-lg hover:bg-bg-primary/50 border border-transparent hover:border-panel-border transition-colors">
+                        <div className="flex justify-between items-center mb-1">
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs text-text-primary font-medium">{item.name}</span>
+                          </div>
+                          <span className="text-xs font-mono text-text-muted font-bold">{Number(item.recommendedQtyKg).toFixed(1)} кг</span>
+                        </div>
+                        {/* Stores Breakdown */}
+                        <div className="mt-1 pl-2 space-y-1.5 border-l border-panel-border/50 ml-1">
+                          {item.stores.map((store, storeIndex) => {
+                            const key = `${item.productCode}_${store.storeName}`;
+                            const isSelected = selectedStores.has(key);
+                            return (
+                              <div
+                                key={store.storeName || `${item.productCode}_${storeIndex}`}
+                                className={cn(
+                                  "flex justify-between items-center text-[10px] p-1.5 rounded cursor-pointer transition-colors",
+                                  isSelected ? "bg-accent-primary/10 border-accent-primary/30 border text-accent-primary" : "text-text-secondary hover:text-text-primary hover:bg-panel-bg"
+                                )}
+                                onClick={() => toggleStoreSelection(item.productCode, store.storeName)}
+                              >
+                                <div className="flex items-center gap-2">
+                                  <div className={cn("w-3 h-3 rounded flex items-center justify-center border", isSelected ? "bg-accent-primary border-accent-primary shadow-[0_0_5px_rgba(var(--color-accent-primary),0.5)]" : "border-panel-border bg-transparent group-hover:border-text-secondary")}>
+                                    {isSelected && <CheckCircle2 size={10} className="text-bg-primary" />}
+                                  </div>
+                                  <span className={cn(isSelected ? "font-bold" : "font-medium")}>{store.storeName.replace('Магазин ', '').replace(/"/g, '')}</span>
+                                </div>
+                                <div className="flex gap-3 font-mono">
+                                  <span>Факт: {Number(store.currentStock).toFixed(1)}</span>
+                                  <span className={store.deficitKg > 0 ? "text-status-critical font-bold" : (isSelected ? "text-accent-primary font-bold" : "font-medium")}>Треба: {Number(store.recommendedKg).toFixed(1)}</span>
+                                </div>
+                              </div>
+                            )
+                          })}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )
+          })}
+        </div>
       </div>
 
       {/* Footer Actions */}
-      <div className="grid grid-cols-4 gap-4 p-2 shrink-0 border-t border-slate-800 bg-[#0B0F19]">
+      <div className="grid grid-cols-4 gap-4 p-4 mt-4 shrink-0 bg-panel-bg shadow-[var(--panel-shadow)] border border-panel-border rounded-xl">
         <button
           onClick={selectAll}
-          className="glass-button p-3 rounded border border-[#00D4FF]/30 text-[#00D4FF] font-bold uppercase text-xs tracking-wider hover:bg-[#00D4FF]/20 transition-all active:scale-[0.98]"
+          className="bg-bg-primary p-3 rounded-xl border border-panel-border text-accent-primary font-bold uppercase text-xs tracking-wider hover:bg-accent-primary/10 hover:border-accent-primary/50 transition-all active:scale-[0.98] shadow-[var(--panel-shadow)] flex flex-col items-center justify-center font-display"
         >
-          <div className="text-[9px] opacity-70 font-light mb-1 font-display">ВСЕ ДЕРЕВО</div>
-          ВИБРАТИ ВСЕ <br /><span className="text-[10px] font-mono mt-1 inline-block text-white">{filteredQueue.reduce((acc, i) => acc + i.recommendedQtyKg, 0)} КГ</span>
+          <div className="text-[9px] text-text-muted font-medium mb-1 tracking-widest">ВСЕ ДЕРЕВО</div>
+          ВИБРАТИ ВСЕ <span className="text-[10px] font-mono mt-1 inline-block text-text-primary px-2 py-0.5 bg-panel-bg rounded">{filteredQueue.reduce((acc, i) => acc + i.recommendedQtyKg, 0)} КГ</span>
         </button>
 
         <button
           onClick={() => setIsOrderConfirmed(true)}
           disabled={selectedStores.size === 0 || isOrderConfirmed}
           className={cn(
-            "p-3 rounded border font-bold uppercase text-xs tracking-wider transition-all",
+            "p-3 rounded-xl border font-bold uppercase text-xs tracking-wider transition-all shadow-[var(--panel-shadow)] flex flex-col items-center justify-center font-display",
             isOrderConfirmed
-              ? "bg-slate-800/50 border-slate-700 text-slate-500 cursor-not-allowed" // Already confirmed
+              ? "bg-status-success/10 border-status-success/30 text-status-success cursor-not-allowed" // Already confirmed
               : selectedStores.size > 0
-                ? "bg-[#00D4FF]/10 border-[#00D4FF]/50 text-[#00D4FF] hover:bg-[#00D4FF]/20" // Can confirm
-                : "bg-slate-800/50 border-slate-700 text-slate-600 cursor-not-allowed" // Nothing selected
+                ? "bg-bg-primary border-accent-primary text-accent-primary hover:bg-accent-primary/10 hover:shadow-[0_0_15px_rgba(var(--color-accent-primary),0.2)]" // Can confirm
+                : "bg-bg-primary/50 border-panel-border text-text-muted cursor-not-allowed" // Nothing selected
           )}
         >
-          <div className="text-[9px] opacity-70 font-light mb-1 font-display">ТІЛЬКИ ОБРАНЕ</div>
-          {isOrderConfirmed ? "ПІДТВЕРДЖЕНО" : "ВИБРАТИ ОБРАНЕ"} <br /><span className="text-[10px] font-mono mt-1 inline-block text-white">{selectedWeight} КГ</span>
+          <div className={cn("text-[9px] font-medium mb-1 tracking-widest", isOrderConfirmed ? "text-status-success/80" : "text-text-muted")}>ТІЛЬКИ ОБРАНЕ</div>
+          {isOrderConfirmed ? "ПІДТВЕРДЖЕНО" : "ВИБРАТИ ОБРАНЕ"} <span className={cn("text-[10px] font-mono mt-1 inline-block px-2 py-0.5 rounded", isOrderConfirmed ? "bg-status-success/20 text-status-success" : (selectedStores.size > 0 ? "bg-accent-primary/10 text-accent-primary" : "bg-panel-bg text-text-muted"))}>{selectedWeight} КГ</span>
         </button>
 
         <button
           onClick={handleFormOrder}
           className={cn(
-            "p-3 rounded border font-bold uppercase text-xs tracking-wider flex flex-col items-center justify-center transition-all active:scale-[0.98]",
+            "p-3 rounded-xl border font-bold uppercase text-xs tracking-wider flex flex-col items-center justify-center transition-all shadow-[var(--panel-shadow)] font-display",
             isOrderConfirmed
-              ? "bg-[#00D4FF] border-[#00D4FF] text-[#0B0F19] shadow-[0_0_15px_rgba(0,212,255,0.4)]"
-              : "bg-slate-800/50 border-slate-700 text-slate-600 cursor-not-allowed"
+              ? "bg-accent-primary border-accent-primary text-bg-primary shadow-[0_0_15px_rgba(var(--color-accent-primary),0.5)] hover:bg-accent-secondary active:scale-[0.98]"
+              : "bg-bg-primary/50 border-panel-border text-text-muted cursor-not-allowed"
           )}
         >
-          <Package size={20} className="mb-1 opacity-80" />
+          <Package size={20} className={cn("mb-1", isOrderConfirmed ? "text-bg-primary" : "text-text-muted")} />
           СФОРМУВАТИ ЗАЯВКУ
         </button>
 
         <button
           onClick={clearSelection}
-          className="glass-button p-3 rounded border border-[#E74856]/30 text-[#E74856] font-bold uppercase text-xs tracking-wider hover:bg-[#E74856]/10 transition-all active:scale-[0.98]"
+          className="bg-bg-primary p-3 rounded-xl border border-status-critical/30 text-status-critical font-bold uppercase text-xs tracking-wider hover:bg-status-critical/10 hover:border-status-critical transition-all active:scale-[0.98] shadow-[var(--panel-shadow)] flex flex-col items-center justify-center font-display"
         >
-          <div className="text-[9px] opacity-70 font-light mb-1 font-display">СКИНУТИ ВИБІР</div>
-          ОЧИСТИТИ <br /><span className="text-[10px] font-mono mt-1 inline-block text-white">0 КГ</span>
+          <div className="text-[9px] text-status-critical/80 font-medium mb-1 tracking-widest">СКИНУТИ ВИБІР</div>
+          ОЧИСТИТИ <span className="text-[10px] font-mono mt-1 inline-block text-status-critical px-2 py-0.5 bg-status-critical/10 rounded hidden sm:inline-block">0 КГ</span>
         </button>
       </div>
 
       {/* Modals from original component */}
-      {refreshUrgency === 'critical' && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-          <div className="bg-[#161b22] border border-[#f85149] p-8 rounded-2xl text-center max-w-md shadow-[0_0_50px_rgba(248,81,73,0.2)]">
-            <AlertTriangle size={48} className="mx-auto text-[#f85149] mb-4 animate-pulse" />
-            <h3 className="text-xl font-bold text-white uppercase mb-2">Дані застаріли</h3>
-            <p className="text-slate-400 mb-6">Оновіть сторінку для актуальної інформації</p>
-            <button onClick={onManualRefresh} className="px-6 py-3 bg-[#f85149] text-white font-bold rounded hover:bg-[#d03030]">ОНОВИТИ ЗАРАЗ</button>
-          </div>
-        </div>
-      )}
+      {/* refreshUrgency === 'critical' block temporarily removed as per user request */}
 
       {showShiftRestrictionModal && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm" onClick={() => setShowShiftRestrictionModal(false)}>
-          <div className="bg-[#161b22] border border-[#f85149] p-6 rounded-2xl max-w-sm text-center" onClick={e => e.stopPropagation()}>
-            <AlertTriangle size={32} className="mx-auto text-[#f85149] mb-4" />
-            <h3 className="text-lg font-bold text-white uppercase mb-2">Зміна не обрана</h3>
-            <p className="text-sm text-slate-400 mb-4">Оберіть зміну в меню "Персонал"</p>
-            <button onClick={() => setShowShiftRestrictionModal(false)} className="w-full py-2 bg-[#f85149] text-white font-bold rounded">ЗРОЗУМІЛО</button>
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-bg-primary/80 backdrop-blur-sm" onClick={() => setShowShiftRestrictionModal(false)}>
+          <div className="bg-panel-bg border border-status-critical/50 p-6 rounded-2xl max-w-sm text-center shadow-2xl" onClick={e => e.stopPropagation()}>
+            <AlertTriangle size={32} className="mx-auto text-status-critical mb-4" />
+            <h3 className="text-lg font-bold text-text-primary uppercase mb-2">Зміна не обрана</h3>
+            <p className="text-sm text-text-secondary mb-6 font-medium">Оберіть зміну в меню "Персонал"</p>
+            <button onClick={() => setShowShiftRestrictionModal(false)} className="w-full py-2.5 bg-status-critical text-bg-primary font-bold rounded-lg shadow-[0_0_15px_rgba(var(--color-status-critical),0.5)] hover:bg-status-critical/90 transition-colors tracking-widest font-display">ЗРОЗУМІЛО</button>
           </div>
         </div>
       )}

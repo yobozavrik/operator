@@ -34,38 +34,38 @@ interface KPICardProps {
 
 const colorConfig = {
     cyan: {
-        icon: 'bg-[#00D4FF]/10 text-[#00D4FF]',
-        value: 'text-[#00D4FF]',
-        trendUp: 'text-[#10B981] bg-[#10B981]/10',
-        trendDown: 'text-[#EF4444] bg-[#EF4444]/10',
-        glow: 'hover:shadow-[#00D4FF]/10',
+        icon: 'bg-accent-primary/10 text-accent-primary',
+        value: 'text-accent-primary',
+        trendUp: 'text-status-success bg-status-success/10',
+        trendDown: 'text-status-critical bg-status-critical/10',
+        glow: 'hover:shadow-[0_0_15px_rgba(var(--color-accent-primary),0.1)]',
     },
     green: {
-        icon: 'bg-[#10B981]/10 text-[#10B981]',
-        value: 'text-[#10B981]',
-        trendUp: 'text-[#10B981] bg-[#10B981]/10',
-        trendDown: 'text-[#EF4444] bg-[#EF4444]/10',
-        glow: 'hover:shadow-[#10B981]/10',
+        icon: 'bg-status-success/10 text-status-success',
+        value: 'text-status-success',
+        trendUp: 'text-status-success bg-status-success/10',
+        trendDown: 'text-status-critical bg-status-critical/10',
+        glow: 'hover:shadow-[0_0_15px_rgba(var(--color-status-success),0.1)]',
     },
     amber: {
-        icon: 'bg-[#F59E0B]/10 text-[#F59E0B]',
-        value: 'text-[#F59E0B]',
-        trendUp: 'text-[#10B981] bg-[#10B981]/10',
-        trendDown: 'text-[#EF4444] bg-[#EF4444]/10',
-        glow: 'hover:shadow-[#F59E0B]/10',
+        icon: 'bg-status-warning/10 text-status-warning',
+        value: 'text-status-warning',
+        trendUp: 'text-status-success bg-status-success/10',
+        trendDown: 'text-status-critical bg-status-critical/10',
+        glow: 'hover:shadow-[0_0_15px_rgba(var(--color-status-warning),0.1)]',
     },
     red: {
-        icon: 'bg-[#EF4444]/10 text-[#EF4444]',
-        value: 'text-[#EF4444]',
-        trendUp: 'text-[#10B981] bg-[#10B981]/10',
-        trendDown: 'text-[#EF4444] bg-[#EF4444]/10',
-        glow: 'hover:shadow-[#EF4444]/10',
+        icon: 'bg-status-critical/10 text-status-critical',
+        value: 'text-status-critical',
+        trendUp: 'text-status-success bg-status-success/10',
+        trendDown: 'text-status-critical bg-status-critical/10',
+        glow: 'hover:shadow-[0_0_15px_rgba(var(--color-status-critical),0.1)]',
     },
     purple: {
         icon: 'bg-[#A855F7]/10 text-[#A855F7]',
         value: 'text-[#A855F7]',
-        trendUp: 'text-[#10B981] bg-[#10B981]/10',
-        trendDown: 'text-[#EF4444] bg-[#EF4444]/10',
+        trendUp: 'text-status-success bg-status-success/10',
+        trendDown: 'text-status-critical bg-status-critical/10',
         glow: 'hover:shadow-[#A855F7]/10',
     },
 };
@@ -127,9 +127,9 @@ export const KPICard = ({
             whileHover={onClick ? { scale: 1.02, y: -2 } : undefined}
             whileTap={onClick ? { scale: 0.98 } : undefined}
             className={cn(
-                'relative bg-white/[0.02] border border-white/5 rounded-xl',
+                'relative bg-panel-bg border border-panel-border rounded-xl',
                 'transition-all duration-300',
-                'hover:bg-white/[0.04] hover:border-white/10',
+                'hover:bg-bg-primary/50 hover:border-text-muted',
                 'hover:shadow-xl',
                 colors.glow,
                 sizes.padding,
@@ -141,7 +141,7 @@ export const KPICard = ({
             {/* Header: Title & Icon */}
             <div className="flex items-center justify-between mb-4">
                 <span className={cn(
-                    'font-bold uppercase tracking-widest text-white/40',
+                    'font-bold uppercase tracking-widest text-text-muted',
                     sizes.titleSize
                 )}>
                     {title}
@@ -168,7 +168,7 @@ export const KPICard = ({
                     {value}
                 </motion.span>
                 {unit && (
-                    <span className="text-white/40 font-medium text-sm">
+                    <span className="text-text-muted font-medium text-sm">
                         {unit}
                     </span>
                 )}
@@ -185,7 +185,7 @@ export const KPICard = ({
                         {TrendIcon && <TrendIcon size={12} />}
                         {trend > 0 ? '+' : ''}{trend}%
                     </span>
-                    <span className="text-[10px] text-white/30">{trendLabel}</span>
+                    <span className="text-[10px] text-text-secondary">{trendLabel}</span>
                 </div>
             )}
 
