@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import useSWR from 'swr';
-import { Activity, AlertTriangle, TrendingDown, Store, AlertCircle, Percent, ArrowUpRight, ArrowDownRight, Package, TrendingUp, Calendar, ChevronLeft, Loader2, X, Search, LayoutGrid } from 'lucide-react';
+import { Activity, AlertTriangle, TrendingDown, Store, AlertCircle, Percent, ArrowUpRight, ArrowDownRight, Package, TrendingUp, Calendar, ChevronLeft, Loader2, X, Search, LayoutGrid, ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
 import { Chakra_Petch, JetBrains_Mono } from 'next/font/google';
@@ -129,68 +129,96 @@ export default function BakeryPage() {
                 <div className="flex-1 bg-panel-bg border border-panel-border rounded-2xl shadow-[var(--panel-shadow)] flex flex-col overflow-hidden">
 
                     {/* Header Area */}
-                    <div className="p-6 border-b border-panel-border bg-panel-bg flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 shrink-0 shadow-sm relative z-10">
-                        <div>
-                            <h2 className="text-2xl font-bold text-text-primary uppercase tracking-wider font-display flex items-center gap-3">
-                                <div className="p-2 bg-amber-500/10 text-amber-500 rounded-lg">
-                                    <Store size={24} />
+                    <div className="p-6 border-b border-panel-border bg-panel-bg flex flex-col xl:flex-row justify-between items-start xl:items-center gap-6 shrink-0 relative overflow-hidden">
+                        <div className="absolute inset-0 bg-gradient-to-r from-bg-primary/80 to-transparent pointer-events-none"></div>
+                        <div className="flex flex-col gap-3 relative z-10 w-full xl:w-auto">
+                            <div className="flex items-center gap-4">
+                                <div className="w-12 h-12 rounded-xl bg-orange-500/10 border border-orange-500/30 flex items-center justify-center shrink-0 shadow-[0_0_15px_rgba(249,115,22,0.1)]">
+                                    <Store className="text-orange-500" size={24} />
                                 </div>
-                                Craft Bread Analytics Engine
-                            </h2>
-                            <p className="text-sm text-text-secondary mt-2 opacity-80 flex items-center gap-2">
-                                Аналітичний шар даних (Свіжий, Дисконт, Списання)
-                                {isLoading && <Loader2 size={14} className="animate-spin text-accent-primary" />}
-                                {!isLoading && apiData && <span className="text-emerald-500 text-xs font-mono bg-emerald-500/10 px-2 py-0.5 rounded">LIVE DATA</span>}
-                                {error && <span className="text-red-500 text-xs font-mono bg-red-500/10 px-2 py-0.5 rounded">API ERROR</span>}
-                            </p>
+                                <div className="leading-none pt-1">
+                                    <h2 className="text-2xl font-bold text-white uppercase tracking-widest font-display m-0 p-0">
+                                        Аналітичний дашборд
+                                    </h2>
+                                    <h2 className="text-2xl font-bold text-white uppercase tracking-widest font-display m-0 p-0 mt-1">
+                                        "Крафтова пекарня"
+                                    </h2>
+                                </div>
+                            </div>
+                            <div className="flex items-center gap-3">
+                                <p className="text-sm text-slate-400 m-0">
+                                    Аналітичний шар даних (Свіжий, Дисконт, Списання)
+                                </p>
+                                {isLoading && <Loader2 size={14} className="animate-spin text-[#00D4FF]" />}
+                                {!isLoading && apiData && (
+                                    <span className="px-2 py-0.5 rounded text-[10px] font-bold tracking-wider bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 uppercase shadow-[0_0_10px_rgba(16,185,129,0.1)]">
+                                        Live Data
+                                    </span>
+                                )}
+                                {error && (
+                                    <span className="px-2 py-0.5 rounded text-[10px] font-bold tracking-wider bg-red-500/10 text-red-500 border border-red-500/20 uppercase shadow-[0_0_10px_rgba(239,68,68,0.1)]">
+                                        API Error
+                                    </span>
+                                )}
+                            </div>
                         </div>
 
                         {/* Controls */}
-                        <div className="flex flex-wrap items-center gap-3">
-                            <div className="flex flex-col sm:flex-row gap-2 bg-bg-primary/80 border border-panel-border rounded-xl p-1 shadow-inner">
-                                <div className="flex items-center gap-2 px-2">
-                                    <Calendar size={14} className="text-text-muted" />
+                        <div className="flex flex-col xl:items-end gap-3 relative z-10 w-full xl:w-auto">
+                            {/* Top Row: Date Picker & Templates */}
+                            <div className="flex items-center bg-bg-primary/40 border border-panel-border rounded-xl p-1 shadow-sm w-full xl:w-auto justify-between xl:justify-start overflow-x-auto custom-scrollbar">
+                                <div className="flex items-center px-4 gap-3 border-r border-panel-border/50 shrink-0">
+                                    <Calendar size={16} className="text-slate-400" />
                                     <div className="flex items-center gap-1">
                                         <input
                                             type="date"
                                             value={startDate}
                                             onChange={(e) => setStartDate(e.target.value)}
-                                            className="bg-transparent text-sm font-bold text-text-primary outline-none focus:text-accent-primary cursor-pointer w-32"
+                                            className="bg-transparent text-sm text-white font-bold outline-none cursor-pointer w-[115px] font-display tracking-widest custom-calendar-icon"
                                             max={endDate}
                                         />
-                                        <span className="text-text-muted">-</span>
+                                        <span className="text-slate-400 font-bold">-</span>
                                         <input
                                             type="date"
                                             value={endDate}
                                             onChange={(e) => setEndDate(e.target.value)}
-                                            className="bg-transparent text-sm font-bold text-text-primary outline-none focus:text-accent-primary cursor-pointer w-32"
+                                            className="bg-transparent text-sm text-white font-bold outline-none cursor-pointer w-[115px] font-display tracking-widest custom-calendar-icon"
                                             min={startDate}
                                         />
                                     </div>
+                                    <Calendar size={16} className="text-slate-400" />
                                 </div>
-                                <div className="w-px bg-panel-border/60 mx-1 hidden sm:block"></div>
-                                <select
-                                    defaultValue=""
-                                    onChange={(e) => {
-                                        if (e.target.value) handlePresetChange(Number(e.target.value));
-                                        e.target.value = ""; // Reset after selection to allow re-selecting same option if dates were changed manually
-                                    }}
-                                    className="bg-transparent text-xs font-bold text-accent-primary uppercase tracking-wider outline-none cursor-pointer appearance-none pl-2 pr-6 relative"
-                                    style={{ backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%233b82f6' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`, backgroundPosition: 'right center', backgroundRepeat: 'no-repeat', backgroundSize: '1.2em 1.2em' }}
-                                >
-                                    <option value="" disabled>Шаблони</option>
-                                    <option value={1}>За 1 день (Вчора)</option>
-                                    <option value={7}>Останні 7 днів</option>
-                                    <option value={14}>Останні 14 днів</option>
-                                    <option value={30}>Останні 30 днів</option>
-                                </select>
+                                <div className="relative">
+                                    <select
+                                        defaultValue=""
+                                        onChange={(e) => {
+                                            if (e.target.value) handlePresetChange(Number(e.target.value));
+                                            e.target.value = "";
+                                        }}
+                                        className="appearance-none absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                    >
+                                        <option value="" disabled>Шаблони</option>
+                                        <option value={1}>За 1 день (Вчора)</option>
+                                        <option value={7}>Останні 7 днів</option>
+                                        <option value={14}>Останні 14 днів</option>
+                                        <option value={30}>Останні 30 днів</option>
+                                    </select>
+                                    <button className="flex items-center gap-2 px-6 py-1.5 text-sm font-bold text-[#00D4FF] uppercase tracking-wider font-display shrink-0 hover:bg-[#00D4FF]/5 rounded-lg transition-colors pointer-events-none">
+                                        Шаблони
+                                        <ChevronDown size={16} />
+                                    </button>
+                                </div>
                             </div>
-                            <div className="flex bg-bg-primary/80 border border-panel-border rounded-xl p-1 shadow-inner overflow-x-auto hide-scrollbar">
-                                <button onClick={() => setActiveTab('network')} className={cn("px-5 py-2 text-xs font-bold uppercase rounded-lg transition-all duration-200 tracking-wider whitespace-nowrap", activeTab === 'network' ? "bg-accent-primary/20 text-accent-primary shadow-sm" : "text-text-muted hover:text-text-primary hover:bg-white/5")}>Мережа</button>
-                                <button onClick={() => setActiveTab('ranking')} className={cn("px-5 py-2 text-xs font-bold uppercase rounded-lg transition-all duration-200 tracking-wider whitespace-nowrap", activeTab === 'ranking' ? "bg-accent-primary/20 text-accent-primary shadow-sm" : "text-text-muted hover:text-text-primary hover:bg-white/5")}>Ренкінг/ABC</button>
-                                <button onClick={() => setActiveTab('catalog')} className={cn("px-5 py-2 text-xs font-bold uppercase rounded-lg transition-all duration-200 tracking-wider whitespace-nowrap flex items-center gap-1.5", activeTab === 'catalog' ? "bg-accent-primary/20 text-accent-primary shadow-sm" : "text-text-muted hover:text-text-primary hover:bg-white/5")}><LayoutGrid size={14} /> Каталог</button>
-                                <button onClick={() => setActiveTab('discount')} className={cn("px-5 py-2 text-xs font-bold uppercase rounded-lg transition-all duration-200 tracking-wider whitespace-nowrap", activeTab === 'discount' ? "bg-accent-primary/20 text-accent-primary shadow-sm" : "text-text-muted hover:text-text-primary hover:bg-white/5")}>Здоров'я дисконту</button>
-                                <button onClick={() => setActiveTab('trend')} className={cn("px-5 py-2 text-xs font-bold uppercase rounded-lg transition-all duration-200 tracking-wider whitespace-nowrap", activeTab === 'trend' ? "bg-accent-primary/20 text-accent-primary shadow-sm" : "text-text-muted hover:text-text-primary hover:bg-white/5")}>Тренди</button>
+
+                            {/* Bottom Row: Tabs */}
+                            <div className="flex bg-bg-primary/40 border border-panel-border rounded-xl p-1 shadow-sm overflow-x-auto custom-scrollbar w-full xl:w-auto">
+                                <button onClick={() => setActiveTab('network')} className={cn("px-5 py-2 text-xs font-bold uppercase rounded-lg transition-colors font-display tracking-widest shrink-0", activeTab === 'network' ? "bg-gradient-to-r from-[#00D4FF]/20 to-transparent border border-[#00D4FF]/30 text-[#00D4FF]" : "text-slate-400 hover:text-white border border-transparent")}>Мережа</button>
+                                <button onClick={() => setActiveTab('ranking')} className={cn("px-5 py-2 text-xs font-bold uppercase rounded-lg transition-colors font-display tracking-widest shrink-0", activeTab === 'ranking' ? "bg-gradient-to-r from-[#00D4FF]/20 to-transparent border border-[#00D4FF]/30 text-[#00D4FF]" : "text-slate-400 hover:text-white border border-transparent")}>Ренкінг/ABC</button>
+                                <button onClick={() => setActiveTab('catalog')} className={cn("px-5 py-2 text-xs font-bold uppercase rounded-lg transition-colors font-display tracking-widest flex items-center gap-2 shrink-0", activeTab === 'catalog' ? "bg-gradient-to-r from-[#00D4FF]/20 to-transparent border border-[#00D4FF]/30 text-[#00D4FF]" : "text-slate-400 hover:text-white border border-transparent")}>
+                                    <LayoutGrid size={14} /> Каталог
+                                </button>
+                                <button onClick={() => setActiveTab('discount')} className={cn("px-5 py-2 text-xs font-bold uppercase rounded-lg transition-colors font-display tracking-widest shrink-0", activeTab === 'discount' ? "bg-gradient-to-r from-[#00D4FF]/20 to-transparent border border-[#00D4FF]/30 text-[#00D4FF]" : "text-slate-400 hover:text-white border border-transparent")}>Здоров'я дисконту</button>
+                                <button onClick={() => setActiveTab('trend')} className={cn("px-5 py-2 text-xs font-bold uppercase rounded-lg transition-colors font-display tracking-widest shrink-0", activeTab === 'trend' ? "bg-gradient-to-r from-[#00D4FF]/20 to-transparent border border-[#00D4FF]/30 text-[#00D4FF]" : "text-slate-400 hover:text-white border border-transparent")}>Тренди</button>
                             </div>
                         </div>
                     </div>

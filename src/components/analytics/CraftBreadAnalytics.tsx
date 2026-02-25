@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import useSWR from 'swr';
-import { Calendar, Activity, AlertTriangle, TrendingDown, Store, AlertCircle, Percent, ArrowUpRight, ArrowDownRight, Package, TrendingUp } from 'lucide-react';
+import { Calendar, Activity, AlertTriangle, TrendingDown, Store, AlertCircle, Percent, ArrowUpRight, ArrowDownRight, Package, TrendingUp, ChevronDown, LayoutGrid } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 
@@ -19,7 +19,7 @@ export const CraftBreadAnalytics = () => {
     const [startDate, setStartDate] = useState(lastMonth.toISOString().split('T')[0]);
     const [endDate, setEndDate] = useState(today.toISOString().split('T')[0]);
     const [targetDate, setTargetDate] = useState(today.toISOString().split('T')[0]);
-    const [activeTab, setActiveTab] = useState<'network' | 'ranking' | 'trend'>('network');
+    const [activeTab, setActiveTab] = useState<'network' | 'ranking' | 'catalog' | 'discount' | 'trend'>('network');
 
     const { data: networkData, error: networkError, isLoading: loadingNetwork } = useSWR(
         activeTab === 'network' ? `/api/analytics/craft-bread?action=network&startDate=${startDate}&endDate=${endDate}` : null,
@@ -39,36 +39,64 @@ export const CraftBreadAnalytics = () => {
     return (
         <div className="flex flex-col h-full bg-bg-primary">
             {/* Header Area */}
-            <div className="p-6 border-b border-panel-border bg-panel-bg flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 shrink-0">
-                <div>
-                    <h2 className="text-xl font-bold text-text-primary uppercase tracking-wider font-display flex items-center gap-2">
-                        <Activity className="text-accent-primary" />
-                        Аналітика: Крафтовий Хліб
-                    </h2>
-                    <p className="text-xs text-text-secondary mt-1">
-                        Семантичний шар даних (Свіжий, Дисконт, Списання)
-                    </p>
+            <div className="p-6 border-b border-panel-border bg-panel-bg flex flex-col xl:flex-row justify-between items-start xl:items-center gap-6 shrink-0 relative overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-r from-bg-primary/80 to-transparent pointer-events-none"></div>
+                <div className="flex flex-col gap-3 relative z-10 w-full xl:w-auto">
+                    <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-xl bg-orange-500/10 border border-orange-500/30 flex items-center justify-center shrink-0 shadow-[0_0_15px_rgba(249,115,22,0.1)]">
+                            <Store className="text-orange-500" size={24} />
+                        </div>
+                        <div className="leading-none pt-1">
+                            <h2 className="text-2xl font-bold text-white uppercase tracking-widest font-display m-0 p-0">
+                                Аналітичний дашборд
+                            </h2>
+                            <h2 className="text-2xl font-bold text-white uppercase tracking-widest font-display m-0 p-0 mt-1">
+                                "Крафтова пекарня"
+                            </h2>
+                        </div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                        <p className="text-sm text-slate-400 m-0">
+                            Аналітичний шар даних (Свіжий, Дисконт, Списання)
+                        </p>
+                        <span className="px-2 py-0.5 rounded text-[10px] font-bold tracking-wider bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 uppercase shadow-[0_0_10px_rgba(16,185,129,0.1)]">
+                            Live Data
+                        </span>
+                    </div>
                 </div>
 
                 {/* Controls */}
-                <div className="flex flex-wrap items-center gap-3">
-                    <div className="flex bg-bg-primary/50 border border-panel-border rounded-xl p-1">
-                        <button onClick={() => setActiveTab('network')} className={cn("px-4 py-1.5 text-xs font-bold uppercase rounded-lg transition-colors font-display", activeTab === 'network' ? "bg-accent-primary/20 text-accent-primary" : "text-text-muted hover:text-text-primary")}>Мережа</button>
-                        <button onClick={() => setActiveTab('ranking')} className={cn("px-4 py-1.5 text-xs font-bold uppercase rounded-lg transition-colors font-display", activeTab === 'ranking' ? "bg-accent-primary/20 text-accent-primary" : "text-text-muted hover:text-text-primary")}>Ренкінг/ABC</button>
-                        <button onClick={() => setActiveTab('trend')} className={cn("px-4 py-1.5 text-xs font-bold uppercase rounded-lg transition-colors font-display", activeTab === 'trend' ? "bg-accent-primary/20 text-accent-primary" : "text-text-muted hover:text-text-primary")}>Тренди</button>
+                <div className="flex flex-col xl:items-end gap-3 relative z-10 w-full xl:w-auto">
+                    {/* Top Row: Date Picker & Templates */}
+                    <div className="flex items-center bg-bg-primary/40 border border-panel-border rounded-xl p-1 shadow-sm w-full xl:w-auto justify-between xl:justify-start overflow-x-auto custom-scrollbar">
+                        <div className="flex items-center px-4 gap-3 border-r border-panel-border/50 shrink-0">
+                            <Calendar size={16} className="text-slate-400" />
+                            {activeTab === 'trend' ? (
+                                <input type="date" value={targetDate} onChange={(e) => setTargetDate(e.target.value)} className="bg-transparent text-sm text-white font-bold outline-none py-1.5 custom-calendar-icon w-[130px] font-display tracking-widest" />
+                            ) : (
+                                <>
+                                    <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="bg-transparent text-sm text-white font-bold outline-none py-1.5 custom-calendar-icon w-[115px] font-display tracking-widest" />
+                                    <span className="text-slate-400 font-bold">-</span>
+                                    <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="bg-transparent text-sm text-white font-bold outline-none py-1.5 custom-calendar-icon w-[115px] font-display tracking-widest" />
+                                </>
+                            )}
+                            <Calendar size={16} className="text-slate-400" />
+                        </div>
+                        <button className="flex items-center gap-2 px-6 py-1.5 text-sm font-bold text-[#00D4FF] uppercase tracking-wider font-display shrink-0 hover:bg-[#00D4FF]/5 rounded-lg transition-colors">
+                            Шаблони
+                            <ChevronDown size={16} />
+                        </button>
                     </div>
 
-                    <div className="flex items-center bg-bg-primary/50 border border-panel-border rounded-xl p-1">
-                        <Calendar size={16} className="text-text-muted mx-2" />
-                        {activeTab === 'trend' ? (
-                            <input type="date" value={targetDate} onChange={(e) => setTargetDate(e.target.value)} className="bg-transparent text-sm text-text-primary outline-none py-1 custom-calendar-icon" />
-                        ) : (
-                            <>
-                                <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="bg-transparent text-sm text-text-primary outline-none py-1 custom-calendar-icon" />
-                                <span className="text-text-muted mx-1">-</span>
-                                <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="bg-transparent text-sm text-text-primary outline-none py-1 custom-calendar-icon" />
-                            </>
-                        )}
+                    {/* Bottom Row: Tabs */}
+                    <div className="flex bg-bg-primary/40 border border-panel-border rounded-xl p-1 shadow-sm overflow-x-auto custom-scrollbar w-full xl:w-auto">
+                        <button onClick={() => setActiveTab('network')} className={cn("px-5 py-2 text-xs font-bold uppercase rounded-lg transition-colors font-display tracking-widest shrink-0", activeTab === 'network' ? "bg-gradient-to-r from-[#00D4FF]/20 to-transparent border border-[#00D4FF]/30 text-[#00D4FF]" : "text-slate-400 hover:text-white border border-transparent")}>Мережа</button>
+                        <button onClick={() => setActiveTab('ranking')} className={cn("px-5 py-2 text-xs font-bold uppercase rounded-lg transition-colors font-display tracking-widest shrink-0", activeTab === 'ranking' ? "bg-gradient-to-r from-[#00D4FF]/20 to-transparent border border-[#00D4FF]/30 text-[#00D4FF]" : "text-slate-400 hover:text-white border border-transparent")}>Ренкінг/АВС</button>
+                        <button onClick={() => setActiveTab('catalog')} className={cn("px-5 py-2 text-xs font-bold uppercase rounded-lg transition-colors font-display tracking-widest flex items-center gap-2 shrink-0", activeTab === 'catalog' ? "bg-gradient-to-r from-[#00D4FF]/20 to-transparent border border-[#00D4FF]/30 text-[#00D4FF]" : "text-slate-400 hover:text-white border border-transparent")}>
+                            <LayoutGrid size={14} /> Каталог
+                        </button>
+                        <button onClick={() => setActiveTab('discount')} className={cn("px-5 py-2 text-xs font-bold uppercase rounded-lg transition-colors font-display tracking-widest shrink-0", activeTab === 'discount' ? "bg-gradient-to-r from-[#00D4FF]/20 to-transparent border border-[#00D4FF]/30 text-[#00D4FF]" : "text-slate-400 hover:text-white border border-transparent")}>Здоров'я дисконту</button>
+                        <button onClick={() => setActiveTab('trend')} className={cn("px-5 py-2 text-xs font-bold uppercase rounded-lg transition-colors font-display tracking-widest shrink-0", activeTab === 'trend' ? "bg-gradient-to-r from-[#00D4FF]/20 to-transparent border border-[#00D4FF]/30 text-[#00D4FF]" : "text-slate-400 hover:text-white border border-transparent")}>Тренди</button>
                     </div>
                 </div>
             </div>
@@ -171,6 +199,22 @@ export const CraftBreadAnalytics = () => {
                                     </div>
                                 </div>
                             )}
+                        </div>
+                    )}
+
+                    {/* CATALOG TAB */}
+                    {activeTab === 'catalog' && (
+                        <div className="space-y-6 h-full flex flex-col items-center justify-center min-h-[400px]">
+                            <LayoutGrid size={48} className="text-panel-border mb-4 opacity-50" />
+                            <div className="text-text-muted font-display tracking-widest uppercase">Розділ "Каталог" в розробці...</div>
+                        </div>
+                    )}
+
+                    {/* DISCOUNT TAB */}
+                    {activeTab === 'discount' && (
+                        <div className="space-y-6 h-full flex flex-col items-center justify-center min-h-[400px]">
+                            <Percent size={48} className="text-panel-border mb-4 opacity-50" />
+                            <div className="text-text-muted font-display tracking-widest uppercase">Розділ "Здоров'я дисконту" в розробці...</div>
                         </div>
                     )}
 
