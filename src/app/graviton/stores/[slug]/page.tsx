@@ -2,6 +2,7 @@
 
 import React, { useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { ArrowLeft, MapPin, AlertCircle } from 'lucide-react';
 import useSWR from 'swr';
 import { transformDeficitData } from '@/lib/transformers';

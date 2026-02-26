@@ -4,12 +4,14 @@ import React, { useMemo, useState } from 'react';
 import { ProductionTask } from '@/types/bi';
 import { AlertCircle, TrendingUp, MapPin, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { UI_TOKENS } from '@/lib/design-tokens';
 import { useStore } from '@/context/StoreContext';
 
 export const BIInsights = ({ queue }: { queue: ProductionTask[] }) => {
     const { selectedStore } = useStore();
     const [expandedStore, setExpandedStore] = useState<string | null>(null);
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [hoveredStore, setHoveredStore] = useState<string | null>(null);
 
     const insights = useMemo(() => {

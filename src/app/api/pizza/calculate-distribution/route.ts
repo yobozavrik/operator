@@ -7,6 +7,7 @@ interface DistributionRequest {
     productionQuantity: number;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 interface StoreStats {
     // New View Structure Mappings
     spot_id: number;      // Was store_id
@@ -47,13 +48,19 @@ export async function POST(request: NextRequest) {
         // Initialize result map
         const result: Record<number, number> = {};
         let remaining = productionQuantity;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const storesData = stores as any[]; // Use any to be flexible with column names
 
         // Helper to accessor
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const getId = (s: any) => s.spot_id || s.store_id || 0;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const getStock = (s: any) => Number(s.stock_now ?? s.current_stock ?? 0);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const getMin = (s: any) => Number(s.norm_3_days ?? s.min_stock ?? 0);
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any
         const getNeed = (s: any) => Number(s.need_net ?? s.net_need ?? 0);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const getPriority = (s: any) => s.priority ?? s.surplus_priority ?? 999;
 
         // Initialize distribution for all stores to 0

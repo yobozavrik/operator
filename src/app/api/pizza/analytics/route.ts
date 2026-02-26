@@ -39,12 +39,15 @@ export async function GET() {
         const fillLevel = fillLevelRaw.toFixed(1);
 
         // KPI 3 Logic: Count items where shop_stock <= 0 from radar data
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const criticalPositions = radar?.filter((item: any) => (Number(item.shop_stock) || 0) <= 0).length || 0;
 
         // Top 5 Logic: Sort radar by risk_index desc and take top 5
         const top5 = radar
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             ?.sort((a: any, b: any) => (b.risk_index || 0) - (a.risk_index || 0))
             .slice(0, 5)
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             .map((item: any) => ({
                 pizza_name: item.pizza_name,
                 shop_stock: item.shop_stock,

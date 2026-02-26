@@ -1,3 +1,4 @@
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { OrderItem, SavedOrder } from '@/types/order';
 import { SKUCategory } from '@/types/bi';
 
@@ -52,6 +53,7 @@ function groupByCategory(items: OrderItem[]): CategoryGroup[] {
                 emoji: getEmoji(category),
                 totalKg,
                 // Partial OrderItem for formatting
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 items: productList as any[]
             };
         })

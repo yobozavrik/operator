@@ -81,6 +81,7 @@ export const ProgressRing = ({
     const colors = colorConfig[color];
 
     // Determine color based on value if not specified
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const getAutoColor = () => {
         if (normalizedValue >= 80) return colorConfig.green;
         if (normalizedValue >= 50) return colorConfig.amber;

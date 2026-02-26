@@ -2,7 +2,7 @@ import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
 export async function middleware(request: NextRequest) {
-    let response = NextResponse.next({
+    const response = NextResponse.next({
         request: {
             headers: request.headers,
         },
@@ -13,7 +13,6 @@ export async function middleware(request: NextRequest) {
     const pathname = request.nextUrl.pathname
     const isPublic =
         pathname === '/login' ||
-        pathname === '/' ||                          // ← TEMP: убрать після перевірки user=true
         pathname === '/favicon.ico' ||
         pathname.startsWith('/api/') ||              // API захищені через requireAuth() в handlers
         pathname.startsWith('/.well-known') ||
@@ -50,9 +49,6 @@ export async function middleware(request: NextRequest) {
     const {
         data: { user },
     } = await supabase.auth.getUser()
-
-    // 🔍 TEMP DEBUG LOG — удалить после проверки
-    console.log(`[MW] path=${pathname} user=${!!user}`)
 
     // Всё, что не public — требует user
     if (!user) {

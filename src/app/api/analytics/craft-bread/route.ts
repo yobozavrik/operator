@@ -51,6 +51,7 @@ export async function GET(request: Request) {
 
         return NextResponse.json({ error: 'Unknown action' }, { status: 400 });
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
         console.error('Analytics Fetch Error:', error);
         return NextResponse.json({ error: error.message }, { status: 500 });

@@ -1,3 +1,4 @@
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 const http = require('http');
 
 const ENDPOINTS = [
@@ -88,6 +89,7 @@ async function runBenchmark() {
     }
 }
 
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 const { performance } = require('perf_hooks');
 
 runBenchmark();

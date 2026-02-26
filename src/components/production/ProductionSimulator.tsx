@@ -43,6 +43,7 @@ export default function ProductionSimulator() {
                 if (data) {
                     setPlanData(data as PlanItem[]);
                 }
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             } catch (err: any) {
                 console.error('Error fetching plan:', err);
                 setError(err.message);

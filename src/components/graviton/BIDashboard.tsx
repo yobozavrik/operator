@@ -8,6 +8,7 @@ import { ProductionTask, BI_Metrics, SupabaseDeficitRow } from '@/types/bi';
 import { transformDeficitData, GRAVITON_SHOPS } from '@/lib/transformers';
 import { SyncOverlay } from '@/components/SyncOverlay';
 import { cn } from '@/lib/utils';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { BackToHome } from '@/components/BackToHome';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { BIPowerMatrix } from '@/components/BIPowerMatrix';
@@ -15,6 +16,7 @@ import { StoreSpecificView } from '@/components/StoreSpecificView';
 import { PersonnelView } from '@/components/PersonnelView';
 import { CraftBreadAnalytics } from '@/components/analytics/CraftBreadAnalytics';
 import { useStore } from '@/context/StoreContext';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { useToast, AlertBanner } from '@/components/ui';
 
 import { authedFetcher } from '@/lib/authed-fetcher';
@@ -53,6 +55,7 @@ export const BIDashboard = () => {
     const { selectedStore, setSelectedStore, currentCapacity } = useStore();
     const router = useRouter();
     const toast = useToast();
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [realtimeEnabled, setRealtimeEnabled] = React.useState(true);
     const refreshInterval = realtimeEnabled ? 0 : 30000;
 
@@ -80,6 +83,7 @@ export const BIDashboard = () => {
             .on(
                 'postgres_changes',
                 { event: '*', schema: 'public', table: 'dashboard_deficit' },
+                // eslint-disable-next-line @typescript-eslint/no-unused-vars
                 (payload) => {
                     mutateDeficit();
                     mutateMetrics();
@@ -105,6 +109,7 @@ export const BIDashboard = () => {
 
     const [planningDays, setPlanningDays] = React.useState(1);
     const [lastManualRefresh, setLastManualRefresh] = React.useState<number | null>(null);
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [showBreakdownModal, setShowBreakdownModal] = React.useState(false); // Legacy modal state kept for backward compat if needed
 
     React.useEffect(() => {

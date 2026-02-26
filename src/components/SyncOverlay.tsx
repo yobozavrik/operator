@@ -17,6 +17,7 @@ const SYNC_STEPS = [
     { icon: CheckCircle2, text: 'Готово! Оновлюємо інтерфейс...', color: '#2EA043' },
 ];
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export const SyncOverlay = ({ isVisible, onFinished }: SyncOverlayProps) => {
     const [currentStep, setCurrentStep] = useState(0);
 

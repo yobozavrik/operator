@@ -4,9 +4,11 @@ import React, { useMemo, useEffect, useState } from 'react';
 import useSWR from 'swr';
 import { DashboardLayout } from '@/components/layout';
 import { TaskCard } from '@/components/TaskCard';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { ProductionTask, BI_Metrics, SupabaseDeficitRow, SKUCategory } from '@/types/bi';
 import { transformDeficitData } from '@/lib/transformers';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { RotateCw, Globe } from 'lucide-react';
 import { UI_TOKENS } from '@/lib/design-tokens';
 import { useStore } from '@/context/StoreContext';

@@ -3,6 +3,7 @@
 import React, { useMemo, useState } from 'react';
 import { ProductionTask } from '@/types/bi';
 import { cn } from '@/lib/utils';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { AlertCircle, ChevronRight, Store } from 'lucide-react';
 import { DistributionModal } from '@/components/DistributionModal';
 
@@ -20,6 +21,7 @@ export const StoreNeedGrid = ({ data }: Props) => {
             totalDeficit: number;
             totalRecommended: number;
             criticalItems: number;
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             products: any[];
         }>();
 

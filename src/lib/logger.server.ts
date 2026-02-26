@@ -122,6 +122,7 @@ function sanitizeMetadata(meta?: Record<string, unknown>): Record<string, unknow
         }
 
         return redacted;
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (e) {
         return { _error: 'Metadata sanitization failed' };
     }

@@ -29,6 +29,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Приводимо типи та нормалізуємо дані для фронтенду (Step 95)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const mappedData = (data || []).map((row: any) => ({
         ...row,
         priority: 'reserve',

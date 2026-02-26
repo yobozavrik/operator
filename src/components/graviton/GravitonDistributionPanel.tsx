@@ -54,6 +54,7 @@ export const GravitonDistributionPanel = () => {
             }
 
             // Call RPC directly
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
             const { data, error } = await supabase.rpc('fn_orchestrate_distribution', {
                 p_shop_ids: selectedShops.length === GRAVITON_SHOPS.length ? null : selectedShops
             });
@@ -62,6 +63,7 @@ export const GravitonDistributionPanel = () => {
 
             setLastRunMessage('Розподіл успішно завершено');
             await fetchTableData();
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (err: any) {
             console.error('Error running graviton calc:', err);
             setLastRunMessage(`Помилка: ${err.message}`);

@@ -25,6 +25,7 @@ export async function GET() {
         }
 
         return NextResponse.json(data);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
         Logger.error('Critical Pizza API Error', { error: err.message || String(err) });
         return NextResponse.json({

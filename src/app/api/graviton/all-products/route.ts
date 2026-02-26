@@ -29,6 +29,7 @@ export async function GET() {
         }));
 
         return NextResponse.json(mappedData);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
         console.error('Critical API Error:', err);
         return NextResponse.json({

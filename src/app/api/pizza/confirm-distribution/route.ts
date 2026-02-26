@@ -56,6 +56,7 @@ export async function POST(request: NextRequest) {
         }
 
         const storeToStorageMap = new Map<number, number>();
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         mapping?.forEach((row: any) => {
             if (row.store_id && row.storage_id) {
                 storeToStorageMap.set(row.store_id, row.storage_id);

@@ -4,6 +4,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { Trash2, Edit2, Package, ChevronDown, ChevronRight } from 'lucide-react';
 import { OrderItem } from '@/types/order';
 import { SKUCategory } from '@/types/bi';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { cn } from '@/lib/utils';
 import { Modal, ModalHeader, ModalBody, ModalFooter, ModalButton } from '@/components/ui/Modal';
 

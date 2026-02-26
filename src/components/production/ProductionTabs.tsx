@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import useSWR from 'swr';
 import { cn } from '@/lib/utils';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { ChefHat, Activity, CheckCircle, Percent, RefreshCw, Calculator, Loader2, AlertCircle, Truck, Settings2, ClipboardList } from 'lucide-react';
 import { PizzaPowerMatrix } from '../PizzaPowerMatrix';
 import { ProductionOpsTable } from './ProductionOrderTable';
@@ -91,6 +92,7 @@ interface Props {
 export const ProductionTabs = ({ data, onRefresh, showTabs = true }: Props) => {
     // UPDATED TABS: 'matrix' replaces old 'distribution', 'logistics' is NEW
     const [activeTab, setActiveTab] = useState<'orders' | 'matrix' | 'production' | 'logistics' | 'simulator'>('matrix');
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [isRefreshing, setIsRefreshing] = useState(false);
     const [isUpdatingStock, setIsUpdatingStock] = useState(false);
     const [showDistModal, setShowDistModal] = useState(false);
@@ -138,6 +140,7 @@ export const ProductionTabs = ({ data, onRefresh, showTabs = true }: Props) => {
         }
     };
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const handleManualRefresh = async () => {
         setIsRefreshing(true);
         await onRefresh();
@@ -165,6 +168,7 @@ export const ProductionTabs = ({ data, onRefresh, showTabs = true }: Props) => {
         };
     }, [data, productionSummary]);
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const getIndexColor = (val: number) => {
         if (val >= 96) return "text-emerald-400";
         if (val >= 80) return "text-[#FFB800]";

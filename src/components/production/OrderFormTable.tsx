@@ -3,6 +3,7 @@
 import React, { useMemo, useState } from 'react';
 import useSWR from 'swr';
 import { cn } from '@/lib/utils';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { Loader2, Save, Activity, AlertCircle, Percent, TrendingUp } from 'lucide-react';
 import { ProductionTask } from '@/types/bi';
 

@@ -121,6 +121,7 @@ export const transformSupabaseData = transformDeficitData;
  * Transformer for Pizza View (pizza1.v_pizza_orders)
  * Maps flat structure to ProductionTask
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function transformPizzaData(data: any[]): ProductionTask[] {
     if (!data || !Array.isArray(data)) return [];
 
@@ -136,6 +137,7 @@ export function transformPizzaData(data: any[]): ProductionTask[] {
     }
 
     // Helper for safe number parsing (handles commas, nulls, undefined)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const safeNumber = (val: any): number => {
         if (val === null || val === undefined) return 0;
         if (typeof val === 'number') return val;

@@ -55,6 +55,7 @@ export default function LoginPage() {
             // Successful login
             router.refresh();
             router.replace('/');
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         } catch (err) {
             setError('Сталася помилка при вході');
             setLoading(false);

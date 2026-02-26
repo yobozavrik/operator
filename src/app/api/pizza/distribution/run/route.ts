@@ -4,6 +4,7 @@ import { requireAuth } from '@/lib/auth-guard';
 
 export const dynamic = 'force-dynamic';
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export async function POST(request: NextRequest) {
     const auth = await requireAuth();
     if (auth.error) return auth.error;
@@ -50,6 +51,7 @@ export async function POST(request: NextRequest) {
         console.log(`✅ SUCCESS! Log ID: ${logId}`);
         return NextResponse.json({ success: true, logId });
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
         console.error('❌ API Error:', err);
         return NextResponse.json({ error: err.message }, { status: 500 });

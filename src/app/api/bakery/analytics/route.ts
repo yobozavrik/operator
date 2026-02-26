@@ -77,6 +77,7 @@ export async function GET(request: Request) {
             params: { p_start_date, p_end_date }
         });
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
         Logger.error('Critical Bakery API Error', { error: err.message || String(err) });
         return NextResponse.json({

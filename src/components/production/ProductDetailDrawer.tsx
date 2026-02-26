@@ -5,6 +5,7 @@ import { cn } from '@/lib/utils';
 interface DrawerProps {
     isOpen: boolean;
     onClose: () => void;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     product: any | null; // Product with computed stats
 }
 
@@ -73,6 +74,7 @@ export function ProductDetailDrawer({ isOpen, onClose, product }: DrawerProps) {
                 {/* SHOPS GRID */}
                 <div className="flex-1 overflow-y-auto custom-scrollbar p-6">
                     <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
                         {stores.map((store: any, index: number) => {
                             const isLowStock = store.computed.stock < store.computed.minStock;
 

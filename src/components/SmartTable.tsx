@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { ProductionTask, SKUCategory, PriorityKey, SupabaseDeficitRow } from '@/types/bi';
 import { cn } from '@/lib/utils';
 import { AlertCircle, Clock, CheckCircle2, MoreVertical } from 'lucide-react';

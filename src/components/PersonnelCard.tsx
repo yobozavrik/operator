@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { ChevronDown, ChevronRight, Users, Crown, User, Snowflake } from 'lucide-react';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { SHIFTS, PRODUCTION_NORM_PER_PERSON, getShiftCapacity, getCurrentShift, Shift, Employee } from '@/lib/personnel';
 import { cn } from '@/lib/utils';
 

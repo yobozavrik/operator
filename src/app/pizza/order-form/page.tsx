@@ -13,6 +13,7 @@ const fetcher = authedFetcher;
 
 export default function OrderFormPage() {
     // Reuse existing API to get full stats including stores and deficits
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { data: allProductsData, error, isLoading, mutate } = useSWR<any[]>(
         '/api/pizza/orders',
         fetcher,

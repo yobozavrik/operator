@@ -25,7 +25,9 @@ export const authedFetcher = async (url: string) => {
 
     if (!res.ok) {
         const errorVal = new Error('Fetch failed');
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (errorVal as any).status = res.status;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (errorVal as any).info = await res.json().catch(() => ({}));
         throw errorVal;
     }

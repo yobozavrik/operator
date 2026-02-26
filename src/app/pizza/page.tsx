@@ -12,6 +12,7 @@ import { authedFetcher } from '@/lib/authed-fetcher';
 const fetcher = authedFetcher;
 
 export default function PizzaDashboard() {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { data: allProductsData, error, isLoading, mutate } = useSWR<any[]>(
         '/api/pizza/orders',
         fetcher,

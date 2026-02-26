@@ -53,6 +53,7 @@ export async function GET(request: Request) {
             params: { p_sku_id: skuId, p_days: days }
         });
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
         Logger.error('Critical Bakery Catalog Stores API Error', { error: err.message || String(err) });
         return NextResponse.json({

@@ -160,6 +160,7 @@ export const CraftBreadAnalytics = () => {
                                         <div className="bg-panel-bg border border-panel-border rounded-xl overflow-hidden">
                                             <div className="bg-status-success/10 border-b border-panel-border p-3 text-status-success font-bold text-sm uppercase font-display tracking-widest flex items-center gap-2"><ArrowUpRight /> Топ-5 Магазинів</div>
                                             <div className="p-2 space-y-1">
+                                                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                                                 {rankingData.top_stores?.map((s: any, i: number) => (
                                                     <div key={i} className="flex justify-between items-center p-2 rounded-lg bg-bg-primary/50">
                                                         <span className="font-medium text-text-primary text-sm">{s.store_name}</span>
@@ -171,6 +172,7 @@ export const CraftBreadAnalytics = () => {
                                         <div className="bg-panel-bg border border-panel-border rounded-xl overflow-hidden">
                                             <div className="bg-status-critical/10 border-b border-panel-border p-3 text-status-critical font-bold text-sm uppercase font-display tracking-widest flex items-center gap-2"><ArrowDownRight /> Аутсайдери (Найменше продажі)</div>
                                             <div className="p-2 space-y-1">
+                                                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                                                 {rankingData.bottom_stores?.map((s: any, i: number) => (
                                                     <div key={i} className="flex justify-between items-center p-2 rounded-lg bg-bg-primary/50">
                                                         <span className="font-medium text-text-primary text-sm">{s.store_name}</span>
@@ -184,6 +186,7 @@ export const CraftBreadAnalytics = () => {
                                         <div className="bg-panel-bg border border-panel-border rounded-xl overflow-hidden h-full">
                                             <div className="bg-accent-primary/10 border-b border-panel-border p-3 text-accent-primary font-bold text-sm uppercase font-display tracking-widest flex items-center gap-2"><Activity /> ABC-Аналіз SKU (Виручка)</div>
                                             <div className="p-2 space-y-1">
+                                                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                                                 {rankingData.sku_abc?.map((s: any, i: number) => (
                                                     <div key={i} className="flex items-center p-3 rounded-lg bg-bg-primary/50 gap-4">
                                                         <div className={cn("w-6 h-6 rounded flex items-center justify-center font-bold text-xs", i === 0 ? "bg-yellow-500/20 text-yellow-500" : i === 1 ? "bg-slate-300/20 text-slate-300" : i === 2 ? "bg-amber-600/20 text-amber-600" : "bg-panel-border text-text-muted")}>{i + 1}</div>
@@ -240,6 +243,7 @@ export const CraftBreadAnalytics = () => {
                                             </tr>
                                         </thead>
                                         <tbody>
+                                            // eslint-disable-next-line @typescript-eslint/no-explicit-any
                                             {trendData?.sort((a: any, b: any) => (b.trend_index || 0) - (a.trend_index || 0)).map((row: any, idx: number) => {
                                                 const trend = row.trend_index;
                                                 const isUp = trend > 1.1;

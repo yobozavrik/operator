@@ -1,3 +1,4 @@
+// eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/no-require-imports
 const https = require('https');
 
 const supabaseUrl = 'https://supabase.dmytrotovstytskyi.online';
@@ -12,8 +13,10 @@ const query = `
   WHERE p.proname = 'f_plan_production_ndays';
 `;
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const data = JSON.stringify({ query: query });
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const options = {
     hostname: supabaseUrl.replace('https://', ''),
     port: 443,

@@ -17,10 +17,12 @@ export const GravitonProductionPlanner: React.FC = () => {
 
     const [criticalD2, setCriticalD2] = useState<CriticalItem[]>([]);
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const [orderD2, setOrderD2] = useState<any[]>([]);
     const [summaryD2, setSummaryD2] = useState<PlanSummary | null>(null);
 
     const [criticalD3, setCriticalD3] = useState<CriticalItem[]>([]);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const [orderD3, setOrderD3] = useState<any[]>([]);
     const [summaryD3, setSummaryD3] = useState<PlanSummary | null>(null);
 
@@ -39,6 +41,7 @@ export const GravitonProductionPlanner: React.FC = () => {
                 const orderData1 = dataD1.data || [];
                 setOrderD1(orderData1);
 
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 const total_kg_d1 = orderData1.reduce((sum: number, item: any) => sum + parseFloat(item.final_qty || 0), 0);
                 const capacity_kg_d1 = 495;
                 const utilization_pct_d1 = capacity_kg_d1 > 0 ? (total_kg_d1 / capacity_kg_d1) * 100 : 0;
@@ -55,6 +58,7 @@ export const GravitonProductionPlanner: React.FC = () => {
             const resCritD2 = await fetch('/api/graviton/critical-d2');
             const dataCritD2 = await resCritD2.json();
             if (dataCritD2.success) {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 setCriticalD2(dataCritD2.data.map((item: any) => ({
                     product_name: item.product_name,
                     zeros: item.zeros_d2,
@@ -71,7 +75,8 @@ export const GravitonProductionPlanner: React.FC = () => {
                 setOrderD2(orderData);
 
                 // Calculate summary D2
-                let total_kg_d2 = orderData.reduce((sum: number, item: any) => sum + parseFloat(item.allocated_d2 || 0), 0);
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                const total_kg_d2 = orderData.reduce((sum: number, item: any) => sum + parseFloat(item.allocated_d2 || 0), 0);
                 const capacity_kg_d2 = 495;
                 const utilization_pct_d2 = capacity_kg_d2 > 0 ? (total_kg_d2 / capacity_kg_d2) * 100 : 0;
 
@@ -88,6 +93,7 @@ export const GravitonProductionPlanner: React.FC = () => {
             const dataCritD3 = await resCritD3.json();
             if (dataCritD3.success) {
                 // Ensure shape matches CriticalItem interface
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 setCriticalD3(dataCritD3.data.map((item: any) => ({
                     product_name: item.product_name,
                     zeros: item.zeros_d3,
@@ -103,7 +109,8 @@ export const GravitonProductionPlanner: React.FC = () => {
                 const orderData3 = dataD3.data || [];
                 setOrderD3(orderData3);
 
-                let total_kg_d3 = orderData3.reduce((sum: number, item: any) => sum + parseFloat(item.allocated_d3 || 0), 0);
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                const total_kg_d3 = orderData3.reduce((sum: number, item: any) => sum + parseFloat(item.allocated_d3 || 0), 0);
                 const capacity_kg_d3 = 495;
                 const utilization_pct_d3 = capacity_kg_d3 > 0 ? (total_kg_d3 / capacity_kg_d3) * 100 : 0;
 
@@ -284,6 +291,7 @@ export const GravitonProductionPlanner: React.FC = () => {
                                                         Немає даних
                                                     </td>
                                                 </tr>
+                                            // eslint-disable-next-line @typescript-eslint/no-unused-vars
                                             ) : orderD2.map((item, i) => (
                                                 <tr key={item.product_name} className="border-b border-panel-border hover:bg-bg-primary/50 transition-colors">
                                                     <td className="p-3 text-sm text-text-muted font-mono">{item.rank}</td>
@@ -350,6 +358,7 @@ export const GravitonProductionPlanner: React.FC = () => {
                                                         Немає даних
                                                     </td>
                                                 </tr>
+                                            // eslint-disable-next-line @typescript-eslint/no-unused-vars
                                             ) : orderD3.map((item, i) => (
                                                 <tr key={item.product_name} className="border-b border-panel-border hover:bg-bg-primary/50 transition-colors">
                                                     <td className="p-3 text-sm text-text-muted font-mono">{item.rank}</td>

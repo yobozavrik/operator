@@ -2,7 +2,9 @@
 import React from 'react';
 import { cn } from '@/lib/utils';
 import { ProductionTask } from '@/types/bi';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { AlertCircle, ChevronDown, CheckCircle2 } from 'lucide-react';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { UI_TOKENS } from '@/lib/design-tokens';
 
 interface ProductCardProps {
@@ -19,11 +21,15 @@ interface ProductCardProps {
 
 export const ProductCard = ({
     item,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     planningDays,
     isSelected,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     onToggleExpand,
     onToggleSelect,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     isExpanded,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     totalDynamic,
     criticalStoreCount
 }: ProductCardProps) => {

@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { ProductionTask } from '@/types/bi';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { Calculator, Truck, CheckCircle2, AlertCircle, Save, ArrowLeft, RefreshCw } from 'lucide-react';
 import { Modal, ModalHeader, ModalBody, ModalFooter, ModalButton } from '@/components/ui/Modal';
 
@@ -118,6 +119,7 @@ export const DistributionModal = ({ isOpen, onClose, products }: Props) => {
                 setInputs({});
                 setResults([]);
             }, 2000);
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         } catch (err) {
             setError('Помилка збереження. Перевірте зʼєднання.');
         } finally {

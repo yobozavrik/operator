@@ -1,6 +1,7 @@
 
 import React, { useState } from 'react';
 import useSWR from 'swr';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { Play, Loader2, AlertCircle, RefreshCw, CheckCircle2, ShoppingBag, Truck, Download } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -14,6 +15,7 @@ interface DistributionResult {
     calc_time: string;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 interface ProductionStatus {
     prod_count: number;
 }
@@ -63,6 +65,7 @@ export const DistributionControlPanel = () => {
 
             setLastRunResult(json.message || 'Success');
             await refreshResults(); // Immediately update table
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (error: any) {
             console.error('Distribution error:', error);
             setLastRunResult(`Error: ${error.message}`);

@@ -5,6 +5,7 @@ import { cn } from '@/lib/utils';
 interface DrawerProps {
     isOpen: boolean;
     onClose: () => void;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     store: any | null; // Store object from PizzaPowerMatrix (storesGrouped context)
 }
 
@@ -86,6 +87,7 @@ export function StoreDetailDrawer({ isOpen, onClose, store }: DrawerProps) {
                 {/* PRODUCTS GRID */}
                 <div className="flex-1 overflow-y-auto custom-scrollbar p-6">
                     <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
                         {products.sort((a: any, b: any) => b.avg - a.avg).map((prod: any) => {
                             const isLowStock = prod.isUrgent;
 
