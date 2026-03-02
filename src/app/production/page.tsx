@@ -73,10 +73,17 @@ export default function ProductionPage() {
     const handleRefresh = async () => {
         setIsRefreshing(true);
         try {
+            // Список 7 магазинів для оновлення залишків Гравітону (відредагуйте їх ID/назви відповідно до вашого Poster/KeyCRM)
+            const TARGET_STORES = [3, 6, 10, 16, 17, 20]; // Наприклад: Кварц, Руська, Садгора, Хотинська, Компас, Білоруська
+
             const response = await fetch('http://localhost:5678/webhook-test/operator', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ action: 'refresh_stock', timestamp: new Date().toISOString() })
+                body: JSON.stringify({
+                    action: 'refresh_stock',
+                    timestamp: new Date().toISOString(),
+                    store_ids: TARGET_STORES
+                })
             });
 
             if (response.ok) {
