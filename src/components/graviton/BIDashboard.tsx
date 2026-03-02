@@ -14,7 +14,6 @@ import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { BIPowerMatrix } from '@/components/BIPowerMatrix';
 import { StoreSpecificView } from '@/components/StoreSpecificView';
 import { PersonnelView } from '@/components/PersonnelView';
-import { CraftBreadAnalytics } from '@/components/analytics/CraftBreadAnalytics';
 import { useStore } from '@/context/StoreContext';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { useToast, AlertBanner } from '@/components/ui';
@@ -22,7 +21,6 @@ import { useToast, AlertBanner } from '@/components/ui';
 import { authedFetcher } from '@/lib/authed-fetcher';
 const fetcher = authedFetcher;
 
-// Lucide Icons mapping for Material Icons
 import {
     MapPin,
     ArrowLeft,
@@ -40,15 +38,6 @@ import {
     LogOut,
     AlertCircle
 } from 'lucide-react';
-
-const STORES = [
-    { id: 'Усі', name: 'УСІ', icon: MapPin },
-    ...GRAVITON_SHOPS.map(shop => ({
-        id: `Магазин "${shop.name}"`,
-        name: `МАГАЗИН "${shop.name.toUpperCase()}"`,
-        icon: null
-    }))
-];
 
 export const BIDashboard = () => {
     // Get store context
@@ -191,6 +180,33 @@ export const BIDashboard = () => {
         if (!allProductsData || !Array.isArray(allProductsData)) return [];
         return transformDeficitData(allProductsData);
     }, [allProductsData]);
+
+    const dynamicStores = useMemo(() => {
+        if (!deficitQueue || !Array.isArray(deficitQueue)) return [{ id: 'Усі', name: 'УСІ' }];
+
+        const storeMap = new Map<string, boolean>();
+        deficitQueue.forEach(task => {
+            task.stores.forEach(s => {
+                if (s.storeName && s.storeName !== 'Остаток на Складе') {
+                    storeMap.set(s.storeName, true);
+                }
+            });
+        });
+
+        const storeNames = Array.from(storeMap.keys()).sort();
+
+        return [
+            { id: 'Усі', name: 'УСІ', icon: MapPin },
+            ...storeNames.map(name => {
+                const cleanName = name.replace('Магазин "', '').replace('"', '');
+                return {
+                    id: name,
+                    name: `МАГАЗИН "${cleanName.toUpperCase()}"`,
+                    icon: null
+                };
+            })
+        ];
+    }, [deficitQueue]);
 
     const handleStoreClick = (id: string) => {
         if (id === 'logistics') {
@@ -349,34 +365,13 @@ export const BIDashboard = () => {
                                     </div>
                                 </button>
                             </li>
-                            <li>
-                                <button
-                                    onClick={() => handleStoreClick('Аналітика: Крафтовий Хліб')}
-                                    className={cn(
-                                        "w-full flex items-center px-4 py-3 rounded-lg transition-colors border-l-4 text-left group relative overflow-hidden",
-                                        selectedStore === 'Аналітика: Крафтовий Хліб'
-                                            ? "bg-gradient-to-r from-[#00D4FF]/20 to-transparent border-[#00D4FF] text-white shadow-neon-cyan"
-                                            : "text-slate-400 hover:text-white hover:bg-white/5 border-transparent"
-                                    )}
-                                >
-                                    {selectedStore === 'Аналітика: Крафтовий Хліб' && <span className="absolute inset-0 bg-[#00D4FF]/10 animate-pulse pointer-events-none"></span>}
-                                    <div className="relative z-10 flex items-center space-x-3">
-                                        <div className={cn("w-6 h-6 rounded flex items-center justify-center transition-colors", selectedStore === 'Аналітика: Крафтовий Хліб' ? "bg-[#00D4FF]/20 text-[#00D4FF]" : "bg-white/5 text-slate-400 group-hover:text-white")}>
-                                            <Activity size={16} />
-                                        </div>
-                                        <span className={cn("text-sm font-medium tracking-wide font-display transition-colors", selectedStore === 'Аналітика: Крафтовий Хліб' ? "text-white" : "group-hover:text-white")}>
-                                            Аналітика: Хліб
-                                        </span>
-                                    </div>
-                                </button>
-                            </li>
                         </ul>
                     </div>
 
                     <div>
                         <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-widest mb-4 pl-2">Магазини</h3>
                         <ul className="space-y-2">
-                            {STORES.map((store) => {
+                            {dynamicStores.map((store) => {
                                 const isActive = selectedStore === store.id;
                                 return (
                                     <li key={store.id}>
@@ -554,8 +549,6 @@ export const BIDashboard = () => {
                             <ErrorBoundary>
                                 {selectedStore === 'Персонал' ? (
                                     <PersonnelView />
-                                ) : selectedStore === 'Аналітика: Крафтовий Хліб' ? (
-                                    <CraftBreadAnalytics />
                                 ) : isSpecificStore ? (
                                     <StoreSpecificView queue={storeSpecificQueue} storeName={selectedStore} />
                                 ) : (

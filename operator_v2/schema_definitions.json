@@ -1,0 +1,823 @@
+{
+  "v_graviton_production_tasks_test": {
+    "properties": {
+      "product_id": {
+        "format": "bigint",
+        "type": "integer"
+      },
+      "product_name": {
+        "format": "text",
+        "type": "string"
+      },
+      "business_date": {
+        "format": "date",
+        "type": "string"
+      },
+      "category_id": {
+        "format": "text",
+        "type": "string"
+      },
+      "category_name": {
+        "format": "text",
+        "type": "string"
+      },
+      "total_demand_kg": {
+        "format": "bigint",
+        "type": "integer"
+      },
+      "portion_weight_kg": {
+        "format": "numeric",
+        "type": "number"
+      },
+      "unit": {
+        "format": "text",
+        "type": "string"
+      },
+      "portions_needed": {
+        "format": "numeric",
+        "type": "number"
+      },
+      "actual_production_kg": {
+        "format": "numeric",
+        "type": "number"
+      },
+      "in_production_catalog": {
+        "format": "boolean",
+        "type": "boolean"
+      }
+    },
+    "type": "object"
+  },
+  "dashboard_deficit_test": {
+    "properties": {
+      "код_магазину": {
+        "format": "integer",
+        "type": "integer"
+      },
+      "назва_магазину": {
+        "format": "text",
+        "type": "string"
+      },
+      "код_продукту": {
+        "description": "Note:\nThis is a Primary Key.<pk/>",
+        "format": "bigint",
+        "type": "integer"
+      },
+      "назва_продукту": {
+        "format": "text",
+        "type": "string"
+      },
+      "category_name": {
+        "format": "text",
+        "type": "string"
+      },
+      "current_stock": {
+        "format": "numeric",
+        "type": "number"
+      },
+      "avg_sales_day": {
+        "format": "numeric",
+        "type": "number"
+      },
+      "min_stock": {
+        "format": "numeric",
+        "type": "number"
+      },
+      "deficit_kg": {
+        "format": "numeric",
+        "type": "number"
+      },
+      "recommended_kg": {
+        "format": "numeric",
+        "type": "number"
+      },
+      "deficit_percent": {
+        "format": "numeric",
+        "type": "number"
+      },
+      "priority_number": {
+        "format": "integer",
+        "type": "integer"
+      },
+      "priority": {
+        "format": "text",
+        "type": "string"
+      }
+    },
+    "type": "object"
+  },
+  "v_pizza_production_only": {
+    "properties": {
+      "product_id": {
+        "format": "integer",
+        "type": "integer"
+      },
+      "product_name": {
+        "format": "text",
+        "type": "string"
+      },
+      "baked_at_factory": {
+        "format": "integer",
+        "type": "integer"
+      },
+      "last_update": {
+        "format": "timestamp without time zone",
+        "type": "string"
+      }
+    },
+    "type": "object"
+  },
+  "mv_розподіл_піци_по_магазинах_щодня": {
+    "properties": {
+      "Дата": {
+        "format": "date",
+        "type": "string"
+      },
+      "Заклад": {
+        "format": "text",
+        "type": "string"
+      },
+      "Піца": {
+        "format": "text",
+        "type": "string"
+      },
+      "К-сть": {
+        "format": "numeric",
+        "type": "number"
+      },
+      "Середнє за 7 днів": {
+        "format": "numeric",
+        "type": "number"
+      },
+      "95-й перцентиль за 7 днів": {
+        "format": "numeric",
+        "type": "number"
+      },
+      "Норма на 3 дні": {
+        "format": "numeric",
+        "type": "number"
+      }
+    },
+    "type": "object"
+  },
+  "dashboard_metrics": {
+    "properties": {
+      "total_kg": {
+        "format": "numeric",
+        "type": "number"
+      },
+      "critical_sku_count": {
+        "format": "bigint",
+        "type": "integer"
+      },
+      "critical_kg": {
+        "format": "numeric",
+        "type": "number"
+      },
+      "high_kg": {
+        "format": "numeric",
+        "type": "number"
+      },
+      "reserve_kg": {
+        "format": "numeric",
+        "type": "number"
+      }
+    },
+    "type": "object"
+  },
+  "v_graviton_critical_d2": {
+    "properties": {
+      "product_name": {
+        "format": "text",
+        "type": "string"
+      },
+      "zeros_d2": {
+        "format": "bigint",
+        "type": "integer"
+      },
+      "deficit_d2": {
+        "format": "numeric",
+        "type": "number"
+      },
+      "total_stock_d2": {
+        "format": "numeric",
+        "type": "number"
+      }
+    },
+    "type": "object"
+  },
+  "v_graviton_production_tasks": {
+    "properties": {
+      "product_id": {
+        "format": "bigint",
+        "type": "integer"
+      },
+      "product_name": {
+        "format": "text",
+        "type": "string"
+      },
+      "business_date": {
+        "format": "date",
+        "type": "string"
+      },
+      "category_id": {
+        "format": "text",
+        "type": "string"
+      },
+      "category_name": {
+        "format": "text",
+        "type": "string"
+      },
+      "total_demand_kg": {
+        "format": "bigint",
+        "type": "integer"
+      },
+      "portion_weight_kg": {
+        "format": "numeric",
+        "type": "number"
+      },
+      "unit": {
+        "format": "text",
+        "type": "string"
+      },
+      "portions_needed": {
+        "format": "numeric",
+        "type": "number"
+      },
+      "actual_production_kg": {
+        "format": "numeric",
+        "type": "number"
+      },
+      "in_production_catalog": {
+        "format": "boolean",
+        "type": "boolean"
+      }
+    },
+    "type": "object"
+  },
+  "v_graviton_critical_d3": {
+    "properties": {
+      "product_name": {
+        "format": "text",
+        "type": "string"
+      },
+      "zeros_d3": {
+        "format": "bigint",
+        "type": "integer"
+      },
+      "deficit_d3": {
+        "format": "numeric",
+        "type": "number"
+      },
+      "total_stock_d3": {
+        "format": "numeric",
+        "type": "number"
+      }
+    },
+    "type": "object"
+  },
+  "v_pub_analytics": {
+    "properties": {
+      "current_stock": {
+        "format": "integer",
+        "type": "integer"
+      },
+      "total_need": {
+        "format": "integer",
+        "type": "integer"
+      },
+      "total_target": {
+        "format": "integer",
+        "type": "integer"
+      },
+      "fill_level": {
+        "format": "numeric",
+        "type": "number"
+      }
+    },
+    "type": "object"
+  },
+  "document_rows": {
+    "required": [
+      "id"
+    ],
+    "properties": {
+      "id": {
+        "description": "Note:\nThis is a Primary Key.<pk/>",
+        "format": "integer",
+        "type": "integer"
+      },
+      "dataset_id": {
+        "description": "Note:\nThis is a Foreign Key to `document_metadata.id`.<fk table='document_metadata' column='id'/>",
+        "format": "text",
+        "type": "string"
+      },
+      "row_data": {
+        "format": "jsonb"
+      }
+    },
+    "type": "object"
+  },
+  "dashboard_metrics_test": {
+    "properties": {
+      "totalKg": {
+        "format": "numeric",
+        "type": "number"
+      },
+      "total_kg": {
+        "format": "numeric",
+        "type": "number"
+      },
+      "criticalSKU": {
+        "format": "bigint",
+        "type": "integer"
+      },
+      "critical_sku_count": {
+        "format": "bigint",
+        "type": "integer"
+      },
+      "loadPercentage": {
+        "format": "integer",
+        "type": "integer"
+      },
+      "breakdown": {
+        "format": "jsonb"
+      }
+    },
+    "type": "object"
+  },
+  "v_graviton_results_public": {
+    "properties": {
+      "id": {
+        "description": "Note:\nThis is a Primary Key.<pk/>",
+        "format": "uuid",
+        "type": "string"
+      },
+      "Название продукта": {
+        "format": "text",
+        "type": "string"
+      },
+      "Магазин": {
+        "format": "text",
+        "type": "string"
+      },
+      "Количество": {
+        "format": "integer",
+        "type": "integer"
+      },
+      "Время расчета": {
+        "format": "timestamp with time zone",
+        "type": "string"
+      }
+    },
+    "type": "object"
+  },
+  "v_pub_radar": {
+    "properties": {
+      "pizza_name": {
+        "format": "text",
+        "type": "string"
+      },
+      "shop_stock": {
+        "format": "integer",
+        "type": "integer"
+      },
+      "risk_index": {
+        "format": "numeric",
+        "type": "number"
+      }
+    },
+    "type": "object"
+  },
+  "v_pizza_summary_stats": {
+    "properties": {
+      "total_baked": {
+        "format": "integer",
+        "type": "integer"
+      },
+      "total_norm": {
+        "format": "integer",
+        "type": "integer"
+      },
+      "total_stock": {
+        "format": "integer",
+        "type": "integer"
+      },
+      "total_need": {
+        "format": "integer",
+        "type": "integer"
+      },
+      "fill_level": {
+        "format": "numeric",
+        "type": "number"
+      }
+    },
+    "type": "object"
+  },
+  "temp_import": {
+    "properties": {
+      "snapshot_date": {
+        "format": "date",
+        "type": "string"
+      },
+      "ingredient_name": {
+        "format": "text",
+        "type": "string"
+      },
+      "storage_name": {
+        "format": "text",
+        "type": "string"
+      },
+      "quantity": {
+        "format": "numeric",
+        "type": "number"
+      },
+      "unit": {
+        "format": "character varying",
+        "maxLength": 10,
+        "type": "string"
+      },
+      "prime_cost": {
+        "format": "numeric",
+        "type": "number"
+      },
+      "storage_sum": {
+        "format": "integer",
+        "type": "integer"
+      },
+      "limit_value": {
+        "format": "numeric",
+        "type": "number"
+      }
+    },
+    "type": "object"
+  },
+  "gala_hr": {
+    "required": [
+      "id"
+    ],
+    "properties": {
+      "id": {
+        "description": "Note:\nThis is a Primary Key.<pk/>",
+        "format": "bigint",
+        "type": "integer"
+      },
+      "content": {
+        "format": "text",
+        "type": "string"
+      },
+      "metadata": {
+        "format": "jsonb"
+      },
+      "embedding": {
+        "format": "public.vector(1536)",
+        "type": "string"
+      }
+    },
+    "type": "object"
+  },
+  "n8n_chat_sql": {
+    "required": [
+      "id",
+      "session_id",
+      "message"
+    ],
+    "properties": {
+      "id": {
+        "description": "Note:\nThis is a Primary Key.<pk/>",
+        "format": "integer",
+        "type": "integer"
+      },
+      "session_id": {
+        "format": "character varying",
+        "maxLength": 255,
+        "type": "string"
+      },
+      "message": {
+        "format": "jsonb"
+      }
+    },
+    "type": "object"
+  },
+  "documents": {
+    "required": [
+      "id"
+    ],
+    "properties": {
+      "id": {
+        "description": "Note:\nThis is a Primary Key.<pk/>",
+        "format": "bigint",
+        "type": "integer"
+      },
+      "content": {
+        "format": "text",
+        "type": "string"
+      },
+      "metadata": {
+        "format": "jsonb"
+      },
+      "embedding": {
+        "format": "public.vector(1536)",
+        "type": "string"
+      }
+    },
+    "type": "object"
+  },
+  "v_today_distribution": {
+    "properties": {
+      "product_id": {
+        "format": "bigint",
+        "type": "integer"
+      },
+      "product_name": {
+        "format": "text",
+        "type": "string"
+      },
+      "spot_name": {
+        "format": "text",
+        "type": "string"
+      },
+      "quantity_to_ship": {
+        "format": "integer",
+        "type": "integer"
+      },
+      "business_date": {
+        "format": "date",
+        "type": "string"
+      },
+      "calculation_batch_id": {
+        "format": "uuid",
+        "type": "string"
+      },
+      "created_at": {
+        "format": "timestamp with time zone",
+        "type": "string"
+      }
+    },
+    "type": "object"
+  },
+  "n8n_chat_histories": {
+    "required": [
+      "id",
+      "session_id",
+      "message"
+    ],
+    "properties": {
+      "id": {
+        "description": "Note:\nThis is a Primary Key.<pk/>",
+        "format": "integer",
+        "type": "integer"
+      },
+      "session_id": {
+        "format": "character varying",
+        "maxLength": 255,
+        "type": "string"
+      },
+      "message": {
+        "format": "jsonb"
+      }
+    },
+    "type": "object"
+  },
+  "v_graviton_plan_d1_detailed": {
+    "properties": {
+      "product_name": {
+        "format": "text",
+        "type": "string"
+      },
+      "category_name": {
+        "format": "text",
+        "type": "string"
+      },
+      "store_name": {
+        "format": "text",
+        "type": "string"
+      },
+      "current_stock": {
+        "format": "numeric",
+        "type": "number"
+      },
+      "min_stock": {
+        "format": "numeric",
+        "type": "number"
+      },
+      "avg_sales_day": {
+        "format": "numeric",
+        "type": "number"
+      },
+      "deficit_kg": {
+        "format": "numeric",
+        "type": "number"
+      },
+      "recommended_kg": {
+        "format": "numeric",
+        "type": "number"
+      },
+      "priority_number": {
+        "format": "integer",
+        "type": "integer"
+      },
+      "priority": {
+        "format": "text",
+        "type": "string"
+      }
+    },
+    "type": "object"
+  },
+  "dashboard_deficit": {
+    "properties": {
+      "код_магазину": {
+        "format": "integer",
+        "type": "integer"
+      },
+      "назва_магазину": {
+        "format": "text",
+        "type": "string"
+      },
+      "код_продукту": {
+        "description": "Note:\nThis is a Primary Key.<pk/>",
+        "format": "bigint",
+        "type": "integer"
+      },
+      "назва_продукту": {
+        "format": "text",
+        "type": "string"
+      },
+      "category_name": {
+        "format": "text",
+        "type": "string"
+      },
+      "current_stock": {
+        "format": "numeric",
+        "type": "number"
+      },
+      "min_stock": {
+        "format": "numeric",
+        "type": "number"
+      },
+      "deficit_kg": {
+        "format": "numeric",
+        "type": "number"
+      },
+      "avg_sales_day": {
+        "format": "numeric",
+        "type": "number"
+      },
+      "deficit_percent": {
+        "format": "numeric",
+        "type": "number"
+      },
+      "priority_number": {
+        "format": "integer",
+        "type": "integer"
+      },
+      "recommended_kg": {
+        "format": "numeric",
+        "type": "number"
+      }
+    },
+    "type": "object"
+  },
+  "v_pizza_distribution_stats": {
+    "properties": {
+      "product_id": {
+        "format": "bigint",
+        "type": "integer"
+      },
+      "product_name": {
+        "format": "text",
+        "type": "string"
+      },
+      "spot_name": {
+        "format": "text",
+        "type": "string"
+      },
+      "avg_sales_day": {
+        "format": "numeric",
+        "type": "number"
+      },
+      "min_stock": {
+        "format": "integer",
+        "type": "integer"
+      },
+      "stock_now": {
+        "format": "integer",
+        "type": "integer"
+      },
+      "baked_at_factory": {
+        "format": "integer",
+        "type": "integer"
+      },
+      "need_net": {
+        "format": "integer",
+        "type": "integer"
+      }
+    },
+    "type": "object"
+  },
+  "v_graviton_plan_d1": {
+    "properties": {
+      "rank": {
+        "format": "bigint",
+        "type": "integer"
+      },
+      "product_id": {
+        "description": "Note:\nThis is a Primary Key.<pk/>",
+        "format": "bigint",
+        "type": "integer"
+      },
+      "product_name": {
+        "format": "text",
+        "type": "string"
+      },
+      "category_name": {
+        "format": "text",
+        "type": "string"
+      },
+      "daily_avg": {
+        "format": "numeric",
+        "type": "number"
+      },
+      "effective_stock_d0": {
+        "format": "numeric",
+        "type": "number"
+      },
+      "deficit_d0": {
+        "format": "numeric",
+        "type": "number"
+      },
+      "raw_need": {
+        "format": "numeric",
+        "type": "number"
+      },
+      "portion_size": {
+        "format": "numeric",
+        "type": "number"
+      },
+      "base_qty": {
+        "format": "numeric",
+        "type": "number"
+      },
+      "final_qty": {
+        "format": "numeric",
+        "type": "number"
+      },
+      "risk_index": {
+        "format": "numeric",
+        "type": "number"
+      },
+      "zero_shops": {
+        "format": "bigint",
+        "type": "integer"
+      }
+    },
+    "type": "object"
+  },
+  "v_graviton_plan_d2": {
+    "properties": {
+      "product_name": {
+        "format": "text",
+        "type": "string"
+      },
+      "allocated_d2": {
+        "format": "numeric",
+        "type": "number"
+      },
+      "rank": {
+        "format": "bigint",
+        "type": "integer"
+      }
+    },
+    "type": "object"
+  },
+  "document_metadata": {
+    "required": [
+      "id"
+    ],
+    "properties": {
+      "id": {
+        "description": "Note:\nThis is a Primary Key.<pk/>",
+        "format": "text",
+        "type": "string"
+      },
+      "title": {
+        "format": "text",
+        "type": "string"
+      },
+      "url": {
+        "format": "text",
+        "type": "string"
+      },
+      "created_at": {
+        "default": "now()",
+        "format": "timestamp without time zone",
+        "type": "string"
+      },
+      "schema": {
+        "format": "text",
+        "type": "string"
+      }
+    },
+    "type": "object"
+  }
+}

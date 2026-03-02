@@ -1,12 +1,13 @@
-import { SupabaseDeficitRow, ProductionTask, PriorityKey, SKUCategory } from '@/types/bi';
+﻿import { SupabaseDeficitRow, ProductionTask, PriorityKey, SKUCategory } from '@/types/bi';
 
 export const GRAVITON_SHOPS = [
-    { id: 3, name: 'Кварц' },
-    { id: 6, name: 'Руська' },
-    { id: 10, name: 'Садгора' },
-    { id: 16, name: 'Хотинська' },
-    { id: 17, name: 'Компас' },
-    { id: 20, name: 'Білоруська' }
+    { id: 3, name: "Кварц" },
+    { id: 5, name: "Гравітон" },
+    { id: 6, name: "Руська" },
+    { id: 10, name: "Садгора" },
+    { id: 16, name: "Хотинська" },
+    { id: 17, name: "Компас" },
+    { id: 20, name: "Білоруська" }
 ];
 
 export const STORES = GRAVITON_SHOPS.map(s => `Магазин "${s.name}"`);
@@ -97,7 +98,7 @@ export function transformDeficitData(data: SupabaseDeficitRow[]): ProductionTask
             stores: [{
                 storeId: row.код_магазину,
                 storeName: row.назва_магазину,
-                currentStock: Number(row.current_stock),
+                currentStock: Math.max(0, Number(row.current_stock)),
                 minStock: Number(row.min_stock),
                 deficitKg: Number(row.deficit_kg),
                 recommendedKg: Number(row.recommended_kg),

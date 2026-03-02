@@ -1,0 +1,4757 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "description": "",
+    "title": "Схема для розподілу продукції з Магазину Гравітон (вареники, пельмені, млинці) на 6 цільових магазинів",
+    "version": "12.2.12"
+  },
+  "host": "0.0.0.0:3000",
+  "basePath": "/",
+  "schemes": [
+    "http"
+  ],
+  "consumes": [
+    "application/json",
+    "application/vnd.pgrst.object+json;nulls=stripped",
+    "application/vnd.pgrst.object+json",
+    "text/csv"
+  ],
+  "produces": [
+    "application/json",
+    "application/vnd.pgrst.object+json;nulls=stripped",
+    "application/vnd.pgrst.object+json",
+    "text/csv"
+  ],
+  "paths": {
+    "/": {
+      "get": {
+        "produces": [
+          "application/openapi+json",
+          "application/json"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "summary": "OpenAPI description (this document)",
+        "tags": [
+          "Introspection"
+        ]
+      }
+    },
+    "/distribution_logs": {
+      "get": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/rowFilter.distribution_logs.id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.distribution_logs.batch_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.distribution_logs.business_date"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.distribution_logs.started_at"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.distribution_logs.completed_at"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.distribution_logs.status"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.distribution_logs.triggered_by"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.distribution_logs.error_message"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.distribution_logs.products_count"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.distribution_logs.total_kg"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.distribution_logs.shop_ids_selected"
+          },
+          {
+            "$ref": "#/parameters/select"
+          },
+          {
+            "$ref": "#/parameters/order"
+          },
+          {
+            "$ref": "#/parameters/range"
+          },
+          {
+            "$ref": "#/parameters/rangeUnit"
+          },
+          {
+            "$ref": "#/parameters/offset"
+          },
+          {
+            "$ref": "#/parameters/limit"
+          },
+          {
+            "$ref": "#/parameters/preferCount"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "items": {
+                "$ref": "#/definitions/distribution_logs"
+              },
+              "type": "array"
+            }
+          },
+          "206": {
+            "description": "Partial Content"
+          }
+        },
+        "tags": [
+          "distribution_logs"
+        ]
+      },
+      "post": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/body.distribution_logs"
+          },
+          {
+            "$ref": "#/parameters/select"
+          },
+          {
+            "$ref": "#/parameters/preferPost"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created"
+          }
+        },
+        "tags": [
+          "distribution_logs"
+        ]
+      },
+      "delete": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/rowFilter.distribution_logs.id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.distribution_logs.batch_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.distribution_logs.business_date"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.distribution_logs.started_at"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.distribution_logs.completed_at"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.distribution_logs.status"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.distribution_logs.triggered_by"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.distribution_logs.error_message"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.distribution_logs.products_count"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.distribution_logs.total_kg"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.distribution_logs.shop_ids_selected"
+          },
+          {
+            "$ref": "#/parameters/preferReturn"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        },
+        "tags": [
+          "distribution_logs"
+        ]
+      },
+      "patch": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/rowFilter.distribution_logs.id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.distribution_logs.batch_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.distribution_logs.business_date"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.distribution_logs.started_at"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.distribution_logs.completed_at"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.distribution_logs.status"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.distribution_logs.triggered_by"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.distribution_logs.error_message"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.distribution_logs.products_count"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.distribution_logs.total_kg"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.distribution_logs.shop_ids_selected"
+          },
+          {
+            "$ref": "#/parameters/body.distribution_logs"
+          },
+          {
+            "$ref": "#/parameters/preferReturn"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        },
+        "tags": [
+          "distribution_logs"
+        ]
+      }
+    },
+    "/manufacture_items": {
+      "get": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/rowFilter.manufacture_items.id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.manufacture_items.manufacture_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.manufacture_items.product_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.manufacture_items.ingredient_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.manufacture_items.product_name"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.manufacture_items.quantity"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.manufacture_items.type"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.manufacture_items.is_deleted"
+          },
+          {
+            "$ref": "#/parameters/select"
+          },
+          {
+            "$ref": "#/parameters/order"
+          },
+          {
+            "$ref": "#/parameters/range"
+          },
+          {
+            "$ref": "#/parameters/rangeUnit"
+          },
+          {
+            "$ref": "#/parameters/offset"
+          },
+          {
+            "$ref": "#/parameters/limit"
+          },
+          {
+            "$ref": "#/parameters/preferCount"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "items": {
+                "$ref": "#/definitions/manufacture_items"
+              },
+              "type": "array"
+            }
+          },
+          "206": {
+            "description": "Partial Content"
+          }
+        },
+        "tags": [
+          "manufacture_items"
+        ]
+      },
+      "post": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/body.manufacture_items"
+          },
+          {
+            "$ref": "#/parameters/select"
+          },
+          {
+            "$ref": "#/parameters/preferPost"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created"
+          }
+        },
+        "tags": [
+          "manufacture_items"
+        ]
+      },
+      "delete": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/rowFilter.manufacture_items.id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.manufacture_items.manufacture_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.manufacture_items.product_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.manufacture_items.ingredient_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.manufacture_items.product_name"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.manufacture_items.quantity"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.manufacture_items.type"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.manufacture_items.is_deleted"
+          },
+          {
+            "$ref": "#/parameters/preferReturn"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        },
+        "tags": [
+          "manufacture_items"
+        ]
+      },
+      "patch": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/rowFilter.manufacture_items.id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.manufacture_items.manufacture_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.manufacture_items.product_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.manufacture_items.ingredient_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.manufacture_items.product_name"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.manufacture_items.quantity"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.manufacture_items.type"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.manufacture_items.is_deleted"
+          },
+          {
+            "$ref": "#/parameters/body.manufacture_items"
+          },
+          {
+            "$ref": "#/parameters/preferReturn"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        },
+        "tags": [
+          "manufacture_items"
+        ]
+      }
+    },
+    "/distribution_base_test": {
+      "get": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/rowFilter.distribution_base_test.код_магазину"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.distribution_base_test.назва_магазину"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.distribution_base_test.код_продукту"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.distribution_base_test.назва_продукту"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.distribution_base_test.category_name"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.distribution_base_test.current_stock"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.distribution_base_test.avg_sales_day"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.distribution_base_test.min_stock"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.distribution_base_test.deficit_kg"
+          },
+          {
+            "$ref": "#/parameters/select"
+          },
+          {
+            "$ref": "#/parameters/order"
+          },
+          {
+            "$ref": "#/parameters/range"
+          },
+          {
+            "$ref": "#/parameters/rangeUnit"
+          },
+          {
+            "$ref": "#/parameters/offset"
+          },
+          {
+            "$ref": "#/parameters/limit"
+          },
+          {
+            "$ref": "#/parameters/preferCount"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "items": {
+                "$ref": "#/definitions/distribution_base_test"
+              },
+              "type": "array"
+            }
+          },
+          "206": {
+            "description": "Partial Content"
+          }
+        },
+        "tags": [
+          "distribution_base_test"
+        ]
+      }
+    },
+    "/distribution_base": {
+      "get": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/rowFilter.distribution_base.код_магазину"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.distribution_base.назва_магазину"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.distribution_base.код_продукту"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.distribution_base.назва_продукту"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.distribution_base.category_name"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.distribution_base.current_stock"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.distribution_base.avg_sales_day"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.distribution_base.min_stock"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.distribution_base.deficit_kg"
+          },
+          {
+            "$ref": "#/parameters/select"
+          },
+          {
+            "$ref": "#/parameters/order"
+          },
+          {
+            "$ref": "#/parameters/range"
+          },
+          {
+            "$ref": "#/parameters/rangeUnit"
+          },
+          {
+            "$ref": "#/parameters/offset"
+          },
+          {
+            "$ref": "#/parameters/limit"
+          },
+          {
+            "$ref": "#/parameters/preferCount"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "items": {
+                "$ref": "#/definitions/distribution_base"
+              },
+              "type": "array"
+            }
+          },
+          "206": {
+            "description": "Partial Content"
+          }
+        },
+        "tags": [
+          "distribution_base"
+        ]
+      }
+    },
+    "/production_today": {
+      "get": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/rowFilter.production_today.код_продукту"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.production_today.назва_продукту"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.production_today.вироблено_кількість"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.production_today.кількість_виробництв"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.production_today.перше_виробництво"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.production_today.останнє_виробництво"
+          },
+          {
+            "$ref": "#/parameters/select"
+          },
+          {
+            "$ref": "#/parameters/order"
+          },
+          {
+            "$ref": "#/parameters/range"
+          },
+          {
+            "$ref": "#/parameters/rangeUnit"
+          },
+          {
+            "$ref": "#/parameters/offset"
+          },
+          {
+            "$ref": "#/parameters/limit"
+          },
+          {
+            "$ref": "#/parameters/preferCount"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "items": {
+                "$ref": "#/definitions/production_today"
+              },
+              "type": "array"
+            }
+          },
+          "206": {
+            "description": "Partial Content"
+          }
+        },
+        "tags": [
+          "production_today"
+        ]
+      }
+    },
+    "/v_graviton_stats": {
+      "get": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/rowFilter.v_graviton_stats.product_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.v_graviton_stats.product_name"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.v_graviton_stats.category_name"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.v_graviton_stats.storage_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.v_graviton_stats.spot_name"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.v_graviton_stats.stock_now"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.v_graviton_stats.avg_sales_day"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.v_graviton_stats.min_stock"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.v_graviton_stats.deficit"
+          },
+          {
+            "$ref": "#/parameters/select"
+          },
+          {
+            "$ref": "#/parameters/order"
+          },
+          {
+            "$ref": "#/parameters/range"
+          },
+          {
+            "$ref": "#/parameters/rangeUnit"
+          },
+          {
+            "$ref": "#/parameters/offset"
+          },
+          {
+            "$ref": "#/parameters/limit"
+          },
+          {
+            "$ref": "#/parameters/preferCount"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "items": {
+                "$ref": "#/definitions/v_graviton_stats"
+              },
+              "type": "array"
+            }
+          },
+          "206": {
+            "description": "Partial Content"
+          }
+        },
+        "summary": "Статистика по продуктам: текущие остатки, средние продажи, нормы, дефициты",
+        "tags": [
+          "v_graviton_stats"
+        ]
+      }
+    },
+    "/stocks_now": {
+      "get": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/rowFilter.stocks_now.storage_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.stocks_now.ingredient_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.stocks_now.ingredient_name"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.stocks_now.storage_ingredient_left"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.stocks_now.ingredient_unit"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.stocks_now.updated_at"
+          },
+          {
+            "$ref": "#/parameters/select"
+          },
+          {
+            "$ref": "#/parameters/order"
+          },
+          {
+            "$ref": "#/parameters/range"
+          },
+          {
+            "$ref": "#/parameters/rangeUnit"
+          },
+          {
+            "$ref": "#/parameters/offset"
+          },
+          {
+            "$ref": "#/parameters/limit"
+          },
+          {
+            "$ref": "#/parameters/preferCount"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "items": {
+                "$ref": "#/definitions/stocks_now"
+              },
+              "type": "array"
+            }
+          },
+          "206": {
+            "description": "Partial Content"
+          }
+        },
+        "summary": "Текущие физические остатки на складах магазинов (обновляется каждый вечер из daily_snapshots)",
+        "tags": [
+          "stocks_now"
+        ]
+      },
+      "post": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/body.stocks_now"
+          },
+          {
+            "$ref": "#/parameters/select"
+          },
+          {
+            "$ref": "#/parameters/preferPost"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created"
+          }
+        },
+        "summary": "Текущие физические остатки на складах магазинов (обновляется каждый вечер из daily_snapshots)",
+        "tags": [
+          "stocks_now"
+        ]
+      },
+      "delete": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/rowFilter.stocks_now.storage_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.stocks_now.ingredient_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.stocks_now.ingredient_name"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.stocks_now.storage_ingredient_left"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.stocks_now.ingredient_unit"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.stocks_now.updated_at"
+          },
+          {
+            "$ref": "#/parameters/preferReturn"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        },
+        "summary": "Текущие физические остатки на складах магазинов (обновляется каждый вечер из daily_snapshots)",
+        "tags": [
+          "stocks_now"
+        ]
+      },
+      "patch": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/rowFilter.stocks_now.storage_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.stocks_now.ingredient_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.stocks_now.ingredient_name"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.stocks_now.storage_ingredient_left"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.stocks_now.ingredient_unit"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.stocks_now.updated_at"
+          },
+          {
+            "$ref": "#/parameters/body.stocks_now"
+          },
+          {
+            "$ref": "#/parameters/preferReturn"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        },
+        "summary": "Текущие физические остатки на складах магазинов (обновляется каждый вечер из daily_snapshots)",
+        "tags": [
+          "stocks_now"
+        ]
+      }
+    },
+    "/manufactures": {
+      "get": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/rowFilter.manufactures.manufacture_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.manufactures.storage_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.manufactures.user_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.manufactures.manufacture_date"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.manufactures.total_sum"
+          },
+          {
+            "$ref": "#/parameters/select"
+          },
+          {
+            "$ref": "#/parameters/order"
+          },
+          {
+            "$ref": "#/parameters/range"
+          },
+          {
+            "$ref": "#/parameters/rangeUnit"
+          },
+          {
+            "$ref": "#/parameters/offset"
+          },
+          {
+            "$ref": "#/parameters/limit"
+          },
+          {
+            "$ref": "#/parameters/preferCount"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "items": {
+                "$ref": "#/definitions/manufactures"
+              },
+              "type": "array"
+            }
+          },
+          "206": {
+            "description": "Partial Content"
+          }
+        },
+        "tags": [
+          "manufactures"
+        ]
+      },
+      "post": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/body.manufactures"
+          },
+          {
+            "$ref": "#/parameters/select"
+          },
+          {
+            "$ref": "#/parameters/preferPost"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created"
+          }
+        },
+        "tags": [
+          "manufactures"
+        ]
+      },
+      "delete": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/rowFilter.manufactures.manufacture_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.manufactures.storage_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.manufactures.user_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.manufactures.manufacture_date"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.manufactures.total_sum"
+          },
+          {
+            "$ref": "#/parameters/preferReturn"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        },
+        "tags": [
+          "manufactures"
+        ]
+      },
+      "patch": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/rowFilter.manufactures.manufacture_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.manufactures.storage_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.manufactures.user_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.manufactures.manufacture_date"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.manufactures.total_sum"
+          },
+          {
+            "$ref": "#/parameters/body.manufactures"
+          },
+          {
+            "$ref": "#/parameters/preferReturn"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        },
+        "tags": [
+          "manufactures"
+        ]
+      }
+    },
+    "/daily_snapshots": {
+      "get": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/rowFilter.daily_snapshots.snapshot_date"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.daily_snapshots.storage_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.daily_snapshots.ingredient_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.daily_snapshots.ingredient_name"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.daily_snapshots.storage_ingredient_left"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.daily_snapshots.ingredient_unit"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.daily_snapshots.created_at"
+          },
+          {
+            "$ref": "#/parameters/select"
+          },
+          {
+            "$ref": "#/parameters/order"
+          },
+          {
+            "$ref": "#/parameters/range"
+          },
+          {
+            "$ref": "#/parameters/rangeUnit"
+          },
+          {
+            "$ref": "#/parameters/offset"
+          },
+          {
+            "$ref": "#/parameters/limit"
+          },
+          {
+            "$ref": "#/parameters/preferCount"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "items": {
+                "$ref": "#/definitions/daily_snapshots"
+              },
+              "type": "array"
+            }
+          },
+          "206": {
+            "description": "Partial Content"
+          }
+        },
+        "tags": [
+          "daily_snapshots"
+        ]
+      },
+      "post": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/body.daily_snapshots"
+          },
+          {
+            "$ref": "#/parameters/select"
+          },
+          {
+            "$ref": "#/parameters/preferPost"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created"
+          }
+        },
+        "tags": [
+          "daily_snapshots"
+        ]
+      },
+      "delete": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/rowFilter.daily_snapshots.snapshot_date"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.daily_snapshots.storage_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.daily_snapshots.ingredient_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.daily_snapshots.ingredient_name"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.daily_snapshots.storage_ingredient_left"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.daily_snapshots.ingredient_unit"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.daily_snapshots.created_at"
+          },
+          {
+            "$ref": "#/parameters/preferReturn"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        },
+        "tags": [
+          "daily_snapshots"
+        ]
+      },
+      "patch": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/rowFilter.daily_snapshots.snapshot_date"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.daily_snapshots.storage_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.daily_snapshots.ingredient_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.daily_snapshots.ingredient_name"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.daily_snapshots.storage_ingredient_left"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.daily_snapshots.ingredient_unit"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.daily_snapshots.created_at"
+          },
+          {
+            "$ref": "#/parameters/body.daily_snapshots"
+          },
+          {
+            "$ref": "#/parameters/preferReturn"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        },
+        "tags": [
+          "daily_snapshots"
+        ]
+      }
+    },
+    "/v_graviton_stats_with_effective_stock": {
+      "get": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/rowFilter.v_graviton_stats_with_effective_stock.product_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.v_graviton_stats_with_effective_stock.product_name"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.v_graviton_stats_with_effective_stock.category_name"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.v_graviton_stats_with_effective_stock.storage_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.v_graviton_stats_with_effective_stock.spot_name"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.v_graviton_stats_with_effective_stock.stock_now"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.v_graviton_stats_with_effective_stock.avg_sales_day"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.v_graviton_stats_with_effective_stock.min_stock"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.v_graviton_stats_with_effective_stock.deficit"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.v_graviton_stats_with_effective_stock.physical_stock"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.v_graviton_stats_with_effective_stock.virtual_stock"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.v_graviton_stats_with_effective_stock.effective_stock"
+          },
+          {
+            "$ref": "#/parameters/select"
+          },
+          {
+            "$ref": "#/parameters/order"
+          },
+          {
+            "$ref": "#/parameters/range"
+          },
+          {
+            "$ref": "#/parameters/rangeUnit"
+          },
+          {
+            "$ref": "#/parameters/offset"
+          },
+          {
+            "$ref": "#/parameters/limit"
+          },
+          {
+            "$ref": "#/parameters/preferCount"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "items": {
+                "$ref": "#/definitions/v_graviton_stats_with_effective_stock"
+              },
+              "type": "array"
+            }
+          },
+          "206": {
+            "description": "Partial Content"
+          }
+        },
+        "summary": "ГЛАВНЫЙ VIEW для планирования: статистика + effective_stock (physical + virtual)",
+        "tags": [
+          "v_graviton_stats_with_effective_stock"
+        ]
+      }
+    },
+    "/v_production_tasks": {
+      "get": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/rowFilter.v_production_tasks.product_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.v_production_tasks.product_name"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.v_production_tasks.business_date"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.v_production_tasks.category_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.v_production_tasks.category_name"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.v_production_tasks.total_demand_kg"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.v_production_tasks.portion_weight_kg"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.v_production_tasks.unit"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.v_production_tasks.portions_needed"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.v_production_tasks.actual_production_kg"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.v_production_tasks.in_production_catalog"
+          },
+          {
+            "$ref": "#/parameters/select"
+          },
+          {
+            "$ref": "#/parameters/order"
+          },
+          {
+            "$ref": "#/parameters/range"
+          },
+          {
+            "$ref": "#/parameters/rangeUnit"
+          },
+          {
+            "$ref": "#/parameters/offset"
+          },
+          {
+            "$ref": "#/parameters/limit"
+          },
+          {
+            "$ref": "#/parameters/preferCount"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "items": {
+                "$ref": "#/definitions/v_production_tasks"
+              },
+              "type": "array"
+            }
+          },
+          "206": {
+            "description": "Partial Content"
+          }
+        },
+        "summary": "Задания в цех: пересчёт потребности из кг в порции",
+        "tags": [
+          "v_production_tasks"
+        ]
+      }
+    },
+    "/production_catalog": {
+      "get": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/rowFilter.production_catalog.id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.production_catalog.product_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.production_catalog.category_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.production_catalog.category_name"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.production_catalog.product_name"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.production_catalog.portion_size"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.production_catalog.unit"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.production_catalog.is_active"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.production_catalog.created_at"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.production_catalog.updated_at"
+          },
+          {
+            "$ref": "#/parameters/select"
+          },
+          {
+            "$ref": "#/parameters/order"
+          },
+          {
+            "$ref": "#/parameters/range"
+          },
+          {
+            "$ref": "#/parameters/rangeUnit"
+          },
+          {
+            "$ref": "#/parameters/offset"
+          },
+          {
+            "$ref": "#/parameters/limit"
+          },
+          {
+            "$ref": "#/parameters/preferCount"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "items": {
+                "$ref": "#/definitions/production_catalog"
+              },
+              "type": "array"
+            }
+          },
+          "206": {
+            "description": "Partial Content"
+          }
+        },
+        "tags": [
+          "production_catalog"
+        ]
+      },
+      "post": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/body.production_catalog"
+          },
+          {
+            "$ref": "#/parameters/select"
+          },
+          {
+            "$ref": "#/parameters/preferPost"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created"
+          }
+        },
+        "tags": [
+          "production_catalog"
+        ]
+      },
+      "delete": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/rowFilter.production_catalog.id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.production_catalog.product_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.production_catalog.category_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.production_catalog.category_name"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.production_catalog.product_name"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.production_catalog.portion_size"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.production_catalog.unit"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.production_catalog.is_active"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.production_catalog.created_at"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.production_catalog.updated_at"
+          },
+          {
+            "$ref": "#/parameters/preferReturn"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        },
+        "tags": [
+          "production_catalog"
+        ]
+      },
+      "patch": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/rowFilter.production_catalog.id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.production_catalog.product_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.production_catalog.category_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.production_catalog.category_name"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.production_catalog.product_name"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.production_catalog.portion_size"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.production_catalog.unit"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.production_catalog.is_active"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.production_catalog.created_at"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.production_catalog.updated_at"
+          },
+          {
+            "$ref": "#/parameters/body.production_catalog"
+          },
+          {
+            "$ref": "#/parameters/preferReturn"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        },
+        "tags": [
+          "production_catalog"
+        ]
+      }
+    },
+    "/v_effective_stocks": {
+      "get": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/rowFilter.v_effective_stocks.storage_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.v_effective_stocks.storage_name"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.v_effective_stocks.ingredient_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.v_effective_stocks.ingredient_name"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.v_effective_stocks.physical_stock"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.v_effective_stocks.virtual_stock"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.v_effective_stocks.effective_stock"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.v_effective_stocks.ingredient_unit"
+          },
+          {
+            "$ref": "#/parameters/select"
+          },
+          {
+            "$ref": "#/parameters/order"
+          },
+          {
+            "$ref": "#/parameters/range"
+          },
+          {
+            "$ref": "#/parameters/rangeUnit"
+          },
+          {
+            "$ref": "#/parameters/offset"
+          },
+          {
+            "$ref": "#/parameters/limit"
+          },
+          {
+            "$ref": "#/parameters/preferCount"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "items": {
+                "$ref": "#/definitions/v_effective_stocks"
+              },
+              "type": "array"
+            }
+          },
+          "206": {
+            "description": "Partial Content"
+          }
+        },
+        "summary": "Эффективные остатки = физические (stocks_now) + виртуальные (pending доставки из distribution_results)",
+        "tags": [
+          "v_effective_stocks"
+        ]
+      }
+    },
+    "/v_production_logic": {
+      "get": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/rowFilter.v_production_logic.product_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.v_production_logic.product_name"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.v_production_logic.baked_qty"
+          },
+          {
+            "$ref": "#/parameters/select"
+          },
+          {
+            "$ref": "#/parameters/order"
+          },
+          {
+            "$ref": "#/parameters/range"
+          },
+          {
+            "$ref": "#/parameters/rangeUnit"
+          },
+          {
+            "$ref": "#/parameters/offset"
+          },
+          {
+            "$ref": "#/parameters/limit"
+          },
+          {
+            "$ref": "#/parameters/preferCount"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "items": {
+                "$ref": "#/definitions/v_production_logic"
+              },
+              "type": "array"
+            }
+          },
+          "206": {
+            "description": "Partial Content"
+          }
+        },
+        "tags": [
+          "v_production_logic"
+        ]
+      }
+    },
+    "/v_production_tasks_test": {
+      "get": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/rowFilter.v_production_tasks_test.product_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.v_production_tasks_test.product_name"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.v_production_tasks_test.business_date"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.v_production_tasks_test.category_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.v_production_tasks_test.category_name"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.v_production_tasks_test.total_demand_kg"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.v_production_tasks_test.portion_weight_kg"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.v_production_tasks_test.unit"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.v_production_tasks_test.portions_needed"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.v_production_tasks_test.actual_production_kg"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.v_production_tasks_test.in_production_catalog"
+          },
+          {
+            "$ref": "#/parameters/select"
+          },
+          {
+            "$ref": "#/parameters/order"
+          },
+          {
+            "$ref": "#/parameters/range"
+          },
+          {
+            "$ref": "#/parameters/rangeUnit"
+          },
+          {
+            "$ref": "#/parameters/offset"
+          },
+          {
+            "$ref": "#/parameters/limit"
+          },
+          {
+            "$ref": "#/parameters/preferCount"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "items": {
+                "$ref": "#/definitions/v_production_tasks_test"
+              },
+              "type": "array"
+            }
+          },
+          "206": {
+            "description": "Partial Content"
+          }
+        },
+        "tags": [
+          "v_production_tasks_test"
+        ]
+      }
+    },
+    "/distribution_results": {
+      "get": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/rowFilter.distribution_results.id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.distribution_results.product_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.distribution_results.product_name"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.distribution_results.spot_name"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.distribution_results.quantity_to_ship"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.distribution_results.calculation_batch_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.distribution_results.business_date"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.distribution_results.created_at"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.distribution_results.delivery_status"
+          },
+          {
+            "$ref": "#/parameters/select"
+          },
+          {
+            "$ref": "#/parameters/order"
+          },
+          {
+            "$ref": "#/parameters/range"
+          },
+          {
+            "$ref": "#/parameters/rangeUnit"
+          },
+          {
+            "$ref": "#/parameters/offset"
+          },
+          {
+            "$ref": "#/parameters/limit"
+          },
+          {
+            "$ref": "#/parameters/preferCount"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "items": {
+                "$ref": "#/definitions/distribution_results"
+              },
+              "type": "array"
+            }
+          },
+          "206": {
+            "description": "Partial Content"
+          }
+        },
+        "tags": [
+          "distribution_results"
+        ]
+      },
+      "post": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/body.distribution_results"
+          },
+          {
+            "$ref": "#/parameters/select"
+          },
+          {
+            "$ref": "#/parameters/preferPost"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created"
+          }
+        },
+        "tags": [
+          "distribution_results"
+        ]
+      },
+      "delete": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/rowFilter.distribution_results.id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.distribution_results.product_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.distribution_results.product_name"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.distribution_results.spot_name"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.distribution_results.quantity_to_ship"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.distribution_results.calculation_batch_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.distribution_results.business_date"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.distribution_results.created_at"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.distribution_results.delivery_status"
+          },
+          {
+            "$ref": "#/parameters/preferReturn"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        },
+        "tags": [
+          "distribution_results"
+        ]
+      },
+      "patch": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/rowFilter.distribution_results.id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.distribution_results.product_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.distribution_results.product_name"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.distribution_results.spot_name"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.distribution_results.quantity_to_ship"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.distribution_results.calculation_batch_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.distribution_results.business_date"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.distribution_results.created_at"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.distribution_results.delivery_status"
+          },
+          {
+            "$ref": "#/parameters/body.distribution_results"
+          },
+          {
+            "$ref": "#/parameters/preferReturn"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        },
+        "tags": [
+          "distribution_results"
+        ]
+      }
+    },
+    "/order_log": {
+      "get": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/rowFilter.order_log.log_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.order_log.order_date"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.order_log.order_type"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.order_log.order_data"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.order_log.total_kg"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.order_log.sku_count"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.order_log.sent_to_telegram"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.order_log.telegram_message_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.order_log.created_at"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.order_log.created_by"
+          },
+          {
+            "$ref": "#/parameters/select"
+          },
+          {
+            "$ref": "#/parameters/order"
+          },
+          {
+            "$ref": "#/parameters/range"
+          },
+          {
+            "$ref": "#/parameters/rangeUnit"
+          },
+          {
+            "$ref": "#/parameters/offset"
+          },
+          {
+            "$ref": "#/parameters/limit"
+          },
+          {
+            "$ref": "#/parameters/preferCount"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "items": {
+                "$ref": "#/definitions/order_log"
+              },
+              "type": "array"
+            }
+          },
+          "206": {
+            "description": "Partial Content"
+          }
+        },
+        "tags": [
+          "order_log"
+        ]
+      },
+      "post": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/body.order_log"
+          },
+          {
+            "$ref": "#/parameters/select"
+          },
+          {
+            "$ref": "#/parameters/preferPost"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created"
+          }
+        },
+        "tags": [
+          "order_log"
+        ]
+      },
+      "delete": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/rowFilter.order_log.log_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.order_log.order_date"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.order_log.order_type"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.order_log.order_data"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.order_log.total_kg"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.order_log.sku_count"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.order_log.sent_to_telegram"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.order_log.telegram_message_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.order_log.created_at"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.order_log.created_by"
+          },
+          {
+            "$ref": "#/parameters/preferReturn"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        },
+        "tags": [
+          "order_log"
+        ]
+      },
+      "patch": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/rowFilter.order_log.log_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.order_log.order_date"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.order_log.order_type"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.order_log.order_data"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.order_log.total_kg"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.order_log.sku_count"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.order_log.sent_to_telegram"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.order_log.telegram_message_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.order_log.created_at"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.order_log.created_by"
+          },
+          {
+            "$ref": "#/parameters/body.order_log"
+          },
+          {
+            "$ref": "#/parameters/preferReturn"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        },
+        "tags": [
+          "order_log"
+        ]
+      }
+    },
+    "/v_production_logic_test": {
+      "get": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/rowFilter.v_production_logic_test.product_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.v_production_logic_test.product_name"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.v_production_logic_test.baked_qty"
+          },
+          {
+            "$ref": "#/parameters/select"
+          },
+          {
+            "$ref": "#/parameters/order"
+          },
+          {
+            "$ref": "#/parameters/range"
+          },
+          {
+            "$ref": "#/parameters/rangeUnit"
+          },
+          {
+            "$ref": "#/parameters/offset"
+          },
+          {
+            "$ref": "#/parameters/limit"
+          },
+          {
+            "$ref": "#/parameters/preferCount"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "items": {
+                "$ref": "#/definitions/v_production_logic_test"
+              },
+              "type": "array"
+            }
+          },
+          "206": {
+            "description": "Partial Content"
+          }
+        },
+        "tags": [
+          "v_production_logic_test"
+        ]
+      }
+    },
+    "/rpc/update_portion_size": {
+      "get": {
+        "parameters": [
+          {
+            "format": "bigint",
+            "in": "query",
+            "name": "p_product_id",
+            "required": true,
+            "type": "integer"
+          },
+          {
+            "format": "numeric",
+            "in": "query",
+            "name": "p_new_portion_size",
+            "required": true,
+            "type": "number"
+          }
+        ],
+        "produces": [
+          "application/json",
+          "application/vnd.pgrst.object+json;nulls=stripped",
+          "application/vnd.pgrst.object+json"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "(rpc) update_portion_size"
+        ]
+      },
+      "post": {
+        "parameters": [
+          {
+            "in": "body",
+            "name": "args",
+            "required": true,
+            "schema": {
+              "properties": {
+                "p_new_portion_size": {
+                  "format": "numeric",
+                  "type": "number"
+                },
+                "p_product_id": {
+                  "format": "bigint",
+                  "type": "integer"
+                }
+              },
+              "required": [
+                "p_product_id",
+                "p_new_portion_size"
+              ],
+              "type": "object"
+            }
+          },
+          {
+            "$ref": "#/parameters/preferParams"
+          }
+        ],
+        "produces": [
+          "application/json",
+          "application/vnd.pgrst.object+json;nulls=stripped",
+          "application/vnd.pgrst.object+json"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "(rpc) update_portion_size"
+        ]
+      }
+    },
+    "/rpc/fn_run_distribution_v2": {
+      "get": {
+        "parameters": [
+          {
+            "format": "integer",
+            "in": "query",
+            "name": "p_product_id",
+            "required": true,
+            "type": "integer"
+          },
+          {
+            "format": "uuid",
+            "in": "query",
+            "name": "p_batch_id",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "format": "date",
+            "in": "query",
+            "name": "p_business_date",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "format": "integer[]",
+            "in": "query",
+            "name": "p_shop_ids",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "produces": [
+          "application/json",
+          "application/vnd.pgrst.object+json;nulls=stripped",
+          "application/vnd.pgrst.object+json"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "(rpc) fn_run_distribution_v2"
+        ]
+      },
+      "post": {
+        "parameters": [
+          {
+            "in": "body",
+            "name": "args",
+            "required": true,
+            "schema": {
+              "properties": {
+                "p_batch_id": {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                "p_business_date": {
+                  "format": "date",
+                  "type": "string"
+                },
+                "p_product_id": {
+                  "format": "integer",
+                  "type": "integer"
+                },
+                "p_shop_ids": {
+                  "format": "integer[]",
+                  "items": {
+                    "type": "integer"
+                  },
+                  "type": "array"
+                }
+              },
+              "required": [
+                "p_product_id",
+                "p_batch_id",
+                "p_business_date"
+              ],
+              "type": "object"
+            }
+          },
+          {
+            "$ref": "#/parameters/preferParams"
+          }
+        ],
+        "produces": [
+          "application/json",
+          "application/vnd.pgrst.object+json;nulls=stripped",
+          "application/vnd.pgrst.object+json"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "(rpc) fn_run_distribution_v2"
+        ]
+      }
+    },
+    "/rpc/get_daily_capacity": {
+      "get": {
+        "produces": [
+          "application/json",
+          "application/vnd.pgrst.object+json;nulls=stripped",
+          "application/vnd.pgrst.object+json"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "summary": "Мощность цеха: 9 человек × 55 кг/человек = 495 кг/день",
+        "tags": [
+          "(rpc) get_daily_capacity"
+        ]
+      },
+      "post": {
+        "parameters": [
+          {
+            "in": "body",
+            "name": "args",
+            "required": true,
+            "schema": {
+              "description": "Мощность цеха: 9 человек × 55 кг/человек = 495 кг/день",
+              "type": "object"
+            }
+          },
+          {
+            "$ref": "#/parameters/preferParams"
+          }
+        ],
+        "produces": [
+          "application/json",
+          "application/vnd.pgrst.object+json;nulls=stripped",
+          "application/vnd.pgrst.object+json"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "summary": "Мощность цеха: 9 человек × 55 кг/человек = 495 кг/день",
+        "tags": [
+          "(rpc) get_daily_capacity"
+        ]
+      }
+    },
+    "/rpc/f_plan_production_1day": {
+      "get": {
+        "produces": [
+          "application/json",
+          "application/vnd.pgrst.object+json;nulls=stripped",
+          "application/vnd.pgrst.object+json"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "summary": "Планирование заказа на Д1. Capacity: 495 кг (9 человек × 55 кг)",
+        "tags": [
+          "(rpc) f_plan_production_1day"
+        ]
+      },
+      "post": {
+        "parameters": [
+          {
+            "in": "body",
+            "name": "args",
+            "required": true,
+            "schema": {
+              "description": "Планирование заказа на Д1. Capacity: 495 кг (9 человек × 55 кг)",
+              "type": "object"
+            }
+          },
+          {
+            "$ref": "#/parameters/preferParams"
+          }
+        ],
+        "produces": [
+          "application/json",
+          "application/vnd.pgrst.object+json;nulls=stripped",
+          "application/vnd.pgrst.object+json"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "summary": "Планирование заказа на Д1. Capacity: 495 кг (9 человек × 55 кг)",
+        "tags": [
+          "(rpc) f_plan_production_1day"
+        ]
+      }
+    },
+    "/rpc/fn_run_distribution": {
+      "get": {
+        "parameters": [
+          {
+            "format": "integer",
+            "in": "query",
+            "name": "p_product_id",
+            "required": true,
+            "type": "integer"
+          },
+          {
+            "format": "uuid",
+            "in": "query",
+            "name": "p_batch_id",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "format": "date",
+            "in": "query",
+            "name": "p_business_date",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "produces": [
+          "application/json",
+          "application/vnd.pgrst.object+json;nulls=stripped",
+          "application/vnd.pgrst.object+json"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "(rpc) fn_run_distribution"
+        ]
+      },
+      "post": {
+        "parameters": [
+          {
+            "in": "body",
+            "name": "args",
+            "required": true,
+            "schema": {
+              "properties": {
+                "p_batch_id": {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                "p_business_date": {
+                  "format": "date",
+                  "type": "string"
+                },
+                "p_product_id": {
+                  "format": "integer",
+                  "type": "integer"
+                }
+              },
+              "required": [
+                "p_product_id",
+                "p_batch_id",
+                "p_business_date"
+              ],
+              "type": "object"
+            }
+          },
+          {
+            "$ref": "#/parameters/preferParams"
+          }
+        ],
+        "produces": [
+          "application/json",
+          "application/vnd.pgrst.object+json;nulls=stripped",
+          "application/vnd.pgrst.object+json"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "(rpc) fn_run_distribution"
+        ]
+      }
+    },
+    "/rpc/fn_orchestrate_distribution": {
+      "get": {
+        "parameters": [
+          {
+            "format": "date",
+            "in": "query",
+            "name": "p_business_date",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "format": "integer[]",
+            "in": "query",
+            "name": "p_shop_ids",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "produces": [
+          "application/json",
+          "application/vnd.pgrst.object+json;nulls=stripped",
+          "application/vnd.pgrst.object+json"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "(rpc) fn_orchestrate_distribution"
+        ]
+      },
+      "post": {
+        "parameters": [
+          {
+            "in": "body",
+            "name": "args",
+            "required": true,
+            "schema": {
+              "properties": {
+                "p_business_date": {
+                  "format": "date",
+                  "type": "string"
+                },
+                "p_shop_ids": {
+                  "format": "integer[]",
+                  "items": {
+                    "type": "integer"
+                  },
+                  "type": "array"
+                }
+              },
+              "type": "object"
+            }
+          },
+          {
+            "$ref": "#/parameters/preferParams"
+          }
+        ],
+        "produces": [
+          "application/json",
+          "application/vnd.pgrst.object+json;nulls=stripped",
+          "application/vnd.pgrst.object+json"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "(rpc) fn_orchestrate_distribution"
+        ]
+      }
+    },
+    "/rpc/f_calculate_evening_d2": {
+      "get": {
+        "produces": [
+          "application/json",
+          "application/vnd.pgrst.object+json;nulls=stripped",
+          "application/vnd.pgrst.object+json"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "summary": "Симуляция остатков на вечер Д2 после заказа Д1. Capacity фиксирована: 495 кг",
+        "tags": [
+          "(rpc) f_calculate_evening_d2"
+        ]
+      },
+      "post": {
+        "parameters": [
+          {
+            "in": "body",
+            "name": "args",
+            "required": true,
+            "schema": {
+              "description": "Симуляция остатков на вечер Д2 после заказа Д1. Capacity фиксирована: 495 кг",
+              "type": "object"
+            }
+          },
+          {
+            "$ref": "#/parameters/preferParams"
+          }
+        ],
+        "produces": [
+          "application/json",
+          "application/vnd.pgrst.object+json;nulls=stripped",
+          "application/vnd.pgrst.object+json"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "summary": "Симуляция остатков на вечер Д2 после заказа Д1. Capacity фиксирована: 495 кг",
+        "tags": [
+          "(rpc) f_calculate_evening_d2"
+        ]
+      }
+    },
+    "/rpc/f_calculate_evening_d3": {
+      "get": {
+        "produces": [
+          "application/json",
+          "application/vnd.pgrst.object+json;nulls=stripped",
+          "application/vnd.pgrst.object+json"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "(rpc) f_calculate_evening_d3"
+        ]
+      },
+      "post": {
+        "parameters": [
+          {
+            "in": "body",
+            "name": "args",
+            "required": true,
+            "schema": {
+              "type": "object"
+            }
+          },
+          {
+            "$ref": "#/parameters/preferParams"
+          }
+        ],
+        "produces": [
+          "application/json",
+          "application/vnd.pgrst.object+json;nulls=stripped",
+          "application/vnd.pgrst.object+json"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "(rpc) f_calculate_evening_d3"
+        ]
+      }
+    },
+    "/rpc/cleanup_distribution_results": {
+      "get": {
+        "parameters": [
+          {
+            "format": "date",
+            "in": "query",
+            "name": "p_date",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "produces": [
+          "application/json",
+          "application/vnd.pgrst.object+json;nulls=stripped",
+          "application/vnd.pgrst.object+json"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "(rpc) cleanup_distribution_results"
+        ]
+      },
+      "post": {
+        "parameters": [
+          {
+            "in": "body",
+            "name": "args",
+            "required": true,
+            "schema": {
+              "properties": {
+                "p_date": {
+                  "format": "date",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "p_date"
+              ],
+              "type": "object"
+            }
+          },
+          {
+            "$ref": "#/parameters/preferParams"
+          }
+        ],
+        "produces": [
+          "application/json",
+          "application/vnd.pgrst.object+json;nulls=stripped",
+          "application/vnd.pgrst.object+json"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "(rpc) cleanup_distribution_results"
+        ]
+      }
+    },
+    "/rpc/deactivate_production_item": {
+      "get": {
+        "parameters": [
+          {
+            "format": "bigint",
+            "in": "query",
+            "name": "p_product_id",
+            "required": true,
+            "type": "integer"
+          }
+        ],
+        "produces": [
+          "application/json",
+          "application/vnd.pgrst.object+json;nulls=stripped",
+          "application/vnd.pgrst.object+json"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "(rpc) deactivate_production_item"
+        ]
+      },
+      "post": {
+        "parameters": [
+          {
+            "in": "body",
+            "name": "args",
+            "required": true,
+            "schema": {
+              "properties": {
+                "p_product_id": {
+                  "format": "bigint",
+                  "type": "integer"
+                }
+              },
+              "required": [
+                "p_product_id"
+              ],
+              "type": "object"
+            }
+          },
+          {
+            "$ref": "#/parameters/preferParams"
+          }
+        ],
+        "produces": [
+          "application/json",
+          "application/vnd.pgrst.object+json;nulls=stripped",
+          "application/vnd.pgrst.object+json"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "(rpc) deactivate_production_item"
+        ]
+      }
+    },
+    "/rpc/add_production_item": {
+      "get": {
+        "parameters": [
+          {
+            "format": "bigint",
+            "in": "query",
+            "name": "p_product_id",
+            "required": true,
+            "type": "integer"
+          },
+          {
+            "format": "numeric",
+            "in": "query",
+            "name": "p_portion_size",
+            "required": true,
+            "type": "number"
+          },
+          {
+            "format": "text",
+            "in": "query",
+            "name": "p_unit",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "produces": [
+          "application/json",
+          "application/vnd.pgrst.object+json;nulls=stripped",
+          "application/vnd.pgrst.object+json"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "(rpc) add_production_item"
+        ]
+      },
+      "post": {
+        "parameters": [
+          {
+            "in": "body",
+            "name": "args",
+            "required": true,
+            "schema": {
+              "properties": {
+                "p_portion_size": {
+                  "format": "numeric",
+                  "type": "number"
+                },
+                "p_product_id": {
+                  "format": "bigint",
+                  "type": "integer"
+                },
+                "p_unit": {
+                  "format": "text",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "p_product_id",
+                "p_portion_size"
+              ],
+              "type": "object"
+            }
+          },
+          {
+            "$ref": "#/parameters/preferParams"
+          }
+        ],
+        "produces": [
+          "application/json",
+          "application/vnd.pgrst.object+json;nulls=stripped",
+          "application/vnd.pgrst.object+json"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "(rpc) add_production_item"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "distribution_logs": {
+      "required": [
+        "id"
+      ],
+      "properties": {
+        "id": {
+          "default": "gen_random_uuid()",
+          "description": "Note:\nThis is a Primary Key.<pk/>",
+          "format": "uuid",
+          "type": "string"
+        },
+        "batch_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "business_date": {
+          "format": "date",
+          "type": "string"
+        },
+        "started_at": {
+          "default": "now()",
+          "format": "timestamp with time zone",
+          "type": "string"
+        },
+        "completed_at": {
+          "format": "timestamp with time zone",
+          "type": "string"
+        },
+        "status": {
+          "format": "text",
+          "type": "string"
+        },
+        "triggered_by": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "error_message": {
+          "format": "text",
+          "type": "string"
+        },
+        "products_count": {
+          "format": "integer",
+          "type": "integer"
+        },
+        "total_kg": {
+          "format": "numeric",
+          "type": "number"
+        },
+        "shop_ids_selected": {
+          "format": "integer[]",
+          "items": {
+            "type": "integer"
+          },
+          "type": "array"
+        }
+      },
+      "type": "object"
+    },
+    "manufacture_items": {
+      "required": [
+        "id"
+      ],
+      "properties": {
+        "id": {
+          "description": "Note:\nThis is a Primary Key.<pk/>",
+          "format": "bigint",
+          "type": "integer"
+        },
+        "manufacture_id": {
+          "format": "integer",
+          "type": "integer"
+        },
+        "product_id": {
+          "format": "integer",
+          "type": "integer"
+        },
+        "ingredient_id": {
+          "format": "integer",
+          "type": "integer"
+        },
+        "product_name": {
+          "format": "text",
+          "type": "string"
+        },
+        "quantity": {
+          "format": "numeric",
+          "type": "number"
+        },
+        "type": {
+          "format": "integer",
+          "type": "integer"
+        },
+        "is_deleted": {
+          "format": "boolean",
+          "type": "boolean"
+        }
+      },
+      "type": "object"
+    },
+    "distribution_base_test": {
+      "properties": {
+        "код_магазину": {
+          "format": "integer",
+          "type": "integer"
+        },
+        "назва_магазину": {
+          "format": "text",
+          "type": "string"
+        },
+        "код_продукту": {
+          "description": "Note:\nThis is a Primary Key.<pk/>",
+          "format": "bigint",
+          "type": "integer"
+        },
+        "назва_продукту": {
+          "format": "text",
+          "type": "string"
+        },
+        "category_name": {
+          "format": "text",
+          "type": "string"
+        },
+        "current_stock": {
+          "format": "numeric",
+          "type": "number"
+        },
+        "avg_sales_day": {
+          "format": "numeric",
+          "type": "number"
+        },
+        "min_stock": {
+          "format": "numeric",
+          "type": "number"
+        },
+        "deficit_kg": {
+          "format": "numeric",
+          "type": "number"
+        }
+      },
+      "type": "object"
+    },
+    "distribution_base": {
+      "properties": {
+        "код_магазину": {
+          "format": "integer",
+          "type": "integer"
+        },
+        "назва_магазину": {
+          "format": "text",
+          "type": "string"
+        },
+        "код_продукту": {
+          "description": "Note:\nThis is a Primary Key.<pk/>",
+          "format": "bigint",
+          "type": "integer"
+        },
+        "назва_продукту": {
+          "format": "text",
+          "type": "string"
+        },
+        "category_name": {
+          "format": "text",
+          "type": "string"
+        },
+        "current_stock": {
+          "format": "numeric",
+          "type": "number"
+        },
+        "avg_sales_day": {
+          "format": "numeric",
+          "type": "number"
+        },
+        "min_stock": {
+          "format": "numeric",
+          "type": "number"
+        },
+        "deficit_kg": {
+          "format": "numeric",
+          "type": "number"
+        }
+      },
+      "type": "object"
+    },
+    "production_today": {
+      "properties": {
+        "код_продукту": {
+          "format": "integer",
+          "type": "integer"
+        },
+        "назва_продукту": {
+          "format": "text",
+          "type": "string"
+        },
+        "вироблено_кількість": {
+          "format": "numeric",
+          "type": "number"
+        },
+        "кількість_виробництв": {
+          "format": "bigint",
+          "type": "integer"
+        },
+        "перше_виробництво": {
+          "format": "timestamp without time zone",
+          "type": "string"
+        },
+        "останнє_виробництво": {
+          "format": "timestamp without time zone",
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "v_graviton_stats": {
+      "description": "Статистика по продуктам: текущие остатки, средние продажи, нормы, дефициты",
+      "properties": {
+        "product_id": {
+          "description": "Note:\nThis is a Primary Key.<pk/>",
+          "format": "bigint",
+          "type": "integer"
+        },
+        "product_name": {
+          "format": "text",
+          "type": "string"
+        },
+        "category_name": {
+          "format": "text",
+          "type": "string"
+        },
+        "storage_id": {
+          "format": "integer",
+          "type": "integer"
+        },
+        "spot_name": {
+          "format": "text",
+          "type": "string"
+        },
+        "stock_now": {
+          "format": "numeric",
+          "type": "number"
+        },
+        "avg_sales_day": {
+          "format": "numeric",
+          "type": "number"
+        },
+        "min_stock": {
+          "format": "numeric",
+          "type": "number"
+        },
+        "deficit": {
+          "format": "numeric",
+          "type": "number"
+        }
+      },
+      "type": "object"
+    },
+    "stocks_now": {
+      "description": "Текущие физические остатки на складах магазинов (обновляется каждый вечер из daily_snapshots)",
+      "required": [
+        "storage_id",
+        "ingredient_id",
+        "ingredient_name",
+        "storage_ingredient_left"
+      ],
+      "properties": {
+        "storage_id": {
+          "description": "Note:\nThis is a Primary Key.<pk/>",
+          "format": "integer",
+          "type": "integer"
+        },
+        "ingredient_id": {
+          "description": "Note:\nThis is a Primary Key.<pk/>",
+          "format": "integer",
+          "type": "integer"
+        },
+        "ingredient_name": {
+          "format": "text",
+          "type": "string"
+        },
+        "storage_ingredient_left": {
+          "default": 0,
+          "format": "numeric",
+          "type": "number"
+        },
+        "ingredient_unit": {
+          "format": "text",
+          "type": "string"
+        },
+        "updated_at": {
+          "default": "now()",
+          "format": "timestamp with time zone",
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "manufactures": {
+      "required": [
+        "manufacture_id"
+      ],
+      "properties": {
+        "manufacture_id": {
+          "description": "Note:\nThis is a Primary Key.<pk/>",
+          "format": "integer",
+          "type": "integer"
+        },
+        "storage_id": {
+          "format": "integer",
+          "type": "integer"
+        },
+        "user_id": {
+          "format": "integer",
+          "type": "integer"
+        },
+        "manufacture_date": {
+          "format": "timestamp without time zone",
+          "type": "string"
+        },
+        "total_sum": {
+          "format": "numeric",
+          "type": "number"
+        }
+      },
+      "type": "object"
+    },
+    "daily_snapshots": {
+      "required": [
+        "snapshot_date",
+        "storage_id",
+        "ingredient_id"
+      ],
+      "properties": {
+        "snapshot_date": {
+          "format": "date",
+          "type": "string"
+        },
+        "storage_id": {
+          "format": "integer",
+          "type": "integer"
+        },
+        "ingredient_id": {
+          "format": "integer",
+          "type": "integer"
+        },
+        "ingredient_name": {
+          "format": "text",
+          "type": "string"
+        },
+        "storage_ingredient_left": {
+          "format": "numeric",
+          "type": "number"
+        },
+        "ingredient_unit": {
+          "format": "text",
+          "type": "string"
+        },
+        "created_at": {
+          "default": "now()",
+          "format": "timestamp without time zone",
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "v_graviton_stats_with_effective_stock": {
+      "description": "ГЛАВНЫЙ VIEW для планирования: статистика + effective_stock (physical + virtual)",
+      "properties": {
+        "product_id": {
+          "description": "Note:\nThis is a Primary Key.<pk/>",
+          "format": "bigint",
+          "type": "integer"
+        },
+        "product_name": {
+          "format": "text",
+          "type": "string"
+        },
+        "category_name": {
+          "format": "text",
+          "type": "string"
+        },
+        "storage_id": {
+          "format": "integer",
+          "type": "integer"
+        },
+        "spot_name": {
+          "format": "text",
+          "type": "string"
+        },
+        "stock_now": {
+          "format": "numeric",
+          "type": "number"
+        },
+        "avg_sales_day": {
+          "format": "numeric",
+          "type": "number"
+        },
+        "min_stock": {
+          "format": "numeric",
+          "type": "number"
+        },
+        "deficit": {
+          "format": "numeric",
+          "type": "number"
+        },
+        "physical_stock": {
+          "format": "numeric",
+          "type": "number"
+        },
+        "virtual_stock": {
+          "format": "bigint",
+          "type": "integer"
+        },
+        "effective_stock": {
+          "format": "numeric",
+          "type": "number"
+        }
+      },
+      "type": "object"
+    },
+    "v_production_tasks": {
+      "description": "Задания в цех: пересчёт потребности из кг в порции",
+      "properties": {
+        "product_id": {
+          "format": "bigint",
+          "type": "integer"
+        },
+        "product_name": {
+          "format": "text",
+          "type": "string"
+        },
+        "business_date": {
+          "format": "date",
+          "type": "string"
+        },
+        "category_id": {
+          "format": "text",
+          "type": "string"
+        },
+        "category_name": {
+          "format": "text",
+          "type": "string"
+        },
+        "total_demand_kg": {
+          "format": "bigint",
+          "type": "integer"
+        },
+        "portion_weight_kg": {
+          "format": "numeric",
+          "type": "number"
+        },
+        "unit": {
+          "format": "text",
+          "type": "string"
+        },
+        "portions_needed": {
+          "format": "numeric",
+          "type": "number"
+        },
+        "actual_production_kg": {
+          "format": "numeric",
+          "type": "number"
+        },
+        "in_production_catalog": {
+          "format": "boolean",
+          "type": "boolean"
+        }
+      },
+      "type": "object"
+    },
+    "production_catalog": {
+      "required": [
+        "id",
+        "product_id",
+        "category_id",
+        "category_name",
+        "product_name",
+        "portion_size",
+        "unit",
+        "is_active",
+        "created_at",
+        "updated_at"
+      ],
+      "properties": {
+        "id": {
+          "description": "Note:\nThis is a Primary Key.<pk/>",
+          "format": "bigint",
+          "type": "integer"
+        },
+        "product_id": {
+          "format": "bigint",
+          "type": "integer"
+        },
+        "category_id": {
+          "format": "text",
+          "type": "string"
+        },
+        "category_name": {
+          "format": "text",
+          "type": "string"
+        },
+        "product_name": {
+          "format": "text",
+          "type": "string"
+        },
+        "portion_size": {
+          "format": "numeric",
+          "type": "number"
+        },
+        "unit": {
+          "default": "кг",
+          "format": "text",
+          "type": "string"
+        },
+        "is_active": {
+          "default": true,
+          "format": "boolean",
+          "type": "boolean"
+        },
+        "created_at": {
+          "default": "now()",
+          "format": "timestamp with time zone",
+          "type": "string"
+        },
+        "updated_at": {
+          "default": "now()",
+          "format": "timestamp with time zone",
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "v_effective_stocks": {
+      "description": "Эффективные остатки = физические (stocks_now) + виртуальные (pending доставки из distribution_results)",
+      "properties": {
+        "storage_id": {
+          "description": "Note:\nThis is a Primary Key.<pk/>",
+          "format": "integer",
+          "type": "integer"
+        },
+        "storage_name": {
+          "format": "text",
+          "type": "string"
+        },
+        "ingredient_id": {
+          "description": "Note:\nThis is a Primary Key.<pk/>",
+          "format": "integer",
+          "type": "integer"
+        },
+        "ingredient_name": {
+          "format": "text",
+          "type": "string"
+        },
+        "physical_stock": {
+          "format": "numeric",
+          "type": "number"
+        },
+        "virtual_stock": {
+          "format": "bigint",
+          "type": "integer"
+        },
+        "effective_stock": {
+          "format": "numeric",
+          "type": "number"
+        },
+        "ingredient_unit": {
+          "format": "text",
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "v_production_logic": {
+      "properties": {
+        "product_id": {
+          "format": "integer",
+          "type": "integer"
+        },
+        "product_name": {
+          "format": "text",
+          "type": "string"
+        },
+        "baked_qty": {
+          "format": "integer",
+          "type": "integer"
+        }
+      },
+      "type": "object"
+    },
+    "v_production_tasks_test": {
+      "properties": {
+        "product_id": {
+          "format": "bigint",
+          "type": "integer"
+        },
+        "product_name": {
+          "format": "text",
+          "type": "string"
+        },
+        "business_date": {
+          "format": "date",
+          "type": "string"
+        },
+        "category_id": {
+          "format": "text",
+          "type": "string"
+        },
+        "category_name": {
+          "format": "text",
+          "type": "string"
+        },
+        "total_demand_kg": {
+          "format": "bigint",
+          "type": "integer"
+        },
+        "portion_weight_kg": {
+          "format": "numeric",
+          "type": "number"
+        },
+        "unit": {
+          "format": "text",
+          "type": "string"
+        },
+        "portions_needed": {
+          "format": "numeric",
+          "type": "number"
+        },
+        "actual_production_kg": {
+          "format": "numeric",
+          "type": "number"
+        },
+        "in_production_catalog": {
+          "format": "boolean",
+          "type": "boolean"
+        }
+      },
+      "type": "object"
+    },
+    "distribution_results": {
+      "required": [
+        "id"
+      ],
+      "properties": {
+        "id": {
+          "default": "gen_random_uuid()",
+          "description": "Note:\nThis is a Primary Key.<pk/>",
+          "format": "uuid",
+          "type": "string"
+        },
+        "product_id": {
+          "format": "bigint",
+          "type": "integer"
+        },
+        "product_name": {
+          "format": "text",
+          "type": "string"
+        },
+        "spot_name": {
+          "format": "text",
+          "type": "string"
+        },
+        "quantity_to_ship": {
+          "format": "integer",
+          "type": "integer"
+        },
+        "calculation_batch_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "business_date": {
+          "format": "date",
+          "type": "string"
+        },
+        "created_at": {
+          "default": "now()",
+          "format": "timestamp with time zone",
+          "type": "string"
+        },
+        "delivery_status": {
+          "default": "pending",
+          "description": "Статус доставки: pending (в пути, Д0→Д2) или delivered (доставлено в магазин)",
+          "format": "text",
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "order_log": {
+      "required": [
+        "log_id",
+        "order_date",
+        "order_type",
+        "order_data",
+        "total_kg",
+        "sku_count"
+      ],
+      "properties": {
+        "log_id": {
+          "description": "Note:\nThis is a Primary Key.<pk/>",
+          "format": "bigint",
+          "type": "integer"
+        },
+        "order_date": {
+          "format": "date",
+          "type": "string"
+        },
+        "order_type": {
+          "format": "text",
+          "type": "string"
+        },
+        "order_data": {
+          "format": "jsonb"
+        },
+        "total_kg": {
+          "format": "numeric",
+          "type": "number"
+        },
+        "sku_count": {
+          "format": "integer",
+          "type": "integer"
+        },
+        "sent_to_telegram": {
+          "default": false,
+          "format": "boolean",
+          "type": "boolean"
+        },
+        "telegram_message_id": {
+          "format": "text",
+          "type": "string"
+        },
+        "created_at": {
+          "default": "now()",
+          "format": "timestamp with time zone",
+          "type": "string"
+        },
+        "created_by": {
+          "format": "text",
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "v_production_logic_test": {
+      "properties": {
+        "product_id": {
+          "format": "integer",
+          "type": "integer"
+        },
+        "product_name": {
+          "format": "text",
+          "type": "string"
+        },
+        "baked_qty": {
+          "format": "integer",
+          "type": "integer"
+        }
+      },
+      "type": "object"
+    }
+  },
+  "parameters": {
+    "preferParams": {
+      "name": "Prefer",
+      "description": "Preference",
+      "required": false,
+      "enum": [
+        "params=single-object"
+      ],
+      "in": "header",
+      "type": "string"
+    },
+    "preferReturn": {
+      "name": "Prefer",
+      "description": "Preference",
+      "required": false,
+      "enum": [
+        "return=representation",
+        "return=minimal",
+        "return=none"
+      ],
+      "in": "header",
+      "type": "string"
+    },
+    "preferCount": {
+      "name": "Prefer",
+      "description": "Preference",
+      "required": false,
+      "enum": [
+        "count=none"
+      ],
+      "in": "header",
+      "type": "string"
+    },
+    "preferPost": {
+      "name": "Prefer",
+      "description": "Preference",
+      "required": false,
+      "enum": [
+        "return=representation",
+        "return=minimal",
+        "return=none",
+        "resolution=ignore-duplicates",
+        "resolution=merge-duplicates"
+      ],
+      "in": "header",
+      "type": "string"
+    },
+    "select": {
+      "name": "select",
+      "description": "Filtering Columns",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "on_conflict": {
+      "name": "on_conflict",
+      "description": "On Conflict",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "order": {
+      "name": "order",
+      "description": "Ordering",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "range": {
+      "name": "Range",
+      "description": "Limiting and Pagination",
+      "required": false,
+      "in": "header",
+      "type": "string"
+    },
+    "rangeUnit": {
+      "name": "Range-Unit",
+      "description": "Limiting and Pagination",
+      "required": false,
+      "default": "items",
+      "in": "header",
+      "type": "string"
+    },
+    "offset": {
+      "name": "offset",
+      "description": "Limiting and Pagination",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "limit": {
+      "name": "limit",
+      "description": "Limiting and Pagination",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "body.distribution_logs": {
+      "name": "distribution_logs",
+      "description": "distribution_logs",
+      "required": false,
+      "in": "body",
+      "schema": {
+        "$ref": "#/definitions/distribution_logs"
+      }
+    },
+    "rowFilter.distribution_logs.id": {
+      "name": "id",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.distribution_logs.batch_id": {
+      "name": "batch_id",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.distribution_logs.business_date": {
+      "name": "business_date",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.distribution_logs.started_at": {
+      "name": "started_at",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.distribution_logs.completed_at": {
+      "name": "completed_at",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.distribution_logs.status": {
+      "name": "status",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.distribution_logs.triggered_by": {
+      "name": "triggered_by",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.distribution_logs.error_message": {
+      "name": "error_message",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.distribution_logs.products_count": {
+      "name": "products_count",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.distribution_logs.total_kg": {
+      "name": "total_kg",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.distribution_logs.shop_ids_selected": {
+      "name": "shop_ids_selected",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "body.manufacture_items": {
+      "name": "manufacture_items",
+      "description": "manufacture_items",
+      "required": false,
+      "in": "body",
+      "schema": {
+        "$ref": "#/definitions/manufacture_items"
+      }
+    },
+    "rowFilter.manufacture_items.id": {
+      "name": "id",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.manufacture_items.manufacture_id": {
+      "name": "manufacture_id",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.manufacture_items.product_id": {
+      "name": "product_id",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.manufacture_items.ingredient_id": {
+      "name": "ingredient_id",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.manufacture_items.product_name": {
+      "name": "product_name",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.manufacture_items.quantity": {
+      "name": "quantity",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.manufacture_items.type": {
+      "name": "type",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.manufacture_items.is_deleted": {
+      "name": "is_deleted",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "body.distribution_base_test": {
+      "name": "distribution_base_test",
+      "description": "distribution_base_test",
+      "required": false,
+      "in": "body",
+      "schema": {
+        "$ref": "#/definitions/distribution_base_test"
+      }
+    },
+    "rowFilter.distribution_base_test.код_магазину": {
+      "name": "код_магазину",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.distribution_base_test.назва_магазину": {
+      "name": "назва_магазину",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.distribution_base_test.код_продукту": {
+      "name": "код_продукту",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.distribution_base_test.назва_продукту": {
+      "name": "назва_продукту",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.distribution_base_test.category_name": {
+      "name": "category_name",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.distribution_base_test.current_stock": {
+      "name": "current_stock",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.distribution_base_test.avg_sales_day": {
+      "name": "avg_sales_day",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.distribution_base_test.min_stock": {
+      "name": "min_stock",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.distribution_base_test.deficit_kg": {
+      "name": "deficit_kg",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "body.distribution_base": {
+      "name": "distribution_base",
+      "description": "distribution_base",
+      "required": false,
+      "in": "body",
+      "schema": {
+        "$ref": "#/definitions/distribution_base"
+      }
+    },
+    "rowFilter.distribution_base.код_магазину": {
+      "name": "код_магазину",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.distribution_base.назва_магазину": {
+      "name": "назва_магазину",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.distribution_base.код_продукту": {
+      "name": "код_продукту",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.distribution_base.назва_продукту": {
+      "name": "назва_продукту",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.distribution_base.category_name": {
+      "name": "category_name",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.distribution_base.current_stock": {
+      "name": "current_stock",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.distribution_base.avg_sales_day": {
+      "name": "avg_sales_day",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.distribution_base.min_stock": {
+      "name": "min_stock",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.distribution_base.deficit_kg": {
+      "name": "deficit_kg",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "body.production_today": {
+      "name": "production_today",
+      "description": "production_today",
+      "required": false,
+      "in": "body",
+      "schema": {
+        "$ref": "#/definitions/production_today"
+      }
+    },
+    "rowFilter.production_today.код_продукту": {
+      "name": "код_продукту",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.production_today.назва_продукту": {
+      "name": "назва_продукту",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.production_today.вироблено_кількість": {
+      "name": "вироблено_кількість",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.production_today.кількість_виробництв": {
+      "name": "кількість_виробництв",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.production_today.перше_виробництво": {
+      "name": "перше_виробництво",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.production_today.останнє_виробництво": {
+      "name": "останнє_виробництво",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "body.v_graviton_stats": {
+      "name": "v_graviton_stats",
+      "description": "v_graviton_stats",
+      "required": false,
+      "in": "body",
+      "schema": {
+        "$ref": "#/definitions/v_graviton_stats"
+      }
+    },
+    "rowFilter.v_graviton_stats.product_id": {
+      "name": "product_id",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.v_graviton_stats.product_name": {
+      "name": "product_name",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.v_graviton_stats.category_name": {
+      "name": "category_name",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.v_graviton_stats.storage_id": {
+      "name": "storage_id",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.v_graviton_stats.spot_name": {
+      "name": "spot_name",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.v_graviton_stats.stock_now": {
+      "name": "stock_now",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.v_graviton_stats.avg_sales_day": {
+      "name": "avg_sales_day",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.v_graviton_stats.min_stock": {
+      "name": "min_stock",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.v_graviton_stats.deficit": {
+      "name": "deficit",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "body.stocks_now": {
+      "name": "stocks_now",
+      "description": "stocks_now",
+      "required": false,
+      "in": "body",
+      "schema": {
+        "$ref": "#/definitions/stocks_now"
+      }
+    },
+    "rowFilter.stocks_now.storage_id": {
+      "name": "storage_id",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.stocks_now.ingredient_id": {
+      "name": "ingredient_id",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.stocks_now.ingredient_name": {
+      "name": "ingredient_name",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.stocks_now.storage_ingredient_left": {
+      "name": "storage_ingredient_left",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.stocks_now.ingredient_unit": {
+      "name": "ingredient_unit",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.stocks_now.updated_at": {
+      "name": "updated_at",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "body.manufactures": {
+      "name": "manufactures",
+      "description": "manufactures",
+      "required": false,
+      "in": "body",
+      "schema": {
+        "$ref": "#/definitions/manufactures"
+      }
+    },
+    "rowFilter.manufactures.manufacture_id": {
+      "name": "manufacture_id",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.manufactures.storage_id": {
+      "name": "storage_id",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.manufactures.user_id": {
+      "name": "user_id",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.manufactures.manufacture_date": {
+      "name": "manufacture_date",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.manufactures.total_sum": {
+      "name": "total_sum",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "body.daily_snapshots": {
+      "name": "daily_snapshots",
+      "description": "daily_snapshots",
+      "required": false,
+      "in": "body",
+      "schema": {
+        "$ref": "#/definitions/daily_snapshots"
+      }
+    },
+    "rowFilter.daily_snapshots.snapshot_date": {
+      "name": "snapshot_date",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.daily_snapshots.storage_id": {
+      "name": "storage_id",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.daily_snapshots.ingredient_id": {
+      "name": "ingredient_id",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.daily_snapshots.ingredient_name": {
+      "name": "ingredient_name",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.daily_snapshots.storage_ingredient_left": {
+      "name": "storage_ingredient_left",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.daily_snapshots.ingredient_unit": {
+      "name": "ingredient_unit",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.daily_snapshots.created_at": {
+      "name": "created_at",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "body.v_graviton_stats_with_effective_stock": {
+      "name": "v_graviton_stats_with_effective_stock",
+      "description": "v_graviton_stats_with_effective_stock",
+      "required": false,
+      "in": "body",
+      "schema": {
+        "$ref": "#/definitions/v_graviton_stats_with_effective_stock"
+      }
+    },
+    "rowFilter.v_graviton_stats_with_effective_stock.product_id": {
+      "name": "product_id",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.v_graviton_stats_with_effective_stock.product_name": {
+      "name": "product_name",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.v_graviton_stats_with_effective_stock.category_name": {
+      "name": "category_name",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.v_graviton_stats_with_effective_stock.storage_id": {
+      "name": "storage_id",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.v_graviton_stats_with_effective_stock.spot_name": {
+      "name": "spot_name",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.v_graviton_stats_with_effective_stock.stock_now": {
+      "name": "stock_now",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.v_graviton_stats_with_effective_stock.avg_sales_day": {
+      "name": "avg_sales_day",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.v_graviton_stats_with_effective_stock.min_stock": {
+      "name": "min_stock",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.v_graviton_stats_with_effective_stock.deficit": {
+      "name": "deficit",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.v_graviton_stats_with_effective_stock.physical_stock": {
+      "name": "physical_stock",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.v_graviton_stats_with_effective_stock.virtual_stock": {
+      "name": "virtual_stock",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.v_graviton_stats_with_effective_stock.effective_stock": {
+      "name": "effective_stock",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "body.v_production_tasks": {
+      "name": "v_production_tasks",
+      "description": "v_production_tasks",
+      "required": false,
+      "in": "body",
+      "schema": {
+        "$ref": "#/definitions/v_production_tasks"
+      }
+    },
+    "rowFilter.v_production_tasks.product_id": {
+      "name": "product_id",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.v_production_tasks.product_name": {
+      "name": "product_name",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.v_production_tasks.business_date": {
+      "name": "business_date",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.v_production_tasks.category_id": {
+      "name": "category_id",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.v_production_tasks.category_name": {
+      "name": "category_name",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.v_production_tasks.total_demand_kg": {
+      "name": "total_demand_kg",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.v_production_tasks.portion_weight_kg": {
+      "name": "portion_weight_kg",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.v_production_tasks.unit": {
+      "name": "unit",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.v_production_tasks.portions_needed": {
+      "name": "portions_needed",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.v_production_tasks.actual_production_kg": {
+      "name": "actual_production_kg",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.v_production_tasks.in_production_catalog": {
+      "name": "in_production_catalog",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "body.production_catalog": {
+      "name": "production_catalog",
+      "description": "production_catalog",
+      "required": false,
+      "in": "body",
+      "schema": {
+        "$ref": "#/definitions/production_catalog"
+      }
+    },
+    "rowFilter.production_catalog.id": {
+      "name": "id",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.production_catalog.product_id": {
+      "name": "product_id",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.production_catalog.category_id": {
+      "name": "category_id",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.production_catalog.category_name": {
+      "name": "category_name",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.production_catalog.product_name": {
+      "name": "product_name",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.production_catalog.portion_size": {
+      "name": "portion_size",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.production_catalog.unit": {
+      "name": "unit",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.production_catalog.is_active": {
+      "name": "is_active",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.production_catalog.created_at": {
+      "name": "created_at",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.production_catalog.updated_at": {
+      "name": "updated_at",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "body.v_effective_stocks": {
+      "name": "v_effective_stocks",
+      "description": "v_effective_stocks",
+      "required": false,
+      "in": "body",
+      "schema": {
+        "$ref": "#/definitions/v_effective_stocks"
+      }
+    },
+    "rowFilter.v_effective_stocks.storage_id": {
+      "name": "storage_id",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.v_effective_stocks.storage_name": {
+      "name": "storage_name",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.v_effective_stocks.ingredient_id": {
+      "name": "ingredient_id",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.v_effective_stocks.ingredient_name": {
+      "name": "ingredient_name",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.v_effective_stocks.physical_stock": {
+      "name": "physical_stock",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.v_effective_stocks.virtual_stock": {
+      "name": "virtual_stock",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.v_effective_stocks.effective_stock": {
+      "name": "effective_stock",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.v_effective_stocks.ingredient_unit": {
+      "name": "ingredient_unit",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "body.v_production_logic": {
+      "name": "v_production_logic",
+      "description": "v_production_logic",
+      "required": false,
+      "in": "body",
+      "schema": {
+        "$ref": "#/definitions/v_production_logic"
+      }
+    },
+    "rowFilter.v_production_logic.product_id": {
+      "name": "product_id",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.v_production_logic.product_name": {
+      "name": "product_name",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.v_production_logic.baked_qty": {
+      "name": "baked_qty",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "body.v_production_tasks_test": {
+      "name": "v_production_tasks_test",
+      "description": "v_production_tasks_test",
+      "required": false,
+      "in": "body",
+      "schema": {
+        "$ref": "#/definitions/v_production_tasks_test"
+      }
+    },
+    "rowFilter.v_production_tasks_test.product_id": {
+      "name": "product_id",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.v_production_tasks_test.product_name": {
+      "name": "product_name",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.v_production_tasks_test.business_date": {
+      "name": "business_date",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.v_production_tasks_test.category_id": {
+      "name": "category_id",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.v_production_tasks_test.category_name": {
+      "name": "category_name",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.v_production_tasks_test.total_demand_kg": {
+      "name": "total_demand_kg",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.v_production_tasks_test.portion_weight_kg": {
+      "name": "portion_weight_kg",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.v_production_tasks_test.unit": {
+      "name": "unit",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.v_production_tasks_test.portions_needed": {
+      "name": "portions_needed",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.v_production_tasks_test.actual_production_kg": {
+      "name": "actual_production_kg",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.v_production_tasks_test.in_production_catalog": {
+      "name": "in_production_catalog",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "body.distribution_results": {
+      "name": "distribution_results",
+      "description": "distribution_results",
+      "required": false,
+      "in": "body",
+      "schema": {
+        "$ref": "#/definitions/distribution_results"
+      }
+    },
+    "rowFilter.distribution_results.id": {
+      "name": "id",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.distribution_results.product_id": {
+      "name": "product_id",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.distribution_results.product_name": {
+      "name": "product_name",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.distribution_results.spot_name": {
+      "name": "spot_name",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.distribution_results.quantity_to_ship": {
+      "name": "quantity_to_ship",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.distribution_results.calculation_batch_id": {
+      "name": "calculation_batch_id",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.distribution_results.business_date": {
+      "name": "business_date",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.distribution_results.created_at": {
+      "name": "created_at",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.distribution_results.delivery_status": {
+      "name": "delivery_status",
+      "description": "Статус доставки: pending (в пути, Д0→Д2) или delivered (доставлено в магазин)",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "body.order_log": {
+      "name": "order_log",
+      "description": "order_log",
+      "required": false,
+      "in": "body",
+      "schema": {
+        "$ref": "#/definitions/order_log"
+      }
+    },
+    "rowFilter.order_log.log_id": {
+      "name": "log_id",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.order_log.order_date": {
+      "name": "order_date",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.order_log.order_type": {
+      "name": "order_type",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.order_log.order_data": {
+      "name": "order_data",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.order_log.total_kg": {
+      "name": "total_kg",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.order_log.sku_count": {
+      "name": "sku_count",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.order_log.sent_to_telegram": {
+      "name": "sent_to_telegram",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.order_log.telegram_message_id": {
+      "name": "telegram_message_id",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.order_log.created_at": {
+      "name": "created_at",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.order_log.created_by": {
+      "name": "created_by",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "body.v_production_logic_test": {
+      "name": "v_production_logic_test",
+      "description": "v_production_logic_test",
+      "required": false,
+      "in": "body",
+      "schema": {
+        "$ref": "#/definitions/v_production_logic_test"
+      }
+    },
+    "rowFilter.v_production_logic_test.product_id": {
+      "name": "product_id",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.v_production_logic_test.product_name": {
+      "name": "product_name",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.v_production_logic_test.baked_qty": {
+      "name": "baked_qty",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    }
+  },
+  "externalDocs": {
+    "description": "PostgREST Documentation",
+    "url": "https://postgrest.org/en/v12/references/api.html"
+  }
+}
