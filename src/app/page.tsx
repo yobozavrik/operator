@@ -89,6 +89,31 @@ export default function CommandLevel1() {
     return { fact: Math.round(fact), norm: Math.round(norm), index };
   }, [pizzaRawData, pizzaSummary]);
 
+  // --- KONDITERKA DATA ---
+  const { data: konditerkaRawData } = useSWR('/api/konditerka/orders', fetcher, { refreshInterval: 60000 });
+  const { data: konditerkaSummary } = useSWR('/api/konditerka/summary', fetcher, { refreshInterval: 60000 });
+
+  const konditerkaMetrics = useMemo(() => {
+    let fact = 0;
+    let norm = 0;
+    let index = 0;
+
+    if (konditerkaRawData) {
+      const products = transformPizzaData(konditerkaRawData);
+      fact = products.reduce((sum, p) => sum + p.totalStockKg, 0);
+    }
+
+    if (konditerkaSummary?.total_norm) {
+      norm = konditerkaSummary.total_norm;
+    } else if (konditerkaRawData) {
+      const products = transformPizzaData(konditerkaRawData);
+      norm = products.reduce((sum, p) => sum + p.minStockThresholdKg, 0);
+    }
+
+    index = norm > 0 ? Math.round((fact / norm) * 100) : 0;
+    return { fact: Math.round(fact), norm: Math.round(norm), index };
+  }, [konditerkaRawData, konditerkaSummary]);
+
   useEffect(() => {
     setTime(new Date());
     const timer = setInterval(() => setTime(new Date()), 1000);
@@ -363,13 +388,44 @@ export default function CommandLevel1() {
             iconBorder="border-slate-200"
           />
 
-          <InactiveCard
-            title="ЦЕХ К"
-            subtitle="Солодощі та десерти"
-            icon={Zap}
-            iconBg="bg-slate-100"
-            iconBorder="border-slate-200"
-          />
+          {/* Active Card: Konditerka */}
+          <Link href="/konditerka" className="saas-card rounded-xl p-5 relative overflow-hidden group hover:shadow-md hover:border-[#00E0FF]/30 transition-all duration-300 hover:-translate-y-1 flex flex-col justify-between">
+            <div className="flex justify-between items-start mb-2">
+              <div className="p-2.5 rounded-xl bg-cyan-50 border border-cyan-200 text-cyan-600">
+                <Zap size={20} />
+              </div>
+              <div className="px-2.5 py-0.5 rounded-full bg-emerald-50 border border-emerald-200 flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.3)]"></span>
+                <span className="text-[9px] font-mono text-emerald-600 uppercase tracking-wider font-[family-name:var(--font-jetbrains)]">ONLINE</span>
+              </div>
+            </div>
+
+            <div>
+              <h2 className="text-xl font-bold saas-text-primary mb-0.5">ЦЕХ Кондитерка</h2>
+              <p className="text-[10px] font-mono saas-text-secondary uppercase tracking-wide mb-4 font-[family-name:var(--font-jetbrains)]">Солодощі та десерти</p>
+            </div>
+
+            <div className="grid grid-cols-3 gap-2 mt-auto">
+              <div className="bg-slate-50 p-2.5 rounded-lg border border-slate-100">
+                <div className="text-[9px] saas-text-secondary uppercase font-mono mb-0.5 font-[family-name:var(--font-jetbrains)]">Факт залишок</div>
+                <div className="text-base font-bold saas-text-primary">
+                  {konditerkaMetrics.fact > 0 ? konditerkaMetrics.fact : '--'} <span className="text-[10px] saas-text-secondary font-normal">шт.</span>
+                </div>
+              </div>
+              <div className="bg-slate-50 p-2.5 rounded-lg border border-slate-100">
+                <div className="text-[9px] saas-text-secondary uppercase font-mono mb-0.5 font-[family-name:var(--font-jetbrains)]">Норма</div>
+                <div className="text-base font-bold saas-text-primary">
+                  {konditerkaMetrics.norm > 0 ? konditerkaMetrics.norm : '--'} <span className="text-[10px] saas-text-secondary font-normal">шт.</span>
+                </div>
+              </div>
+              <div className="bg-slate-50 p-2.5 rounded-lg border border-slate-100">
+                <div className="text-[9px] saas-text-secondary uppercase font-mono mb-0.5 font-[family-name:var(--font-jetbrains)]">Індекс</div>
+                <div className={cn("text-base font-bold", konditerkaMetrics.index >= 100 ? "text-emerald-600" : (konditerkaMetrics.index >= 80 ? "text-yellow-600" : "text-red-500"))}>
+                  {konditerkaMetrics.index > 0 ? konditerkaMetrics.index : '--'} <span className="text-[10px] saas-text-secondary font-normal">%</span>
+                </div>
+              </div>
+            </div>
+          </Link>
 
           <InactiveCard
             title="ЦЕХ Го"

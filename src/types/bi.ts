@@ -30,6 +30,7 @@ export interface Store {
     recommendedKg: number;
     avgSales: number;
     distributionPlan?: number;
+    unit?: 'шт' | 'кг';
 }
 
 export interface ProductionTask {
@@ -51,6 +52,7 @@ export interface ProductionTask {
     timeStarted?: number;
     deficitPercent: number;
     totalDeficitKg?: number;
+    unit?: 'шт' | 'кг';
 }
 
 export interface CategoryGroup {

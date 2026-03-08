@@ -1,0 +1,29 @@
+
+--- Table: dashboard_metrics ---
+{
+  "total_kg": 307.532,
+  "critical_sku_count": 38,
+  "critical_kg": 105.922,
+  "high_kg": 123.497,
+  "reserve_kg": 78.113
+}
+
+--- Table: v_pub_analytics ---
+{
+  "current_stock": 1135,
+  "total_need": 62,
+  "total_target": 1266,
+  "fill_level": 89.7
+}
+
+--- Table: v_pizza_summary_stats ---
+{
+  "total_baked": 100,
+  "total_norm": 1266,
+  "total_stock": 1135,
+  "total_need": 62,
+  "fill_level": 89.7
+}
+
+--- Table: document_rows ---
+undefined

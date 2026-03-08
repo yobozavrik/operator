@@ -1,4 +1,5 @@
 ﻿import { SupabaseDeficitRow, ProductionTask, PriorityKey, SKUCategory } from '@/types/bi';
+import { getKonditerkaUnit } from '@/lib/konditerka-dictionary';
 
 export const GRAVITON_SHOPS = [
     { id: 3, name: "Кварц" },
@@ -233,4 +234,35 @@ export function transformPizzaData(data: any[]): ProductionTask[] {
     });
 
     return Array.from(productMap.values());
+}
+
+// Konditerka Data Transformer
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function transformKonditerkaData(data: any[]): ProductionTask[] {
+    const defaultTransformed = transformPizzaData(data);
+    return defaultTransformed.map(task => {
+        const productUnit = getKonditerkaUnit(task.name);
+
+        // If the item is sold by weight (кг), the database tracks those sales and stock in grams.
+        // We must divide by 1000 so the UI proudly displays it in true Kilograms.
+        const multiplier = productUnit === 'кг' ? 0.001 : 1;
+
+        return {
+            ...task,
+            unit: productUnit,
+            totalStockKg: task.totalStockKg * multiplier,
+            dailyForecastKg: task.dailyForecastKg * multiplier,
+            minStockThresholdKg: task.minStockThresholdKg * multiplier,
+            recommendedQtyKg: task.recommendedQtyKg * multiplier,
+            stores: task.stores.map(store => ({
+                ...store,
+                unit: productUnit,
+                currentStock: store.currentStock * multiplier,
+                minStock: store.minStock * multiplier,
+                deficitKg: store.deficitKg * multiplier,
+                recommendedKg: store.recommendedKg * multiplier,
+                avgSales: store.avgSales * multiplier
+            }))
+        };
+    });
 }

@@ -37,12 +37,20 @@ export const Sidebar = () => {
     const router = useRouter();
 
     const isPizzaMode = pathname?.startsWith('/pizza');
+    const isKonditerkaMode = pathname?.startsWith('/konditerka');
 
     const PIZZA_MENU = [
         { label: 'Дашборд', icon: LayoutDashboard, path: '/pizza' },
         { label: 'Аналітика', icon: BarChart3, path: '/pizza/production' },
         { label: 'Персонал', icon: Users, path: '/pizza/personnel' },
         { label: 'Замовлення', icon: ClipboardList, path: '/pizza/order-form' }
+    ];
+
+    const KONDITERKA_MENU = [
+        { label: 'Дашборд', icon: LayoutDashboard, path: '/konditerka' },
+        { label: 'Аналітика', icon: BarChart3, path: '/konditerka/production' },
+        { label: 'Персонал', icon: Users, path: '/konditerka/personnel' },
+        { label: 'Замовлення', icon: ClipboardList, path: '/konditerka/order-form' }
     ];
 
 
@@ -95,6 +103,61 @@ export const Sidebar = () => {
                     {isPizzaMode ? (
                         /* ---- PIZZA MENU ---- */
                         PIZZA_MENU.map((item, i) => {
+                            const isActive = pathname === item.path;
+                            const Icon = item.icon;
+
+                            return (
+                                <button
+                                    key={i}
+                                    onClick={() => router.push(item.path)}
+                                    className={cn(
+                                        "w-full px-4 py-3.5 text-left rounded-xl transition-all duration-300 relative overflow-hidden group flex items-center gap-3",
+                                        isActive && "scale-[1.02]"
+                                    )}
+                                    style={{
+                                        background: isActive
+                                            ? 'rgba(0, 212, 255, 0.1)'
+                                            : 'rgba(20, 27, 45, 0.7)',
+                                        backdropFilter: 'blur(20px)',
+                                        WebkitBackdropFilter: 'blur(20px)',
+                                        border: isActive
+                                            ? '1px solid rgba(0, 212, 255, 0.5)'
+                                            : '1px solid rgba(255, 255, 255, 0.08)',
+                                        boxShadow: isActive
+                                            ? '0 0 30px rgba(0, 212, 255, 0.3), 0 8px 32px rgba(0, 0, 0, 0.4)'
+                                            : 'none',
+                                    }}
+                                >
+                                    {/* Active glow indicator */}
+                                    {isActive && (
+                                        <div
+                                            className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 rounded-r-full"
+                                            style={{
+                                                background: 'linear-gradient(180deg, #00D4FF 0%, #0088FF 100%)',
+                                                boxShadow: '0 0 12px rgba(0, 212, 255, 0.8)',
+                                            }}
+                                        />
+                                    )}
+
+                                    <div className={cn(
+                                        "w-8 h-8 rounded-lg flex items-center justify-center transition-colors",
+                                        isActive ? "bg-[#00D4FF]/20 text-[#00D4FF]" : "bg-white/5 text-white/40 group-hover:text-white"
+                                    )}>
+                                        <Icon size={18} />
+                                    </div>
+
+                                    <span className={cn(
+                                        "text-[12px] font-bold uppercase tracking-wide",
+                                        isActive ? "text-white" : "text-white/60 group-hover:text-white"
+                                    )}>
+                                        {item.label}
+                                    </span>
+                                </button>
+                            );
+                        })
+                    ) : isKonditerkaMode ? (
+                        /* ---- KONDITERKA MENU ---- */
+                        KONDITERKA_MENU.map((item, i) => {
                             const isActive = pathname === item.path;
                             const Icon = item.icon;
 
@@ -264,6 +327,29 @@ export const Sidebar = () => {
                 {isPizzaMode ? (
                     // 1. PIZZA MODE: Show Pizza Menu Icons
                     PIZZA_MENU.map((item, i) => {
+                        const Icon = item.icon;
+                        const isActive = pathname === item.path;
+                        return (
+                            <button
+                                key={i}
+                                onClick={() => router.push(item.path)}
+                                className={cn(
+                                    "flex flex-col items-center gap-1 px-2 py-1.5 rounded-lg transition-all",
+                                    isActive
+                                        ? "text-[#00D4FF] bg-[#00D4FF]/10 scale-105"
+                                        : "text-[var(--text-muted)] hover:text-white"
+                                )}
+                            >
+                                <Icon size={20} strokeWidth={isActive ? 2.5 : 2} />
+                                <span className="text-[9px] font-bold uppercase tracking-tight text-center leading-tight">
+                                    {item.label}
+                                </span>
+                            </button>
+                        );
+                    })
+                ) : isKonditerkaMode ? (
+                    // 1B. KONDITERKA MODE: Show Konditerka Menu Icons
+                    KONDITERKA_MENU.map((item, i) => {
                         const Icon = item.icon;
                         const isActive = pathname === item.path;
                         return (
