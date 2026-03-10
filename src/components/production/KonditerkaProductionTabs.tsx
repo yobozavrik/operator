@@ -100,6 +100,8 @@ export const KonditerkaProductionTabs = ({ data, onRefresh, showTabs = true }: P
     const [showProductionModal, setShowProductionModal] = useState(false);
     const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
     const [isStale, setIsStale] = useState(false);
+    const [stockData, setStockData] = useState<any>(null);
+    const [manufacturedData, setManufacturedData] = useState<any[]>([]);
 
     React.useEffect(() => {
         const checkStaleness = () => {
@@ -115,27 +117,29 @@ export const KonditerkaProductionTabs = ({ data, onRefresh, showTabs = true }: P
     // 🏭 PRODUCTION SUMMARY
     const { data: productionSummary } = useSWR('/api/konditerka/summary', (url) => fetch(url, { credentials: 'include' }).then(r => r.json()), { refreshInterval: 30000 });
 
-    // 🔥 WEBHOOK: Update stock from n8n
+    // 🔥 WEBHOOK: Update stock direct from Poster
     const handleUpdateStock = async () => {
         setIsUpdatingStock(true);
         try {
             const response = await fetch('/api/konditerka/update-stock', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ action: 'update_stock', timestamp: new Date().toISOString() })
+                method: 'POST'
             });
 
-            // Оновлюємо внутрішній таймер незалежно від статусу бекенду, 
-            // щоб кнопка ставала зеленою (якщо дані локально "оновилися")
-            setLastUpdated(new Date());
+            const result = await response.json();
 
-            if (response.ok) {
-                await onRefresh();
+            if (result.success) {
+                // ПОКАЗАТЬ данные из result.data в UI
+                // (здесь нужно setState с данными из Poster)
+                setStockData(result.data);
+                if (result.manufactures) {
+                    setManufacturedData(result.manufactures);
+                }
+                setLastUpdated(new Date());
             } else {
-                console.warn(`[Stock Update] Backend (n8n) reported an issue (Status: ${response.status}), but UI timer was reset.`);
+                console.warn(`[Stock Update] Backend reported an issue:`, result);
             }
         } catch (error) {
-            console.warn('[Stock Update] Network/Fetch error:', error);
+            console.error('[Stock Update] Network/Fetch error:', error);
         } finally {
             setIsUpdatingStock(false);
         }
@@ -149,25 +153,111 @@ export const KonditerkaProductionTabs = ({ data, onRefresh, showTabs = true }: P
         setTimeout(() => setIsRefreshing(false), 500);
     };
 
+    const displayData = useMemo(() => {
+        if (!stockData || !Array.isArray(stockData)) return data;
+
+        const cleanStr = (s: string) => s.toLowerCase().replace(/[^а-яіїєґa-z0-9]/g, '');
+
+        return data.map(product => {
+            let totalNetworkStock = 0;
+            const targetNameMap = cleanStr(product.name);
+
+            const enrichedStores = (product.stores || []).map(store => {
+                const cleanStoreName = cleanStr(store.storeName);
+
+                // Poster storage_name e.g. "Магазин "Гравітон""
+                const matchingStorage = stockData.find((s: any) => {
+                    const sName = cleanStr(s.storage_name);
+                    const coreName = sName.replace('магазин', '');
+                    return (coreName.length > 2 && cleanStoreName.includes(coreName)) || sName.includes(cleanStoreName);
+                });
+
+                let newStock = Number(store.currentStock) || 0;
+
+                if (cleanStoreName.includes('кондитерка') || cleanStoreName.includes('цех')) {
+                    newStock = 0; // Exclude factories and tseks completely from adding to retail stock array
+                } else if (matchingStorage && matchingStorage.leftovers) {
+                    const leftover = matchingStorage.leftovers.find((l: any) => cleanStr(l.ingredient_name || '') === targetNameMap);
+                    if (leftover) {
+                        const rawValue = parseFloat(leftover.storage_ingredient_left || '0');
+                        // Poster API natively returns weights in Kg ("kg") and pieces in Pieces ("p").
+                        // According to business logic, negative stocks should be considered 0.
+                        newStock = Math.max(0, rawValue);
+                    }
+                }
+
+                totalNetworkStock += newStock;
+
+                return {
+                    ...store,
+                    currentStock: newStock
+                };
+            });
+
+            const needNet = Math.max(0, product.minStockThresholdKg - totalNetworkStock);
+            const activeStores = enrichedStores.filter(s => s.currentStock <= 0);
+
+            return {
+                ...product,
+                totalStockKg: totalNetworkStock,
+                stores: enrichedStores,
+                totalDeficitKg: needNet,
+                recommendedQtyKg: needNet <= 0 ? 0 : Math.ceil(needNet / 10) * 10,
+                deficitPercent: product.minStockThresholdKg > 0 ? Number(((needNet / product.minStockThresholdKg) * 100).toFixed(1)) : 0,
+                outOfStockStores: activeStores.length,
+            } as ProductionTask;
+        });
+    }, [data, stockData]);
+
     const globalMetrics = useMemo(() => {
-        const totalNetworkStock = data.reduce((sum, p) => {
-            const prodStock = p.stores?.reduce((sSum, s) => sSum + (Number(s.currentStock) || 0), 0) || 0;
-            return sum + prodStock;
-        }, 0);
+        let konditerkaStock = 0, konditerkaMin = 0;
+        let morozivoStock = 0, morozivoMin = 0;
+        let konditerkaProduced = 0;
+        let morozivoProduced = 0;
 
-        // Sum directly from the nicely translated TRUTHFUL data array (e.g. 2000g -> 2kg), avoids the DB mixing grams and pieces
-        const totalNetworkMinStock = data.reduce((sum, p) => sum + (Number(p.minStockThresholdKg) || 0), 0);
+        // 1. Calculate stock and min from displayData
+        displayData.forEach(p => {
+            const isMorozivo = p.name.toLowerCase().includes('морозиво') || p.name.toLowerCase().includes('сорбет');
+            if (isMorozivo) {
+                morozivoStock += (p.totalStockKg || 0);
+                morozivoMin += (Number(p.minStockThresholdKg) || 0);
+            } else {
+                konditerkaStock += (p.totalStockKg || 0);
+                konditerkaMin += (Number(p.minStockThresholdKg) || 0);
+            }
+        });
 
-        const fillIndex = totalNetworkMinStock > 0
-            ? (totalNetworkStock / totalNetworkMinStock) * 100
-            : 0;
+        // 2. Calculate produced from manufacturedData
+        const cleanStr = (s: string) => s.toLowerCase().replace(/[^а-яіїєґa-z0-9]/g, '');
+        // First, check if we have data from posterAPI. If so, use it.
+        if (manufacturedData && manufacturedData.length > 0) {
+            manufacturedData.forEach((mItem: any) => {
+                const name = cleanStr(mItem.product_name || '');
+                const isMorozivo = name.includes('морозиво') || name.includes('сорбет');
+                const qty = parseFloat(mItem.product_num || '0');
+                if (isMorozivo) {
+                    morozivoProduced += qty;
+                } else {
+                    konditerkaProduced += qty;
+                }
+            });
+        }
 
         return {
-            totalNetworkStock,
-            totalNetworkMinStock,
-            fillIndex
+            konditerka: {
+                stock: konditerkaStock,
+                min: konditerkaMin,
+                index: konditerkaMin > 0 ? (konditerkaStock / konditerkaMin) * 100 : 0,
+                produced: konditerkaProduced
+            },
+            morozivo: {
+                stock: morozivoStock,
+                min: morozivoMin,
+                index: morozivoMin > 0 ? (morozivoStock / morozivoMin) * 100 : 0,
+                produced: morozivoProduced
+            }
         };
-    }, [data, productionSummary]);
+    }, [displayData, manufacturedData]);
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const getIndexColor = (val: number) => {
@@ -241,62 +331,111 @@ export const KonditerkaProductionTabs = ({ data, onRefresh, showTabs = true }: P
                             <div className="absolute top-0 right-0 p-3 opacity-5 group-hover:opacity-10 transition-opacity">
                                 <ChefHat size={48} className="text-white" />
                             </div>
-                            <div className="flex items-center gap-2 text-slate-400 mb-1.5 relative z-10">
+                            <div className="flex items-center gap-2 text-slate-400 mb-2 relative z-10">
                                 <ChefHat size={14} className="text-[#00E0FF]" />
-                                <span className="text-[10px] uppercase font-bold tracking-[0.2em] text-[#00E0FF] font-[family-name:var(--font-jetbrains)]">Виробництво (Кондитерка)</span>
+                                <span className="text-[10px] uppercase font-bold tracking-[0.2em] text-[#00E0FF] font-[family-name:var(--font-jetbrains)]">Сьогодні Вироблено</span>
                             </div>
-                            <div className="flex items-baseline gap-2 relative z-10">
-                                <span className="text-3xl font-bold text-white tracking-tight font-[family-name:var(--font-jetbrains)]">
-                                    {productionSummary?.total_baked?.toLocaleString() || 0}
-                                </span>
-                                <span className="text-[10px] text-slate-500 font-medium">од.</span>
+                            <div className="grid grid-cols-2 gap-2 mt-1 relative z-10">
+                                <div>
+                                    <div className="text-[9px] text-orange-500 font-bold mb-0.5">🍰 ДЕСЕРТИ</div>
+                                    <div className="flex items-baseline gap-1">
+                                        <span className="text-xl font-bold tracking-tight font-[family-name:var(--font-jetbrains)] text-white">
+                                            {globalMetrics.konditerka.produced.toLocaleString()}
+                                        </span>
+                                        <span className="text-[9px] text-slate-500 font-medium">од.</span>
+                                    </div>
+                                </div>
+                                <div className="border-l border-white/10 pl-3">
+                                    <div className="text-[9px] text-[#00E0FF] font-bold mb-0.5">🍦 МОРОЗИВО</div>
+                                    <div className="flex items-baseline gap-1">
+                                        <span className="text-xl font-bold tracking-tight font-[family-name:var(--font-jetbrains)] text-white">
+                                            {globalMetrics.morozivo.produced.toLocaleString()}
+                                        </span>
+                                        <span className="text-[9px] text-slate-500 font-medium">шт.</span>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
                         <div className="glass-panel p-4 rounded-2xl relative overflow-hidden group hover:shadow-[0_0_20px_rgba(0,224,255,0.15)] hover:border-[#00E0FF]/30 transition-all duration-300 bg-[#131B2C]/50">
                             <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-b from-transparent via-[#00E0FF]/50 to-transparent opacity-0 group-hover:opacity-100 animate-scan pointer-events-none"></div>
-                            <div className="flex items-center gap-2 text-slate-400 mb-1.5">
+                            <div className="flex items-center gap-2 text-slate-400 mb-2">
                                 <Activity size={14} />
                                 <span className="text-[10px] uppercase font-bold tracking-[0.2em] font-[family-name:var(--font-jetbrains)]">Факт залишок</span>
                             </div>
-                            <div className="flex items-baseline gap-2">
-                                <span className={cn(
-                                    "text-3xl font-bold tracking-tight font-[family-name:var(--font-jetbrains)]",
-                                    globalMetrics.fillIndex >= 96 ? "text-status-success drop-shadow-[0_0_8px_rgba(16,185,129,0.3)]" :
-                                        globalMetrics.fillIndex >= 80 ? "text-status-warning drop-shadow-[0_0_8px_rgba(251,191,36,0.3)]" : "text-status-critical drop-shadow-[0_0_8px_rgba(244,63,94,0.5)]"
-                                )}>
-                                    {globalMetrics.totalNetworkStock.toLocaleString()}
-                                </span>
-                                <span className="text-[10px] text-slate-500 font-medium">од.</span>
+                            <div className="grid grid-cols-2 gap-2 mt-1">
+                                <div>
+                                    <div className="text-[9px] text-orange-500 font-bold mb-0.5">🍰 ДЕСЕРТИ</div>
+                                    <div className="flex items-baseline gap-1">
+                                        <span className="text-xl font-bold tracking-tight font-[family-name:var(--font-jetbrains)] text-white">
+                                            {globalMetrics.konditerka.stock.toLocaleString()}
+                                        </span>
+                                        <span className="text-[9px] text-slate-500 font-medium">од.</span>
+                                    </div>
+                                </div>
+                                <div className="border-l border-white/10 pl-3">
+                                    <div className="text-[9px] text-[#00E0FF] font-bold mb-0.5">🍦 МОРОЗИВО</div>
+                                    <div className="flex items-baseline gap-1">
+                                        <span className="text-xl font-bold tracking-tight font-[family-name:var(--font-jetbrains)] text-white">
+                                            {globalMetrics.morozivo.stock.toLocaleString()}
+                                        </span>
+                                        <span className="text-[9px] text-slate-500 font-medium">шт.</span>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
                         <div className="glass-panel p-4 rounded-2xl relative overflow-hidden group hover:shadow-[0_0_20px_rgba(0,224,255,0.15)] hover:border-[#00E0FF]/30 transition-all duration-300 bg-[#131B2C]/50">
                             <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-b from-transparent via-[#00E0FF]/50 to-transparent opacity-0 group-hover:opacity-100 animate-scan pointer-events-none"></div>
-                            <div className="flex items-center gap-2 text-slate-400 mb-1.5">
+                            <div className="flex items-center gap-2 text-slate-400 mb-2">
                                 <CheckCircle size={14} />
                                 <span className="text-[10px] uppercase font-bold tracking-[0.2em] font-[family-name:var(--font-jetbrains)]">Норма</span>
                             </div>
-                            <div className="flex items-baseline gap-2">
-                                <span className="text-3xl font-bold text-white tracking-tight font-[family-name:var(--font-jetbrains)]">
-                                    {globalMetrics.totalNetworkMinStock.toLocaleString()}
-                                </span>
-                                <span className="text-[10px] text-slate-500 font-medium">од.</span>
+                            <div className="grid grid-cols-2 gap-2 mt-1">
+                                <div>
+                                    <div className="text-[9px] text-orange-500 font-bold mb-0.5">🍰 ДЕСЕРТИ</div>
+                                    <div className="flex items-baseline gap-1">
+                                        <span className="text-xl font-bold tracking-tight font-[family-name:var(--font-jetbrains)] text-white">
+                                            {globalMetrics.konditerka.min.toLocaleString()}
+                                        </span>
+                                        <span className="text-[9px] text-slate-500 font-medium">од.</span>
+                                    </div>
+                                </div>
+                                <div className="border-l border-white/10 pl-3">
+                                    <div className="text-[9px] text-[#00E0FF] font-bold mb-0.5">🍦 МОРОЗИВО</div>
+                                    <div className="flex items-baseline gap-1">
+                                        <span className="text-xl font-bold tracking-tight font-[family-name:var(--font-jetbrains)] text-white">
+                                            {globalMetrics.morozivo.min.toLocaleString()}
+                                        </span>
+                                        <span className="text-[9px] text-slate-500 font-medium">шт.</span>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
                         <div className="glass-panel p-4 rounded-2xl relative overflow-hidden group hover:shadow-[0_0_20px_rgba(0,224,255,0.15)] hover:border-[#00E0FF]/30 transition-all duration-300 bg-[#131B2C]/50">
                             <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-b from-transparent via-[#00E0FF]/50 to-transparent opacity-0 group-hover:opacity-100 animate-scan pointer-events-none"></div>
-                            <div className="flex items-center gap-2 text-slate-400 mb-1.5">
+                            <div className="flex items-center gap-2 text-slate-400 mb-2">
                                 <Percent size={14} />
                                 <span className="text-[10px] uppercase font-bold tracking-[0.2em] font-[family-name:var(--font-jetbrains)]">Індекс заповненостей</span>
                             </div>
-                            <div className="flex items-baseline gap-2">
-                                <span className={cn(
-                                    "text-3xl font-bold tracking-tight text-[#00E0FF] drop-shadow-[0_0_8px_rgba(0,224,255,0.4)] font-[family-name:var(--font-jetbrains)]"
-                                )}>
-                                    {globalMetrics.fillIndex.toFixed(0)}%
-                                </span>
+                            <div className="grid grid-cols-2 gap-2 mt-1">
+                                <div>
+                                    <div className="text-[9px] text-orange-500 font-bold mb-0.5">🍰 ДЕСЕРТИ</div>
+                                    <div className="flex items-baseline gap-1">
+                                        <span className={cn("text-xl font-bold tracking-tight drop-shadow-sm font-[family-name:var(--font-jetbrains)]", getIndexColor(globalMetrics.konditerka.index))}>
+                                            {globalMetrics.konditerka.index.toFixed(0)}%
+                                        </span>
+                                    </div>
+                                </div>
+                                <div className="border-l border-white/10 pl-3">
+                                    <div className="text-[9px] text-[#00E0FF] font-bold mb-0.5">🍦 МОРОЗИВО</div>
+                                    <div className="flex items-baseline gap-1">
+                                        <span className={cn("text-xl font-bold tracking-tight drop-shadow-sm font-[family-name:var(--font-jetbrains)]", getIndexColor(globalMetrics.morozivo.index))}>
+                                            {globalMetrics.morozivo.index.toFixed(0)}%
+                                        </span>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -387,10 +526,10 @@ export const KonditerkaProductionTabs = ({ data, onRefresh, showTabs = true }: P
             {/* 2. CONTENT BLOCK */}
             <div className="flex-1 overflow-hidden relative">
                 {(!showTabs || activeTab === 'orders') && (
-                    <KonditerkaProductionOpsTable data={data} onRefresh={onRefresh} />
+                    <KonditerkaProductionOpsTable data={displayData} onRefresh={onRefresh} />
                 )}
                 {(showTabs && activeTab === 'matrix') && (
-                    <KonditerkaPowerMatrix data={data} onRefresh={onRefresh} />
+                    <KonditerkaPowerMatrix data={displayData} onRefresh={onRefresh} />
                 )}
                 {(showTabs && activeTab === 'production') && (
                     <ProductionDetailView />
@@ -407,7 +546,7 @@ export const KonditerkaProductionTabs = ({ data, onRefresh, showTabs = true }: P
             <KonditerkaDistributionModal
                 isOpen={showDistModal}
                 onClose={() => setShowDistModal(false)}
-                products={data}
+                products={displayData}
             />
             <KonditerkaProductionDetailModal
                 isOpen={showProductionModal}

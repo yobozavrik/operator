@@ -1,61 +1,35 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireAuth } from '@/lib/auth-guard';
-
-// Same webhook URLs as Graviton dashboard
-const WEBHOOK_URLS = [
-    'http://localhost:5678/webhook-test/konditerka1',
-    'https://n8n.dmytrotovstytskyi.online/webhook/konditerka1'
-];
+import { getAllLeftovers, getTodayManufactures } from '@/lib/posterApi';
 
 export async function POST(request: NextRequest) {
     const auth = await requireAuth();
     if (auth.error) return auth.error;
 
     try {
-        const body = await request.json();
+        console.time('[Konditerka Stock Update] Total duration');
+        console.log('[Konditerka Stock Update] Fetching data directly from Poster API...');
 
-        console.log('[Konditerka Stock Update] Triggering n8n webhook...', body);
+        // Получить данные из Poster
+        const [allLeftovers, todayManufactures] = await Promise.all([
+            getAllLeftovers(),
+            getTodayManufactures()
+        ]);
 
-        // Call both webhooks in parallel (same as Graviton)
-        const results = await Promise.allSettled(
-            WEBHOOK_URLS.map(url =>
-                fetch(url, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        action: 'refresh_stock',
-                        source: 'konditerka-dashboard',
-                        timestamp: body.timestamp || new Date().toISOString()
-                    })
-                })
-            )
-        );
+        console.timeEnd('[Konditerka Stock Update] Total duration');
 
-        // Check if at least one request was successful
-        const hasSuccess = results.some(r => r.status === 'fulfilled' && r.value.ok);
+        // СРАЗУ ВЕРНУТЬ клиенту (БЕЗ записи в БД)
+        return NextResponse.json({
+            success: true,
+            data: allLeftovers,
+            manufactures: todayManufactures,
+            timestamp: new Date().toISOString()
+        });
 
-        if (hasSuccess) {
-            console.log('[Konditerka Stock Update] Webhook success');
-
-            // Wait 4 seconds for data to update (same as Graviton)
-            await new Promise(resolve => setTimeout(resolve, 4000));
-
-            return NextResponse.json({
-                success: true,
-                message: 'Stock update triggered successfully'
-            });
-        } else {
-            console.error('[Konditerka Stock Update] All webhooks failed:', results);
-            return NextResponse.json(
-                { success: false, error: 'All webhooks failed' },
-                { status: 502 }
-            );
-        }
-
-    } catch (error) {
+    } catch (error: any) {
         console.error('[Konditerka Stock Update] Error:', error);
         return NextResponse.json(
-            { success: false, error: String(error) },
+            { success: false, error: String(error.message || error) },
             { status: 500 }
         );
     }
