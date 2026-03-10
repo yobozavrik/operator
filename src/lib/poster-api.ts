@@ -1,40 +1,34 @@
-// src/lib/poster-api.ts
+// Next.js uses native fetch, no need for node-fetch
 
-const POSTER_TOKEN = process.env.POSTER_TOKEN || '';
-if (!POSTER_TOKEN) {
-    console.warn("WARNING: POSTER_TOKEN is not defined in environment variables!");
-}
+const POSTER_TOKEN = (process.env.POSTER_TOKEN || '').trim();
 const POSTER_ACCOUNT = 'galia-baluvana34';
 
 export interface PosterStorage {
     storage_id: string;
     storage_name: string;
-    storage_adress?: string;
-    delete?: string;
+    storage_adress: string;
+    delete: string;
 }
 
 export interface PosterLeftover {
-    ingredient_id: string;      // Poster uses ingredient_id for leftovers internally, though the prompt mentioned product_id. Let's type it mostly loosely.
-    product_id?: string;
+    ingredient_id: string;
     ingredient_name: string;
-    product_name?: string;
-    category_name: string;
-    count: string | number;
-    limit: string | number;
-    unit: string;
+    ingredient_left: string;
+    storage_ingredient_left?: string;
+    ingredient_unit: string;
 }
 
-export interface StorageLeftoverResult {
+export interface StorageWithLeftovers {
     storage_id: string;
     storage_name: string;
     leftovers: PosterLeftover[];
 }
 
-/**
- * Core function to make requests to the JoinPoster API
- */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-async function posterRequest(method: string, params: Record<string, string> = {}): Promise<any> {
+export async function posterRequest(method: string, params: Record<string, string> = {}) {
+    if (!POSTER_TOKEN) {
+        throw new Error("POSTER_TOKEN environment variable is missing.");
+    }
+
     const url = new URL(`https://${POSTER_ACCOUNT}.joinposter.com/api/${method}`);
     url.searchParams.append('token', POSTER_TOKEN);
 
@@ -42,68 +36,144 @@ async function posterRequest(method: string, params: Record<string, string> = {}
         url.searchParams.append(key, params[key])
     );
 
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 10000);
-
-    let response;
-    try {
-        response = await fetch(url.toString(), {
-            signal: controller.signal
-        });
-    } finally {
-        clearTimeout(timeoutId);
-    }
-
+    const response = await fetch(url.toString());
     if (!response.ok) {
-        throw new Error(`Poster API error [${method}]: ${response.status} ${response.statusText}`);
+        throw new Error(`Poster API error: ${response.status} ${response.statusText}`);
     }
 
-    return response.json();
+    const data = await response.json();
+    if (data.error) {
+        throw new Error(`Poster API Error response: ${data.error}`);
+    }
+    return data;
 }
 
-/**
- * Fetches the list of all active storages
- */
-export async function getStorages(): Promise<PosterStorage[]> {
-    const data = await posterRequest('storage.getStorages');
-    return data.response || [];
+export async function getCategories() {
+    console.time('Poster API fetch categories');
+    const categoriesData = await posterRequest('menu.getCategories');
+    console.timeEnd('Poster API fetch categories');
+    return categoriesData.response || [];
 }
 
-/**
- * Fetches all leftovers (stock) for a specific storage ID
- */
-export async function getStorageLeftovers(storageId: string): Promise<PosterLeftover[]> {
-    const data = await posterRequest('storage.getStorageLeftovers', {
-        storage_id: storageId
+export async function getProducts() {
+    console.time('Poster API fetch products');
+    const productsData = await posterRequest('menu.getProducts');
+    console.timeEnd('Poster API fetch products');
+    return productsData.response || [];
+}
+
+export async function getAllLeftovers(): Promise<StorageWithLeftovers[]> {
+    // 1. Fetch categories to find Konditerka and Morozivo IDs
+    const categories = await getCategories();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const targetCategories = categories.filter((c: any) =>
+        c.category_name.toLowerCase().includes('кондитерка') ||
+        c.category_name.toLowerCase().includes('морозиво')
+    );
+    const targetCategoryIds = targetCategories.map((c: any) => c.category_id);
+
+    // 2. Fetch all products and filter by these category IDs
+    const products = await getProducts();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const konditerkaProducts = products.filter((p: any) =>
+        targetCategoryIds.includes(p.menu_category_id)
+    );
+    // Poster products that correspond to ingredients in the warehouse have an ingredient_id (string/number)
+    const KONDITERKA_INGREDIENT_IDS = konditerkaProducts.map((p: any) => p.ingredient_id).filter(Boolean).map(String);
+
+    console.time('Poster API fetch storages');
+    const storagesData = await posterRequest('storage.getStorages');
+    const allStorages: PosterStorage[] = storagesData.response || [];
+
+    // EXCLUDE factory storage & Tseks from the retail stock calculations
+    const storages = allStorages.filter(s => {
+        const name = s.storage_name.toLowerCase();
+        return !name.includes('склад "кондитерка"') &&
+            !name.includes('цех') &&
+            !name.includes('переміщення') &&
+            !name.includes('списання');
     });
-    return data.response || [];
-}
+    console.timeEnd('Poster API fetch storages');
 
-/**
- * Fetches all leftovers across ALL storages in parallel (Fast!)
- */
-export async function getAllLeftovers(): Promise<StorageLeftoverResult[]> {
-    const storages = await getStorages();
-
-    // Fetch leftovers for all storages in parallel
+    console.time('Poster API fetch leftovers parallel');
+    // Паралельно витягуємо залишки з усіх складів
     const promises = storages.map(async (storage) => {
-        try {
-            const leftovers = await getStorageLeftovers(storage.storage_id);
-            return {
-                storage_id: storage.storage_id,
-                storage_name: storage.storage_name,
-                leftovers: leftovers
-            };
-        } catch (error) {
-            console.error(`Error fetching leftovers for storage ${storage.storage_id} (${storage.storage_name}):`, error);
-            // Return empty leftovers for this storage rather than failing the whole batch
-            return {
-                storage_id: storage.storage_id,
-                storage_name: storage.storage_name,
-                leftovers: []
-            };
-        }
+        const data = await posterRequest('storage.getStorageLeftovers', {
+            storage_id: storage.storage_id
+        });
+
+        // 3. Filter the leftovers to only include those belonging to Konditerka/Morozivo
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const rawLeftovers = (data.response || []) as PosterLeftover[];
+        const filteredLeftovers = rawLeftovers.filter(item =>
+            KONDITERKA_INGREDIENT_IDS.includes(String(item.ingredient_id))
+        );
+
+        return {
+            storage_id: storage.storage_id,
+            storage_name: storage.storage_name,
+            leftovers: filteredLeftovers
+        };
     });
 
-    return await Promise.all(promises);
+    const results = await Promise.all(promises);
+    console.timeEnd('Poster API fetch leftovers parallel');
+
+    return results;
+}
+
+export async function getTodayManufactures() {
+    // 1. Storage ID for Konditerka Factory
+    const KONDITERKA_FACTORY_ID = 48; // Склад "Кондитерка"
+
+    // 2. Date range for today
+    const dateStr = new Date().toISOString().split('T')[0];
+
+    // 3. Fetch categories to find Konditerka and Morozivo IDs
+    const categories = await getCategories();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const targetCategories = categories.filter((c: any) =>
+        c.category_name.toLowerCase().includes('кондитерка') ||
+        c.category_name.toLowerCase().includes('морозиво')
+    );
+    const targetCategoryIds = targetCategories.map((c: any) => c.category_id);
+
+    // 4. Fetch all products and filter by these category IDs
+    const products = await getProducts();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const konditerkaProducts = products.filter((p: any) =>
+        targetCategoryIds.includes(p.menu_category_id)
+    );
+    const KONDITERKA_PRODUCT_IDS = konditerkaProducts.map((p: any) => p.product_id).filter(Boolean).map(String);
+
+    // 5. Fetch manufactures for today
+    console.time('Poster API fetch manufactures');
+    const manufacturesData = await posterRequest('storage.getManufactures', {
+        dateFrom: dateStr,
+        dateTo: dateStr
+    });
+    console.timeEnd('Poster API fetch manufactures');
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const manufactures = (manufacturesData.response || []) as any[];
+
+    // 6. Filter by factory and extract relevant products
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const factoryManufactures = manufactures.filter((m: any) => String(m.storage_id) === String(KONDITERKA_FACTORY_ID));
+
+    // We only care about products inside these manufactures that belong to Konditerka/Morozivo
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const producedItems: any[] = [];
+
+    for (const manufacture of factoryManufactures) {
+        if (manufacture.products && Array.isArray(manufacture.products)) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const relevantProducts = manufacture.products.filter((p: any) =>
+                KONDITERKA_PRODUCT_IDS.includes(String(p.product_id))
+            );
+            producedItems.push(...relevantProducts);
+        }
+    }
+
+    return producedItems;
 }

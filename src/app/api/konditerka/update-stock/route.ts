@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireAuth } from '@/lib/auth-guard';
-import { getAllLeftovers, getTodayManufactures } from '@/lib/posterApi';
+import { getAllLeftovers, getTodayManufactures } from '@/lib/poster-api';
 
 export async function POST(request: NextRequest) {
     const auth = await requireAuth();

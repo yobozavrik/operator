@@ -1,5 +1,5 @@
 // src/lib/poster-merger.ts
-import { getAllLeftovers } from './posterApi';
+import { getAllLeftovers } from './poster-api';
 
 interface DbOrderRow {
     product_id: string;
@@ -58,6 +58,10 @@ export async function mergeWithPosterLiveStock(dbData: DbOrderRow[]): Promise<Db
     }));
 
     // Replace the dbData row values with the hyper-live Poster metrics
+    let matchedCount = 0;
+    let unmatchedStores = new Set<string>();
+    let unmatchedProducts = new Set<string>();
+
     const mergedData = dbData.map(row => {
         const sKey = normalizeStore(row.spot_name);
         const pKey = normalizeProd(row.product_name);
@@ -65,14 +69,15 @@ export async function mergeWithPosterLiveStock(dbData: DbOrderRow[]): Promise<Db
         let liveStock = row.stock_now; // Fallback to Supabase if we truly have no data from Poster
         if (posterMap[sKey] && posterMap[sKey][pKey] !== undefined) {
             liveStock = posterMap[sKey][pKey];
+            matchedCount++;
 
             // ALIGNMENT FIX: Poster returns native kilograms (e.g. 1.5kg). 
-            // The old Supabase SQL views computed `min_stock` in Grams (e.g. 1500g).
-            // Therefore, if the item is sold in Kg, we MUST scale the `liveStock` back to Grams!
-            // Otherwise, UI transform (which divides by 1000) causes 1.5kg to become 0kg.
             if (getKonditerkaUnit(row.product_name) === 'кг') {
                 liveStock = Math.round(liveStock * 1000);
             }
+        } else {
+            if (!posterMap[sKey]) unmatchedStores.add(row.spot_name);
+            unmatchedProducts.add(row.product_name);
         }
 
         // The magic: if Poster reports fewer stock, re-calculate the `need_net` logic directly in JS
@@ -84,6 +89,16 @@ export async function mergeWithPosterLiveStock(dbData: DbOrderRow[]): Promise<Db
             need_net: newNeedNet
         };
     });
+
+    console.log(JSON.stringify({
+        timestamp: new Date().toISOString(),
+        action: 'poster_merge_results',
+        total_rows: mergedData.length,
+        matched_rows: matchedCount,
+        unmatched_stores_sample: Array.from(unmatchedStores).slice(0, 5),
+        unmatched_products_sample: Array.from(unmatchedProducts).slice(0, 5),
+        poster_map_stores: Object.keys(posterMap)
+    }));
 
     console.timeEnd("Poster API Fetch & Merge");
     return mergedData;
