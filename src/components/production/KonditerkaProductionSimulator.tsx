@@ -13,11 +13,12 @@ interface PlanItem {
     plan_metadata: {
         deficit: number;
         avg_sales: number;
-        was_inflated: boolean;
+        category?: string;
     };
 }
 
 export default function KonditerkaProductionSimulator() {
+    const [capacity, setCapacity] = useState(320);
     const [days, setDays] = useState<number>(3);
     const [planData, setPlanData] = useState<PlanItem[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -31,30 +32,26 @@ export default function KonditerkaProductionSimulator() {
             setError(null);
 
             try {
-                // Виклик RPC-функції Supabase для Кондитерки
-                const { data, error } = await supabase.rpc('f_generate_production_plan_konditerka', {
-                    p_days: days
+                // Call the optimized Konditerka RPC
+                const { data, error } = await supabase.rpc('f_plan_konditerka_production_ndays', {
+                    p_days: days,
+                    p_capacity: capacity
                 });
 
                 if (error) throw error;
 
                 if (data) {
-                    // Map the response fields back to the PlanItem interface
-                    // f_generate_production_plan_konditerka returns: plan_day, product_name, quantity, predicted_risk
                     setPlanData(data as PlanItem[]);
                 }
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
             } catch (err: any) {
                 console.error('Error fetching plan:', err);
                 setError(err.message);
-                // У разі помилки можна очистити дані або показати попередні
                 setPlanData([]);
             } finally {
                 setIsLoading(false);
             }
         };
 
-        // Дебаунс 600мс для зменшення кількості запитів при перетягуванні повзунка
         const timer = setTimeout(() => {
             fetchPlan();
         }, 600);
@@ -62,7 +59,7 @@ export default function KonditerkaProductionSimulator() {
         return () => clearTimeout(timer);
     }, [capacity, days]);
 
-    // Групування по днях та категоріях
+    // Group by day and category
     const groupedPlan = useMemo(() => {
         const groups: Record<number, { desserts: PlanItem[], morozivo: PlanItem[] }> = {};
 
@@ -72,7 +69,7 @@ export default function KonditerkaProductionSimulator() {
 
         planData.forEach(row => {
             if (!groups[row.plan_day]) return;
-            const category = (row.plan_metadata as any)?.category;
+            const category = row.plan_metadata?.category;
             if (category === 'Морозиво') {
                 groups[row.plan_day].morozivo.push(row);
             } else {
@@ -87,7 +84,7 @@ export default function KonditerkaProductionSimulator() {
         <div className="h-full bg-bg-primary p-4 md:p-8 font-sans text-text-primary overflow-y-auto custom-scrollbar">
             <div className="max-w-6xl mx-auto space-y-6">
 
-                {/* Панель управління потужністю */}
+                {/* Capacity Control Panel */}
                 <div className="bg-panel-bg border border-panel-border rounded-2xl shadow-[var(--panel-shadow)] p-6">
                     <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
                         <div>
@@ -96,7 +93,7 @@ export default function KonditerkaProductionSimulator() {
                                 Симулятор Виробництва (План на {days} дні)
                             </h2>
                             <p className="text-sm text-text-secondary mt-1 font-[family-name:var(--font-jetbrains)]">
-                                Налаштуйте ліміт, щоб побачити перерахунок автозамовлення для Десертів та Морозива
+                                Налаштуйте ліміт потужності, щоб побачити перерахунок для Десертів та Морозива
                             </p>
                         </div>
                         <div className="text-left md:text-right">
@@ -110,7 +107,7 @@ export default function KonditerkaProductionSimulator() {
                         <input
                             type="range"
                             min="100"
-                            max="600"
+                            max="800"
                             step="20"
                             value={capacity}
                             onChange={(e) => setCapacity(Number(e.target.value))}
@@ -119,11 +116,10 @@ export default function KonditerkaProductionSimulator() {
                         <div className="flex justify-between text-[11px] text-text-secondary mt-3 font-bold px-1 uppercase tracking-widest font-[family-name:var(--font-jetbrains)]">
                             <span>100 (Мін)</span>
                             <span className="text-[#00E0FF] font-black drop-shadow-[0_0_5px_rgba(0,224,255,0.5)]">320 (Норма)</span>
-                            <span>600 (Макс)</span>
+                            <span>800 (Макс)</span>
                         </div>
                     </div>
 
-                    {/* Horizon Selector */}
                     <div className="flex flex-col sm:flex-row sm:items-center gap-4 pt-5 border-t border-panel-border mt-5">
                         <span className="text-sm font-bold text-text-primary uppercase tracking-wider flex items-center gap-2 font-[family-name:var(--font-jetbrains)]">
                             <TrendingUp size={16} className="text-[#00E0FF]" />
@@ -146,7 +142,6 @@ export default function KonditerkaProductionSimulator() {
                     </div>
                 </div>
 
-                {/* Помилка */}
                 {error && (
                     <div className="bg-red-500/10 border border-red-500/30 rounded-2xl p-4 flex items-center gap-3 text-red-400 font-[family-name:var(--font-jetbrains)] backdrop-blur-sm">
                         <AlertTriangle className="w-5 h-5 flex-shrink-0" />
@@ -154,9 +149,7 @@ export default function KonditerkaProductionSimulator() {
                     </div>
                 )}
 
-                {/* Результати (Таблиці по днях) */}
-                <div className="space-y-8 relative min-h-[400px]">
-                    {/* Індикатор завантаження */}
+                <div className="space-y-12 relative min-h-[400px]">
                     {isLoading && (
                         <div className="absolute inset-0 z-10 bg-bg-primary/60 backdrop-blur-[2px] rounded-2xl flex items-center justify-center transition-all duration-300">
                             <div className="flex flex-col items-center gap-3 text-orange-500 bg-panel-bg px-8 py-6 rounded-2xl shadow-[var(--panel-shadow)] border border-panel-border">
@@ -166,44 +159,103 @@ export default function KonditerkaProductionSimulator() {
                         </div>
                     )}
 
-                    <div className="w-7 h-7 rounded-lg bg-[#00E0FF]/10 text-[#00E0FF] border border-[#00E0FF]/30 flex items-center justify-center font-bold text-sm shadow-[0_0_8px_rgba(0,224,255,0.15)]">
-                        Д{day}
-                    </div>
-                    Зміна {day}
-                </h3>
-                <div className="text-sm font-black text-[#00E0FF] bg-[#00E0FF]/10 px-3 py-1 rounded-full border border-[#00E0FF]/20 shadow-[0_0_10px_rgba(0,224,255,0.1)] font-[family-name:var(--font-jetbrains)]">
-                    {totalForDay > 0 ? `${totalForDay} шт.` : '—'}
-                </div>
-            </div>
-            <div className="flex-1 p-2 overflow-y-auto max-h-[600px] custom-scrollbar">
-                {morozivoPlan.length === 0 && !isLoading ? (
-                    <div className="flex items-center justify-center h-32 text-text-muted text-xs uppercase tracking-widest font-[family-name:var(--font-jetbrains)] font-bold">Немає даних</div>
-                ) : (
-                    <ul className="space-y-1">
-                        {morozivoPlan.map((row, idx) => (
-                            <li key={idx} className="flex items-center justify-between p-3 rounded-xl hover:bg-bg-primary transition-colors border border-transparent hover:border-panel-border group">
-                                <div className="flex flex-col">
-                                    <span className="font-bold text-text-primary text-sm group-hover:text-[#00E0FF] transition-colors leading-tight">{row.product_name}</span>
-                                    <div className="flex items-center gap-2 mt-2 leading-none">
-                                        <span className="text-[10px] text-text-secondary font-mono tracking-wide px-1.5 py-0.5 rounded bg-panel-border/30 border border-panel-border">R: {row.risk_index}</span>
+                    {Array.from({ length: days }, (_, i) => i + 1).map((day) => {
+                        const dayPlan = groupedPlan[day] || { desserts: [], morozivo: [] };
+                        const totalDesserts = dayPlan.desserts.reduce((sum, item) => sum + item.quantity, 0);
+                        const totalMorozivo = dayPlan.morozivo.reduce((sum, item) => sum + item.quantity, 0);
+
+                        return (
+                            <div key={day} className="space-y-6">
+                                <div className="flex items-center gap-4">
+                                    <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#00E0FF] to-[#00A3FF] flex items-center justify-center text-white font-black text-xl shadow-[0_4px_15px_rgba(0,224,255,0.3)]">
+                                        Д{day}
+                                    </div>
+                                    <h3 className="text-2xl font-black text-white font-[family-name:var(--font-chakra)] uppercase tracking-wider">
+                                        Зміна {day}
+                                    </h3>
+                                    <div className="h-px flex-1 bg-gradient-to-r from-panel-border to-transparent" />
+                                </div>
+
+                                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                                    {/* Column 1: Desserts */}
+                                    <div className="bg-panel-bg border border-panel-border rounded-2xl shadow-[var(--panel-shadow)] overflow-hidden">
+                                        <div className="p-4 border-b border-panel-border bg-[#131B2C]/50 flex items-center justify-between">
+                                            <h4 className="font-bold text-text-primary flex items-center gap-2 font-[family-name:var(--font-chakra)] text-base uppercase tracking-wide">
+                                                🍰 ДЕСЕРТИ (КОНДИТЕРКА)
+                                            </h4>
+                                            <div className="text-xs font-black text-cyan-400 bg-cyan-500/10 px-3 py-1 rounded-full border border-cyan-500/20">
+                                                {totalDesserts} од.
+                                            </div>
+                                        </div>
+                                        <div className="p-2 max-h-[500px] overflow-y-auto custom-scrollbar">
+                                            {dayPlan.desserts.length === 0 ? (
+                                                <div className="flex items-center justify-center h-20 text-text-muted text-[10px] uppercase tracking-widest font-bold">Немає призначень</div>
+                                            ) : (
+                                                <ul className="space-y-1">
+                                                    {dayPlan.desserts.map((row, idx) => (
+                                                        <RenderPlanRow key={idx} row={row} />
+                                                    ))}
+                                                </ul>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    {/* Column 2: Morozivo */}
+                                    <div className="bg-panel-bg border border-panel-border rounded-2xl shadow-[var(--panel-shadow)] overflow-hidden">
+                                        <div className="p-4 border-b border-panel-border bg-[#131B2C]/50 flex items-center justify-between">
+                                            <h4 className="font-bold text-text-primary flex items-center gap-2 font-[family-name:var(--font-chakra)] text-base uppercase tracking-wide">
+                                                🍦 МОРОЗИВО ТА СОРБЕТИ
+                                            </h4>
+                                            <div className="text-xs font-black text-indigo-400 bg-indigo-500/10 px-3 py-1 rounded-full border border-indigo-500/20">
+                                                {totalMorozivo} шт.
+                                            </div>
+                                        </div>
+                                        <div className="p-2 max-h-[500px] overflow-y-auto custom-scrollbar">
+                                            {dayPlan.morozivo.length === 0 ? (
+                                                <div className="flex items-center justify-center h-20 text-text-muted text-[10px] uppercase tracking-widest font-bold">Немає призначень</div>
+                                            ) : (
+                                                <ul className="space-y-1">
+                                                    {dayPlan.morozivo.map((row, idx) => (
+                                                        <RenderPlanRow key={idx} row={row} />
+                                                    ))}
+                                                </ul>
+                                            )}
+                                        </div>
                                     </div>
                                 </div>
-                                <div className="text-right pl-3 flex-shrink-0">
-                                    <span className="text-lg font-black text-[#00E0FF] tabular-nums font-[family-name:var(--font-chakra)] p-2">{row.quantity}</span>
-                                </div>
-                            </li>
-                        ))}
-                    </ul>
-                )}
+                            </div>
+                        );
+                    })}
+                </div>
+
             </div>
         </div>
     );
-})}
-                        </div >
-                    </div >
-                </div >
+}
 
-            </div >
-        </div >
+function RenderPlanRow({ row }: { row: PlanItem }) {
+    return (
+        <li className="flex items-center justify-between p-3 rounded-xl hover:bg-bg-primary transition-colors border border-transparent hover:border-panel-border group">
+            <div className="flex flex-col">
+                <span className="font-bold text-text-primary text-sm group-hover:text-[#00E0FF] transition-colors leading-tight">
+                    {row.product_name}
+                </span>
+                <div className="flex items-center gap-2 mt-2 leading-none">
+                    <span className="text-[10px] text-text-secondary font-mono tracking-wide px-1.5 py-0.5 rounded bg-panel-border/30 border border-panel-border">
+                        R: {row.risk_index}
+                    </span>
+                    {row.plan_metadata?.avg_sales > 0 && (
+                        <span className="text-[9px] text-emerald-400/80 uppercase font-bold">
+                            Avg: {Number(row.plan_metadata.avg_sales).toFixed(1)}/d
+                        </span>
+                    )}
+                </div>
+            </div>
+            <div className="text-right pl-3 flex-shrink-0">
+                <span className="text-lg font-black text-[#00E0FF] tabular-nums font-[family-name:var(--font-chakra)]">
+                    {row.quantity}
+                </span>
+            </div>
+        </li>
     );
 }
