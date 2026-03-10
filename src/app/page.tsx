@@ -114,6 +114,31 @@ export default function CommandLevel1() {
     return { fact: Math.round(fact), norm: Math.round(norm), index };
   }, [konditerkaRawData, konditerkaSummary]);
 
+  // --- BULVAR DATA ---
+  const { data: bulvarRawData } = useSWR('/api/bulvar/orders', fetcher, { refreshInterval: 60000 });
+  const { data: bulvarSummary } = useSWR('/api/bulvar/summary', fetcher, { refreshInterval: 60000 });
+
+  const bulvarMetrics = useMemo(() => {
+    let fact = 0;
+    let norm = 0;
+    let index = 0;
+
+    if (bulvarRawData) {
+      const products = transformPizzaData(bulvarRawData);
+      fact = products.reduce((sum, p) => sum + p.totalStockKg, 0);
+    }
+
+    if (bulvarSummary?.total_norm) {
+      norm = bulvarSummary.total_norm;
+    } else if (bulvarRawData) {
+      const products = transformPizzaData(bulvarRawData);
+      norm = products.reduce((sum, p) => sum + p.minStockThresholdKg, 0);
+    }
+
+    index = norm > 0 ? Math.round((fact / norm) * 100) : 0;
+    return { fact: Math.round(fact), norm: Math.round(norm), index };
+  }, [bulvarRawData, bulvarSummary]);
+
   useEffect(() => {
     setTime(new Date());
     const timer = setInterval(() => setTime(new Date()), 1000);
@@ -187,7 +212,7 @@ export default function CommandLevel1() {
         {/* content */}
         <main className="grid grid-cols-3 gap-4 flex-1 min-h-0">
 
-          {/* Active Card: Graviton */}
+{/* Active Card: Graviton */}
           <Link href="/graviton" className="saas-card rounded-xl p-5 relative overflow-hidden group hover:shadow-md hover:border-[#2b80ff]/30 transition-all duration-300 hover:-translate-y-1 flex flex-col justify-between">
             <div className="flex justify-between items-start mb-2">
               <div className="p-2.5 rounded-xl bg-blue-50 border border-blue-100 text-[#2b80ff]">
@@ -310,7 +335,134 @@ export default function CommandLevel1() {
             </div>
           </Link>
 
-          {/* Inactive Cards */}
+          {/* Active Card: Konditerka */}
+          <Link href="/konditerka" className="saas-card rounded-xl p-5 relative overflow-hidden group hover:shadow-md hover:border-[#00E0FF]/30 transition-all duration-300 hover:-translate-y-1 flex flex-col justify-between">
+            <div className="flex justify-between items-start mb-2">
+              <div className="p-2.5 rounded-xl bg-cyan-50 border border-cyan-200 text-cyan-600">
+                <Zap size={20} />
+              </div>
+              <div className="px-2.5 py-0.5 rounded-full bg-emerald-50 border border-emerald-200 flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.3)]"></span>
+                <span className="text-[9px] font-mono text-emerald-600 uppercase tracking-wider font-[family-name:var(--font-jetbrains)]">ONLINE</span>
+              </div>
+            </div>
+
+            <div>
+              <h2 className="text-xl font-bold saas-text-primary mb-0.5">ЦЕХ Кондитерка</h2>
+              <p className="text-[10px] font-mono saas-text-secondary uppercase tracking-wide mb-4 font-[family-name:var(--font-jetbrains)]">Солодощі та десерти</p>
+            </div>
+
+            <div className="grid grid-cols-3 gap-2 mt-auto">
+              <div className="bg-slate-50 p-2.5 rounded-lg border border-slate-100">
+                <div className="text-[9px] saas-text-secondary uppercase font-mono mb-0.5 font-[family-name:var(--font-jetbrains)]">Факт залишок</div>
+                <div className="text-base font-bold saas-text-primary">
+                  {konditerkaMetrics.fact > 0 ? konditerkaMetrics.fact : '--'} <span className="text-[10px] saas-text-secondary font-normal">шт.</span>
+                </div>
+              </div>
+              <div className="bg-slate-50 p-2.5 rounded-lg border border-slate-100">
+                <div className="text-[9px] saas-text-secondary uppercase font-mono mb-0.5 font-[family-name:var(--font-jetbrains)]">Норма</div>
+                <div className="text-base font-bold saas-text-primary">
+                  {konditerkaMetrics.norm > 0 ? konditerkaMetrics.norm : '--'} <span className="text-[10px] saas-text-secondary font-normal">шт.</span>
+                </div>
+              </div>
+              <div className="bg-slate-50 p-2.5 rounded-lg border border-slate-100">
+                <div className="text-[9px] saas-text-secondary uppercase font-mono mb-0.5 font-[family-name:var(--font-jetbrains)]">Індекс</div>
+                <div className={cn("text-base font-bold", konditerkaMetrics.index >= 100 ? "text-emerald-600" : (konditerkaMetrics.index >= 80 ? "text-yellow-600" : "text-red-500"))}>
+                  {konditerkaMetrics.index > 0 ? konditerkaMetrics.index : '--'} <span className="text-[10px] saas-text-secondary font-normal">%</span>
+                </div>
+              </div>
+            </div>
+          </Link>
+
+          {/* Active Card: Bulvar */}
+          <Link href="/bulvar" className="saas-card rounded-xl p-5 relative overflow-hidden group hover:shadow-md hover:border-purple-500/30 transition-all duration-300 hover:-translate-y-1 flex flex-col justify-between">
+            <div className="flex justify-between items-start mb-2">
+              <div className="p-2.5 rounded-xl bg-purple-50 border border-purple-200 text-purple-600">
+                <Store size={20} />
+              </div>
+              <div className="px-2.5 py-0.5 rounded-full bg-emerald-50 border border-emerald-200 flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.3)]"></span>
+                <span className="text-[9px] font-mono text-emerald-600 uppercase tracking-wider font-[family-name:var(--font-jetbrains)]">ONLINE</span>
+              </div>
+            </div>
+
+            <div>
+              <h2 className="text-xl font-bold saas-text-primary mb-0.5">ЦЕХ Бульвар-Автовокзал</h2>
+              <p className="text-[10px] font-mono saas-text-secondary uppercase tracking-wide mb-4 font-[family-name:var(--font-jetbrains)]">Млинці, Сирники, Хачапурі</p>
+            </div>
+
+            <div className="grid grid-cols-3 gap-2 mt-auto">
+              <div className="bg-slate-50 p-2.5 rounded-lg border border-slate-100">
+                <div className="text-[9px] saas-text-secondary uppercase font-mono mb-0.5 font-[family-name:var(--font-jetbrains)]">Факт залишок</div>
+                <div className="text-base font-bold saas-text-primary">
+                  {bulvarMetrics.fact > 0 ? bulvarMetrics.fact : '--'} <span className="text-[10px] saas-text-secondary font-normal">шт.</span>
+                </div>
+              </div>
+              <div className="bg-slate-50 p-2.5 rounded-lg border border-slate-100">
+                <div className="text-[9px] saas-text-secondary uppercase font-mono mb-0.5 font-[family-name:var(--font-jetbrains)]">Норма</div>
+                <div className="text-base font-bold saas-text-primary">
+                  {bulvarMetrics.norm > 0 ? bulvarMetrics.norm : '--'} <span className="text-[10px] saas-text-secondary font-normal">шт.</span>
+                </div>
+              </div>
+              <div className="bg-slate-50 p-2.5 rounded-lg border border-slate-100">
+                <div className="text-[9px] saas-text-secondary uppercase font-mono mb-0.5 font-[family-name:var(--font-jetbrains)]">Індекс</div>
+                <div className={cn("text-base font-bold", bulvarMetrics.index >= 100 ? "text-emerald-600" : (bulvarMetrics.index >= 80 ? "text-yellow-600" : "text-red-500"))}>
+                  {bulvarMetrics.index > 0 ? bulvarMetrics.index : '--'} <span className="text-[10px] saas-text-secondary font-normal">%</span>
+                </div>
+              </div>
+            </div>
+          </Link>
+
+          {/* Active Card: Florida */}
+          <Link href="/florida/production" className="saas-card rounded-xl p-5 relative overflow-hidden group hover:shadow-md hover:border-[#F43F5E]/30 transition-all duration-300 hover:-translate-y-1 flex flex-col justify-between">
+            <div className="flex justify-between items-start mb-2">
+              <div className="p-2.5 rounded-xl bg-pink-50 border border-pink-200 text-[#F43F5E]">
+                <Factory size={20} />
+              </div>
+              <div className="px-2.5 py-0.5 rounded-full bg-emerald-50 border border-emerald-200 flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.3)]"></span>
+                <span className="text-[9px] font-mono text-emerald-600 uppercase tracking-wider font-[family-name:var(--font-jetbrains)]">ONLINE</span>
+              </div>
+            </div>
+
+            <div className="mb-auto mt-4">
+              <h2 className="text-xl font-bold saas-text-primary mb-0.5">ЦЕХ Флорида</h2>
+              <p className="text-[10px] font-mono saas-text-secondary uppercase tracking-wide mb-4 font-[family-name:var(--font-jetbrains)]">Напівфабрикати та Кулінарія</p>
+            </div>
+
+            <div className="grid grid-cols-1 gap-2 mt-auto">
+              <div className="flex bg-slate-50 p-2.5 rounded-lg border border-slate-100 items-center justify-between group-hover:bg-[#F43F5E]/10 transition-colors">
+                <div className="text-[10px] uppercase font-mono saas-text-secondary font-bold font-[family-name:var(--font-jetbrains)]">ПЕРЕЙТИ ДО АНАЛІТИКИ</div>
+                <ArrowRight size={14} className="text-[#F43F5E] group-hover:translate-x-1 transition-transform" />
+              </div>
+            </div>
+          </Link>
+
+                  {/* Inactive Cards */}
+
+<InactiveCard
+            title="ЦЕХ E-Com"
+            subtitle="Виробництво"
+            icon={Store}
+            iconBg="bg-slate-100"
+            iconBorder="border-slate-200"
+          />
+
+          <InactiveCard
+            title="ЦЕХ E-Com"
+            subtitle="Виробництво"
+            icon={Store}
+            iconBg="bg-slate-100"
+            iconBorder="border-slate-200"
+          />
+
+          <InactiveCard
+            title="ЦЕХ Б"
+            subtitle="Центральна кухня"
+            icon={ShoppingBag}
+            iconBg="bg-slate-100"
+            iconBorder="border-slate-200"
+          />
 
           {/* Active Card: ML Forecasting */}
           <Link href="/forecasting" className="saas-card rounded-xl p-5 relative overflow-hidden group hover:shadow-md hover:border-purple-500/30 transition-all duration-300 hover:-translate-y-1 flex flex-col justify-between">
@@ -372,70 +524,7 @@ export default function CommandLevel1() {
             </div>
           </Link>
 
-          <InactiveCard
-            title="ЦЕХ E-Com"
-            subtitle="Виробництво"
-            icon={Store}
-            iconBg="bg-slate-100"
-            iconBorder="border-slate-200"
-          />
-
-          <InactiveCard
-            title="ЦЕХ Б"
-            subtitle="Центральна кухня"
-            icon={ShoppingBag}
-            iconBg="bg-slate-100"
-            iconBorder="border-slate-200"
-          />
-
-          {/* Active Card: Konditerka */}
-          <Link href="/konditerka" className="saas-card rounded-xl p-5 relative overflow-hidden group hover:shadow-md hover:border-[#00E0FF]/30 transition-all duration-300 hover:-translate-y-1 flex flex-col justify-between">
-            <div className="flex justify-between items-start mb-2">
-              <div className="p-2.5 rounded-xl bg-cyan-50 border border-cyan-200 text-cyan-600">
-                <Zap size={20} />
-              </div>
-              <div className="px-2.5 py-0.5 rounded-full bg-emerald-50 border border-emerald-200 flex items-center gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.3)]"></span>
-                <span className="text-[9px] font-mono text-emerald-600 uppercase tracking-wider font-[family-name:var(--font-jetbrains)]">ONLINE</span>
-              </div>
-            </div>
-
-            <div>
-              <h2 className="text-xl font-bold saas-text-primary mb-0.5">ЦЕХ Кондитерка</h2>
-              <p className="text-[10px] font-mono saas-text-secondary uppercase tracking-wide mb-4 font-[family-name:var(--font-jetbrains)]">Солодощі та десерти</p>
-            </div>
-
-            <div className="grid grid-cols-3 gap-2 mt-auto">
-              <div className="bg-slate-50 p-2.5 rounded-lg border border-slate-100">
-                <div className="text-[9px] saas-text-secondary uppercase font-mono mb-0.5 font-[family-name:var(--font-jetbrains)]">Факт залишок</div>
-                <div className="text-base font-bold saas-text-primary">
-                  {konditerkaMetrics.fact > 0 ? konditerkaMetrics.fact : '--'} <span className="text-[10px] saas-text-secondary font-normal">шт.</span>
-                </div>
-              </div>
-              <div className="bg-slate-50 p-2.5 rounded-lg border border-slate-100">
-                <div className="text-[9px] saas-text-secondary uppercase font-mono mb-0.5 font-[family-name:var(--font-jetbrains)]">Норма</div>
-                <div className="text-base font-bold saas-text-primary">
-                  {konditerkaMetrics.norm > 0 ? konditerkaMetrics.norm : '--'} <span className="text-[10px] saas-text-secondary font-normal">шт.</span>
-                </div>
-              </div>
-              <div className="bg-slate-50 p-2.5 rounded-lg border border-slate-100">
-                <div className="text-[9px] saas-text-secondary uppercase font-mono mb-0.5 font-[family-name:var(--font-jetbrains)]">Індекс</div>
-                <div className={cn("text-base font-bold", konditerkaMetrics.index >= 100 ? "text-emerald-600" : (konditerkaMetrics.index >= 80 ? "text-yellow-600" : "text-red-500"))}>
-                  {konditerkaMetrics.index > 0 ? konditerkaMetrics.index : '--'} <span className="text-[10px] saas-text-secondary font-normal">%</span>
-                </div>
-              </div>
-            </div>
-          </Link>
-
-          <InactiveCard
-            title="ЦЕХ Го"
-            subtitle="Виробництво"
-            icon={Warehouse}
-            iconBg="bg-slate-100"
-            iconBorder="border-slate-200"
-          />
-
-        </main>
+          </main>
 
         <footer className="mt-4 text-center border-t border-white/5 pt-3 shrink-0">
           <p className="text-[10px] font-mono text-slate-500 uppercase tracking-[0.3em] font-[family-name:var(--font-jetbrains)]">Produced by Tovstytsky Dmytro</p>

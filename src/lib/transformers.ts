@@ -266,3 +266,44 @@ export function transformKonditerkaData(data: any[]): ProductionTask[] {
         };
     });
 }
+
+import { getFloridaUnit } from '@/lib/florida-dictionary';
+
+// Florida Data Transformer
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function transformFloridaData(data: any[]): ProductionTask[] {
+    const defaultTransformed = transformPizzaData(data);
+    return defaultTransformed.map(task => {
+        const productUnit = getFloridaUnit(task.name);
+
+        return {
+            ...task,
+            unit: productUnit,
+            // Override category name 
+            category: 'ФЛОРИДА',
+            stores: task.stores.map(store => ({
+                ...store,
+                unit: productUnit,
+            }))
+        };
+    });
+}
+
+import { getBulvarUnit } from '@/lib/bulvar-dictionary';
+
+// Bulvar Data Transformer
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function transformBulvarData(data: any[]): ProductionTask[] {
+    const defaultTransformed = transformPizzaData(data);
+    return defaultTransformed.map(task => {
+        return {
+            ...task,
+            unit: 'кг',
+            category: 'БУЛЬВАР-АВТОВОКЗАЛ',
+            stores: task.stores.map(store => ({
+                ...store,
+                unit: 'кг'
+            }))
+        };
+    });
+}

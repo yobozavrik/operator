@@ -20,8 +20,8 @@ export async function GET() {
 
     try {
         const { data, error } = await supabaseAdmin
-            .schema('konditerka1')
-            .from('v_konditerka_today_distribution')
+            .schema('florida1')
+            .from('v_florida_today_distribution')
             .select('*')
             .order('product_name', { ascending: true });
 

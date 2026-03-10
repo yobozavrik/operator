@@ -9,7 +9,7 @@ export async function POST(request: NextRequest) {
     const auth = await requireAuth();
     if (auth.error) return auth.error;
 
-    console.log('Starting Konditerka distribution...');
+    console.log('Starting bulvar distribution...');
 
     const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
     if (!serviceKey) {
@@ -26,7 +26,7 @@ export async function POST(request: NextRequest) {
         console.log(`🚀 Sending RPC command...`);
 
         const { data: logId, error } = await supabaseAdmin
-            .schema('konditerka1')
+            .schema('bulvar1')
             .rpc('fn_full_recalculate_all');
 
         if (error) {

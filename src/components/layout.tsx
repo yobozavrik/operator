@@ -38,6 +38,8 @@ export const Sidebar = () => {
 
     const isPizzaMode = pathname?.startsWith('/pizza');
     const isKonditerkaMode = pathname?.startsWith('/konditerka');
+    const isFloridaMode = pathname?.startsWith('/florida');
+    const isBulvarMode = pathname?.startsWith('/bulvar');
 
     const PIZZA_MENU = [
         { label: 'Дашборд', icon: LayoutDashboard, path: '/pizza' },
@@ -51,6 +53,20 @@ export const Sidebar = () => {
         { label: 'Аналітика', icon: BarChart3, path: '/konditerka/production' },
         { label: 'Персонал', icon: Users, path: '/konditerka/personnel' },
         { label: 'Замовлення', icon: ClipboardList, path: '/konditerka/order-form' }
+    ];
+
+    const FLORIDA_MENU = [
+        { label: 'Дашборд', icon: LayoutDashboard, path: '/florida' },
+        { label: 'Аналітика', icon: BarChart3, path: '/florida/production' },
+        { label: 'Персонал', icon: Users, path: '/florida/personnel' },
+        { label: 'Замовлення', icon: ClipboardList, path: '/florida/order-form' }
+    ];
+
+    const BULVAR_MENU = [
+        { label: 'Дашборд', icon: LayoutDashboard, path: '/bulvar' },
+        { label: 'Аналітика', icon: BarChart3, path: '/bulvar/production' },
+        { label: 'Персонал', icon: Users, path: '/bulvar/personnel' },
+        { label: 'Замовлення', icon: ClipboardList, path: '/bulvar/order-form' }
     ];
 
 
@@ -197,6 +213,114 @@ export const Sidebar = () => {
                                     <div className={cn(
                                         "w-8 h-8 rounded-lg flex items-center justify-center transition-colors",
                                         isActive ? "bg-[#00D4FF]/20 text-[#00D4FF]" : "bg-white/5 text-white/40 group-hover:text-white"
+                                    )}>
+                                        <Icon size={18} />
+                                    </div>
+
+                                    <span className={cn(
+                                        "text-[12px] font-bold uppercase tracking-wide",
+                                        isActive ? "text-white" : "text-white/60 group-hover:text-white"
+                                    )}>
+                                        {item.label}
+                                    </span>
+                                </button>
+                            );
+                        })
+                    ) : isFloridaMode ? (
+                        /* ---- FLORIDA MENU ---- */
+                        FLORIDA_MENU.map((item, i) => {
+                            const isActive = pathname === item.path;
+                            const Icon = item.icon;
+
+                            return (
+                                <button
+                                    key={i}
+                                    onClick={() => router.push(item.path)}
+                                    className={cn(
+                                        "w-full px-4 py-3.5 text-left rounded-xl transition-all duration-300 relative overflow-hidden group flex items-center gap-3",
+                                        isActive && "scale-[1.02]"
+                                    )}
+                                    style={{
+                                        background: isActive
+                                            ? 'rgba(244, 63, 94, 0.1)'
+                                            : 'rgba(20, 27, 45, 0.7)',
+                                        backdropFilter: 'blur(20px)',
+                                        WebkitBackdropFilter: 'blur(20px)',
+                                        border: isActive
+                                            ? '1px solid rgba(244, 63, 94, 0.5)'
+                                            : '1px solid rgba(255, 255, 255, 0.08)',
+                                        boxShadow: isActive
+                                            ? '0 0 30px rgba(244, 63, 94, 0.3), 0 8px 32px rgba(0, 0, 0, 0.4)'
+                                            : 'none',
+                                    }}
+                                >
+                                    {isActive && (
+                                        <div
+                                            className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 rounded-r-full"
+                                            style={{
+                                                background: 'linear-gradient(180deg, #F43F5E 0%, #E11D48 100%)',
+                                                boxShadow: '0 0 12px rgba(244, 63, 94, 0.8)',
+                                            }}
+                                        />
+                                    )}
+
+                                    <div className={cn(
+                                        "w-8 h-8 rounded-lg flex items-center justify-center transition-colors",
+                                        isActive ? "bg-[#F43F5E]/20 text-[#F43F5E]" : "bg-white/5 text-white/40 group-hover:text-white"
+                                    )}>
+                                        <Icon size={18} />
+                                    </div>
+
+                                    <span className={cn(
+                                        "text-[12px] font-bold uppercase tracking-wide",
+                                        isActive ? "text-white" : "text-white/60 group-hover:text-white"
+                                    )}>
+                                        {item.label}
+                                    </span>
+                                </button>
+                            );
+                        })
+                    ) : isBulvarMode ? (
+                        /* ---- BULVAR MENU ---- */
+                        BULVAR_MENU.map((item, i) => {
+                            const isActive = pathname === item.path;
+                            const Icon = item.icon;
+
+                            return (
+                                <button
+                                    key={i}
+                                    onClick={() => router.push(item.path)}
+                                    className={cn(
+                                        "w-full px-4 py-3.5 text-left rounded-xl transition-all duration-300 relative overflow-hidden group flex items-center gap-3",
+                                        isActive && "scale-[1.02]"
+                                    )}
+                                    style={{
+                                        background: isActive
+                                            ? 'rgba(168, 85, 247, 0.1)'
+                                            : 'rgba(20, 27, 45, 0.7)',
+                                        backdropFilter: 'blur(20px)',
+                                        WebkitBackdropFilter: 'blur(20px)',
+                                        border: isActive
+                                            ? '1px solid rgba(168, 85, 247, 0.5)'
+                                            : '1px solid rgba(255, 255, 255, 0.08)',
+                                        boxShadow: isActive
+                                            ? '0 0 30px rgba(168, 85, 247, 0.3), 0 8px 32px rgba(0, 0, 0, 0.4)'
+                                            : 'none',
+                                    }}
+                                >
+                                    {isActive && (
+                                        <div
+                                            className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 rounded-r-full"
+                                            style={{
+                                                background: 'linear-gradient(180deg, #A855F7 0%, #9333EA 100%)',
+                                                boxShadow: '0 0 12px rgba(168, 85, 247, 0.8)',
+                                            }}
+                                        />
+                                    )}
+
+                                    <div className={cn(
+                                        "w-8 h-8 rounded-lg flex items-center justify-center transition-colors",
+                                        isActive ? "bg-[#A855F7]/20 text-[#A855F7]" : "bg-white/5 text-white/40 group-hover:text-white"
                                     )}>
                                         <Icon size={18} />
                                     </div>
@@ -360,6 +484,52 @@ export const Sidebar = () => {
                                     "flex flex-col items-center gap-1 px-2 py-1.5 rounded-lg transition-all",
                                     isActive
                                         ? "text-[#00D4FF] bg-[#00D4FF]/10 scale-105"
+                                        : "text-[var(--text-muted)] hover:text-white"
+                                )}
+                            >
+                                <Icon size={20} strokeWidth={isActive ? 2.5 : 2} />
+                                <span className="text-[9px] font-bold uppercase tracking-tight text-center leading-tight">
+                                    {item.label}
+                                </span>
+                            </button>
+                        );
+                    })
+                ) : isFloridaMode ? (
+                    // 1C. FLORIDA MODE: Show Florida Menu Icons
+                    FLORIDA_MENU.map((item, i) => {
+                        const Icon = item.icon;
+                        const isActive = pathname === item.path;
+                        return (
+                            <button
+                                key={i}
+                                onClick={() => router.push(item.path)}
+                                className={cn(
+                                    "flex flex-col items-center gap-1 px-2 py-1.5 rounded-lg transition-all",
+                                    isActive
+                                        ? "text-[#F43F5E] bg-[#F43F5E]/10 scale-105"
+                                        : "text-[var(--text-muted)] hover:text-white"
+                                )}
+                            >
+                                <Icon size={20} strokeWidth={isActive ? 2.5 : 2} />
+                                <span className="text-[9px] font-bold uppercase tracking-tight text-center leading-tight">
+                                    {item.label}
+                                </span>
+                            </button>
+                        );
+                    })
+                ) : isBulvarMode ? (
+                    // 1D. BULVAR MODE: Show Bulvar Menu Icons
+                    BULVAR_MENU.map((item, i) => {
+                        const Icon = item.icon;
+                        const isActive = pathname === item.path;
+                        return (
+                            <button
+                                key={i}
+                                onClick={() => router.push(item.path)}
+                                className={cn(
+                                    "flex flex-col items-center gap-1 px-2 py-1.5 rounded-lg transition-all",
+                                    isActive
+                                        ? "text-[#A855F7] bg-[#A855F7]/10 scale-105"
                                         : "text-[var(--text-muted)] hover:text-white"
                                 )}
                             >

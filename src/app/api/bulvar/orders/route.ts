@@ -15,11 +15,11 @@ export async function GET() {
 
         // Максимально чистый запрос без фильтров
         const { data, error } = await supabase
-            .schema('konditerka1').from('v_konditerka_distribution_stats')
+            .schema('bulvar1').from('v_bulvar_distribution_stats')
             .select('*');
 
         if (error) {
-            Logger.error('Supabase Konditerka API error', { error: error.message });
+            Logger.error('Supabase bulvar API error', { error: error.message });
             return NextResponse.json({ error: error.message }, { status: 500 });
         }
 
@@ -39,7 +39,7 @@ export async function GET() {
         return NextResponse.json(mergedData);
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
-        Logger.error('Critical Konditerka API Error', { error: err.message || String(err) });
+        Logger.error('Critical bulvar API Error', { error: err.message || String(err) });
         return NextResponse.json({
             error: 'Internal Server Error',
             message: err.message
