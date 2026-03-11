@@ -13,8 +13,17 @@ import { NextResponse } from 'next/server';
 export async function requireAuth() {
     const supabase = await createClient();
 
+    let user = null;
+    let cookieError = null;
+
     // 1. Try Cookie Auth
-    const { data: { user }, error } = await supabase.auth.getUser();
+    try {
+        const { data, error } = await supabase.auth.getUser();
+        user = data.user;
+        cookieError = error;
+    } catch (err: any) {
+        console.error('[AUTH-GUARD] Cookie auth threw:', err.message);
+    }
 
     if (user) {
         return { user, error: null };
@@ -27,17 +36,21 @@ export async function requireAuth() {
 
     if (authHeader && authHeader.startsWith('Bearer ')) {
         const token = authHeader.split(' ')[1];
-        const { data: { user: userFromToken }, error: tokenError } = await supabase.auth.getUser(token);
+        try {
+            const { data: { user: userFromToken }, error: tokenError } = await supabase.auth.getUser(token);
 
-        if (userFromToken) {
-            return { user: userFromToken, error: null };
+            if (userFromToken) {
+                return { user: userFromToken, error: null };
+            }
+
+            console.log('[AUTH-GUARD] Token auth failed:', tokenError?.message);
+        } catch (err: any) {
+            console.error('[AUTH-GUARD] Token auth threw:', err.message);
         }
-
-        console.log('[AUTH-GUARD] Token auth failed:', tokenError?.message);
     }
 
     // 🔍 DEBUG LOG
-    console.log('[AUTH-GUARD] Auth failed. Cookie error:', error?.message);
+    console.log('[AUTH-GUARD] Auth failed. Cookie error:', cookieError?.message);
 
     return {
         user: null,

@@ -38,7 +38,11 @@ export const GravitonProductionPlanner: React.FC = () => {
             const resD1 = await fetch('/api/graviton/plan-d1');
             const dataD1 = await resD1.json();
             if (dataD1.success) {
-                const orderData1 = dataD1.data || [];
+                // Map data to calculate portions if portion_size > 0
+                const orderData1 = (dataD1.data || []).map((item: any) => ({
+                    ...item,
+                    portions: item.portion_size > 0 ? Math.ceil(item.final_qty / item.portion_size) : 0
+                }));
                 setOrderD1(orderData1);
 
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -148,7 +152,7 @@ export const GravitonProductionPlanner: React.FC = () => {
                 generated_at: new Date().toISOString()
             };
 
-            const response = await fetch('https://n8n.dmytrotovstytskyi.online/webhook/graviton-order', {
+            const response = await fetch('/api/graviton/submit-order', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -291,7 +295,7 @@ export const GravitonProductionPlanner: React.FC = () => {
                                                         Немає даних
                                                     </td>
                                                 </tr>
-                                            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                                                // eslint-disable-next-line @typescript-eslint/no-unused-vars
                                             ) : orderD2.map((item, i) => (
                                                 <tr key={item.product_name} className="border-b border-panel-border hover:bg-bg-primary/50 transition-colors">
                                                     <td className="p-3 text-sm text-text-muted font-mono">{item.rank}</td>
@@ -358,7 +362,7 @@ export const GravitonProductionPlanner: React.FC = () => {
                                                         Немає даних
                                                     </td>
                                                 </tr>
-                                            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                                                // eslint-disable-next-line @typescript-eslint/no-unused-vars
                                             ) : orderD3.map((item, i) => (
                                                 <tr key={item.product_name} className="border-b border-panel-border hover:bg-bg-primary/50 transition-colors">
                                                     <td className="p-3 text-sm text-text-muted font-mono">{item.rank}</td>

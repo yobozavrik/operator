@@ -103,7 +103,8 @@ export function transformDeficitData(data: SupabaseDeficitRow[]): ProductionTask
                 minStock: Number(row.min_stock),
                 deficitKg: Number(row.deficit_kg),
                 recommendedKg: Number(row.recommended_kg),
-                avgSales: Number(row.avg_sales_day)
+                avgSales: Number(row.avg_sales_day),
+                isLive: row.is_live
             }],
             recommendedQtyKg: Number(row.recommended_kg),
             priority: row.priority as PriorityKey,

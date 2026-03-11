@@ -1,26 +1,31 @@
 import React from 'react';
-import { GRAVITON_SHOPS } from '@/lib/transformers';
 import { Check } from 'lucide-react';
 
+interface Shop {
+    spot_id: number;
+    spot_name: string;
+}
+
 interface Props {
+    shops: Shop[];
     selectedShops: number[];
     setSelectedShops: (ids: number[]) => void;
 }
 
-export const ShopSelector = ({ selectedShops, setSelectedShops }: Props) => {
-    const toggleShop = (shopId: number) => {
-        if (selectedShops.includes(shopId)) {
-            setSelectedShops(selectedShops.filter(id => id !== shopId));
+export const ShopSelector = ({ shops, selectedShops, setSelectedShops }: Props) => {
+    const toggleShop = (spotId: number) => {
+        if (selectedShops.includes(spotId)) {
+            setSelectedShops(selectedShops.filter(id => id !== spotId));
         } else {
-            setSelectedShops([...selectedShops, shopId]);
+            setSelectedShops([...selectedShops, spotId]);
         }
     };
 
     const toggleAll = () => {
-        if (selectedShops.length === GRAVITON_SHOPS.length) {
+        if (selectedShops.length === shops.length) {
             setSelectedShops([]);
         } else {
-            setSelectedShops(GRAVITON_SHOPS.map(s => s.id));
+            setSelectedShops(shops.map(s => s.spot_id));
         }
     };
 
@@ -30,18 +35,19 @@ export const ShopSelector = ({ selectedShops, setSelectedShops }: Props) => {
                 <h3 className="text-sm font-bold text-white uppercase tracking-widest">Виберіть магазини:</h3>
                 <button
                     onClick={toggleAll}
-                    className="text-xs text-[#00D4FF] hover:text-[#00D4FF]/80 font-bold uppercase tracking-wider"
+                    disabled={shops.length === 0}
+                    className="text-xs text-[#00D4FF] hover:text-[#00D4FF]/80 font-bold uppercase tracking-wider disabled:opacity-50"
                 >
-                    {selectedShops.length === GRAVITON_SHOPS.length ? 'Зняти всі' : 'Вибрати всі'}
+                    {selectedShops.length === shops.length && shops.length > 0 ? 'Зняти всі' : 'Вибрати всі'}
                 </button>
             </div>
 
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2">
-                {GRAVITON_SHOPS.map(shop => {
-                    const isSelected = selectedShops.includes(shop.id);
+                {shops.map(shop => {
+                    const isSelected = selectedShops.includes(shop.spot_id);
                     return (
                         <label
-                            key={shop.id}
+                            key={shop.spot_id}
                             className={`
                                 relative flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-all border
                                 ${isSelected
@@ -63,11 +69,11 @@ export const ShopSelector = ({ selectedShops, setSelectedShops }: Props) => {
                             <input
                                 type="checkbox"
                                 checked={isSelected}
-                                onChange={() => toggleShop(shop.id)}
+                                onChange={() => toggleShop(shop.spot_id)}
                                 className="hidden"
                             />
-                            <span className={`text-sm font-bold ${isSelected ? 'text-white' : 'text-white/60'}`}>
-                                {shop.name}
+                            <span className={`text-sm font-bold truncate ${isSelected ? 'text-white' : 'text-white/60'}`} title={shop.spot_name}>
+                                {shop.spot_name}
                             </span>
                         </label>
                     );
@@ -75,7 +81,7 @@ export const ShopSelector = ({ selectedShops, setSelectedShops }: Props) => {
             </div>
             <div className="mt-3 flex justify-between items-center border-t border-white/5 pt-2">
                 <div className="text-xs text-white/40 font-mono">
-                    Вибрано: <span className="text-white font-bold">{selectedShops.length}</span> з {GRAVITON_SHOPS.length}
+                    Вибрано: <span className="text-white font-bold">{selectedShops.length}</span> з {shops.length}
                 </div>
             </div>
         </div>

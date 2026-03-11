@@ -1,0 +1,29 @@
+import { createClient } from '@supabase/supabase-js';
+import * as dotenv from 'dotenv';
+dotenv.config({ path: '.env.local' });
+
+// Use ANON KEY exactly like the client/server does
+const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+);
+
+async function testAnon() {
+    console.log("Testing with ANON KEY...");
+    const { data: network, error: err1 } = await supabase.rpc('f_craft_get_network_metrics', {
+        p_start_date: '2026-02-24', p_end_date: '2026-03-09'
+    });
+    console.log("Network:", err1 ? err1.message : 'OK');
+
+    const { data: ranking, error: err2 } = await supabase.rpc('f_craft_get_store_ranking', {
+        p_start_date: '2026-02-24', p_end_date: '2026-03-09'
+    });
+    console.log("Ranking:", err2 ? err2.message : 'OK');
+
+    const { data: trends, error: err3 } = await supabase.rpc('f_craft_get_sku_trend', {
+        p_date: '2026-03-09'
+    });
+    console.log("Trends:", err3 ? err3.message : 'OK');
+}
+
+testAnon();

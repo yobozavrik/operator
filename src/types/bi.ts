@@ -19,6 +19,9 @@ export interface SupabaseDeficitRow {
     deficit_percent: number;
     priority: 'critical' | 'high' | 'reserve' | 'normal';  // ✅ String type
     priority_number: 1 | 2 | 3 | 4;  // ✅ Original number
+    portion_size?: number;
+    portion_unit?: string;
+    is_live?: boolean;
 }
 
 export interface Store {
@@ -31,6 +34,7 @@ export interface Store {
     avgSales: number;
     distributionPlan?: number;
     unit?: 'шт' | 'кг';
+    isLive?: boolean;
 }
 
 export interface ProductionTask {
@@ -50,9 +54,12 @@ export interface ProductionTask {
     storeName?: string;
     status: 'pending' | 'in-progress' | 'completed';
     timeStarted?: number;
+    todayProduction?: number;
     deficitPercent: number;
     totalDeficitKg?: number;
     unit?: 'шт' | 'кг';
+    portion_size?: number;
+    portion_unit?: string;
 }
 
 export interface CategoryGroup {

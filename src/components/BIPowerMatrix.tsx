@@ -13,9 +13,10 @@ import {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   Info,
   ClipboardList,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  AlertCircle
+  AlertCircle,
+  X
 } from 'lucide-react';
+import { AnimatePresence, motion } from 'framer-motion';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { ProductionTask, PriorityKey, SKUCategory, PriorityHierarchy, CategoryGroup } from '@/types/bi';
 import { cn } from '@/lib/utils';
@@ -71,7 +72,7 @@ export const BIPowerMatrix = ({
   const SAFETY_BUFFER_DAYS = 4;
 
   // State management
-  const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
+  const [selectedCategoryModal, setSelectedCategoryModal] = useState<string | null>(null);
   const [selectedStores, setSelectedStores] = useState<Map<string, boolean>>(new Map());
 
   // Modal states
@@ -249,12 +250,7 @@ export const BIPowerMatrix = ({
 
   // Actions
   const toggleCategory = (categoryName: string) => {
-    setExpandedCategories(prev => {
-      const next = new Set(prev);
-      if (next.has(categoryName)) next.delete(categoryName);
-      else next.add(categoryName);
-      return next;
-    });
+    setSelectedCategoryModal(categoryName);
   };
 
   const toggleStoreSelection = (productCode: number, storeName: string) => {
@@ -383,87 +379,35 @@ export const BIPowerMatrix = ({
 
       {/* Main List */}
       <div className="flex-1 overflow-y-auto custom-scrollbar bg-panel-bg shadow-[var(--panel-shadow)] border border-panel-border rounded-xl p-0 space-y-0 relative">
-        {/* Table Header */}
-        <div className="grid grid-cols-12 gap-4 px-6 py-3 text-xs font-bold text-text-secondary uppercase tracking-widest border-b border-panel-border sticky top-0 bg-panel-bg/95 backdrop-blur z-10 font-display">
-          <div className="col-span-8 sm:col-span-6">Категорія</div>
-          <div className="col-span-4 sm:col-span-6 text-right">Вага (кг)</div>
-        </div>
-
-        <div className="p-2 space-y-1">
+        <div className="p-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {flatCategories.map(cat => {
-            const isExpanded = expandedCategories.has(cat.name);
             const isCritical = cat.priority === 'critical';
 
             return (
-              <div key={cat.name} className="flex flex-col">
+              <div key={cat.name} className={cn("flex flex-col bg-bg-primary/20 border rounded-[1rem] overflow-hidden transition-all border-panel-border hover:border-panel-border/80 hover:bg-bg-primary/40")}>
                 <div
                   className={cn(
-                    "group flex items-center justify-between py-2.5 px-4 rounded-xl transition-colors border cursor-pointer",
-                    isExpanded ? "bg-bg-primary border-panel-border" : "hover:bg-bg-primary/50 border-transparent hover:border-panel-border",
-                    isCritical && !isExpanded ? "border-l-4 border-l-status-critical" : ""
+                    "group flex flex-col p-5 cursor-pointer relative",
+                    isCritical ? "border-t-4 border-t-status-critical" : ""
                   )}
                   onClick={() => toggleCategory(cat.name)}
                 >
-                  <div className="flex items-center space-x-4">
-                    <ChevronRight size={16} className={cn("text-text-muted group-hover:text-accent-primary transition-transform duration-200", isExpanded ? "rotate-90 text-accent-primary" : "")} />
-                    <span className="font-display font-bold text-text-primary tracking-wide uppercase">
+                  <div className="flex justify-between items-center mb-4 gap-2">
+                    <span className="font-display font-bold text-text-primary tracking-wide uppercase text-lg leading-none">
                       {cat.name}
-                      <span className="text-text-muted text-xs font-sans ml-2 normal-case font-medium">({cat.itemsCount} поз.)</span>
                     </span>
+                    <div className={cn("font-mono font-bold text-[17px] shrink-0", cat.totalKg > 0 ? "text-status-critical" : "text-text-muted")}>
+                      {Number(cat.totalKg).toFixed(1)} <span className="text-xs text-text-secondary font-display uppercase tracking-widest ml-1">кг</span>
+                    </div>
                   </div>
-                  <div className={cn("font-mono font-bold", cat.totalKg > 0 ? "text-status-critical" : "text-text-muted")}>
-                    {Number(cat.totalKg).toFixed(1)} кг
+
+                  <div className="flex items-center justify-between">
+                    <span className="text-text-secondary text-[13px] font-sans font-medium">{cat.itemsCount} позицій</span>
+                    <div className={cn("w-8 h-8 rounded-lg flex items-center justify-center transition-colors border bg-panel-bg text-text-muted border-panel-border group-hover:bg-bg-primary group-hover:text-text-primary")}>
+                      <ChevronRight size={18} className="transition-transform duration-200 outline-none" />
+                    </div>
                   </div>
                 </div>
-
-                {/* Expanded Content */}
-                {isExpanded && (
-                  <div className="ml-6 pl-4 border-l-2 border-panel-border my-1 space-y-1 animate-in slide-in-from-top-1 duration-200">
-                    <div className="flex justify-end p-2">
-                      <button onClick={() => toggleSelectAllByCategory(cat.name, cat.items)} className="text-[10px] text-accent-primary hover:text-accent-secondary hover:underline uppercase font-bold tracking-wider font-display">
-                        Обрати всю категорію
-                      </button>
-                    </div>
-                    {cat.items.map((item, itemIndex) => (
-                      <div key={`${item.productCode}_${itemIndex}`} className="group/item flex flex-col p-2.5 rounded-lg hover:bg-bg-primary/50 border border-transparent hover:border-panel-border transition-colors">
-                        <div className="flex justify-between items-center mb-1">
-                          <div className="flex items-center gap-2">
-                            <span className="text-xs text-text-primary font-medium">{item.name}</span>
-                          </div>
-                          <span className="text-xs font-mono text-text-muted font-bold">{Number(item.recommendedQtyKg).toFixed(1)} кг</span>
-                        </div>
-                        {/* Stores Breakdown */}
-                        <div className="mt-1 pl-2 space-y-1.5 border-l border-panel-border/50 ml-1">
-                          {item.stores.map((store, storeIndex) => {
-                            const key = `${item.productCode}_${store.storeName}`;
-                            const isSelected = selectedStores.has(key);
-                            return (
-                              <div
-                                key={store.storeName || `${item.productCode}_${storeIndex}`}
-                                className={cn(
-                                  "flex justify-between items-center text-[10px] p-1.5 rounded cursor-pointer transition-colors",
-                                  isSelected ? "bg-accent-primary/10 border-accent-primary/30 border text-accent-primary" : "text-text-secondary hover:text-text-primary hover:bg-panel-bg"
-                                )}
-                                onClick={() => toggleStoreSelection(item.productCode, store.storeName)}
-                              >
-                                <div className="flex items-center gap-2">
-                                  <div className={cn("w-3 h-3 rounded flex items-center justify-center border", isSelected ? "bg-accent-primary border-accent-primary shadow-[0_0_5px_rgba(var(--color-accent-primary),0.5)]" : "border-panel-border bg-transparent group-hover:border-text-secondary")}>
-                                    {isSelected && <CheckCircle2 size={10} className="text-bg-primary" />}
-                                  </div>
-                                  <span className={cn(isSelected ? "font-bold" : "font-medium")}>{store.storeName.replace('Магазин ', '').replace(/"/g, '')}</span>
-                                </div>
-                                <div className="flex gap-3 font-mono">
-                                  <span>Факт: {Number(store.currentStock).toFixed(1)}</span>
-                                  <span className={store.deficitKg > 0 ? "text-status-critical font-bold" : (isSelected ? "text-accent-primary font-bold" : "font-medium")}>Треба: {Number(store.recommendedKg).toFixed(1)}</span>
-                                </div>
-                              </div>
-                            )
-                          })}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
               </div>
             )
           })}
@@ -546,6 +490,136 @@ export const BIPowerMatrix = ({
         onClose={() => setShowShareModal(false)}
         onShare={handleShare}
       />
+
+      {/* Category Modal Overlay */}
+      <AnimatePresence>
+        {selectedCategoryModal && (
+          <motion.div
+            className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-md p-4 lg:p-8"
+            onClick={(e) => {
+              if (e.target === e.currentTarget) setSelectedCategoryModal(null);
+            }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            {(() => {
+              const cat = flatCategories.find(c => c.name === selectedCategoryModal);
+              if (!cat) return null;
+              return (
+                <motion.div
+                  initial={{ scale: 0.95, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  exit={{ scale: 0.95, opacity: 0 }}
+                  className="w-full max-w-[1400px] h-auto max-h-[90vh] rounded-2xl overflow-hidden bg-[#112240]/95 backdrop-blur-md border border-[#00E0FF]/20 shadow-[0_0_30px_rgba(0,224,255,0.15)] flex flex-col"
+                  onClick={e => e.stopPropagation()}
+                >
+                  <div className="flex items-start justify-between p-5 border-b border-[#00E0FF]/10 shrink-0 bg-[#112240]/80 shadow-lg">
+                    <div className="flex flex-col">
+                      <h2 className="text-2xl font-bold text-white uppercase tracking-wider leading-none font-[family-name:var(--font-chakra)]">
+                        {cat.name} <span className="text-white/30 text-lg">/ {cat.itemsCount} тов.</span>
+                      </h2>
+                      <div className="mt-2 flex items-baseline gap-1 font-mono">
+                        <span className="text-status-critical font-bold text-3xl font-[family-name:var(--font-jetbrains)] drop-shadow-[0_0_8px_rgba(255,42,85,0.5)]">
+                          {Number(cat.totalKg).toFixed(1)}
+                        </span>
+                        <span className="text-xs text-[#00E0FF]/60 uppercase font-bold font-display tracking-widest">кг</span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-4">
+                      <button onClick={(e) => { e.stopPropagation(); toggleSelectAllByCategory(cat.name, cat.items); }} className="text-xs text-[#00E0FF] hover:text-[#00E0FF]/80 hover:bg-[#00E0FF]/10 uppercase font-bold tracking-wider font-display flex items-center gap-1.5 bg-[#00E0FF]/5 border border-[#00E0FF]/20 px-4 py-2 rounded-lg transition-colors">
+                        <CheckCircle2 size={14} /> ОБРАТИ ВСІ
+                      </button>
+                      <button
+                        onClick={() => setSelectedCategoryModal(null)}
+                        className="p-2 rounded-xl bg-white/5 border border-white/10 text-white/50 hover:text-white hover:bg-white/10 transition-colors"
+                      >
+                        <X size={20} />
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="flex-1 overflow-y-auto p-5 custom-scrollbar bg-black/20">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 pb-10">
+                      {cat.items.map((item, itemIndex) => (
+                        <div key={`${item.productCode}_${itemIndex}`} className="group/item flex flex-col p-4 rounded-xl bg-[#131B2C]/80 border border-[#00E0FF]/10 hover:border-[#00E0FF]/30 transition-colors shadow-lg shadow-black/20">
+                          <div className="flex justify-between items-start mb-3 gap-2">
+                            <span className="text-[15px] font-bold text-white font-[family-name:var(--font-chakra)] uppercase tracking-wide">{item.name}</span>
+                            <span className="text-sm font-mono text-[#00E0FF] font-bold shrink-0 bg-[#00E0FF]/10 px-2 py-1 rounded-md border border-[#00E0FF]/20 shadow-[0_0_10px_rgba(0,224,255,0.1)]">{Number(item.recommendedQtyKg).toFixed(1)} кг</span>
+                          </div>
+
+                          {(item.todayProduction ?? 0) > 0 && (
+                            <div className="mb-2">
+                              <span className="text-[10px] px-2 py-1.5 rounded bg-[#C7481F]/20 text-[#FF5A25] border border-[#FF5A25]/30 font-bold uppercase tracking-widest inline-flex items-center gap-1 font-display shadow-[0_0_10px_rgba(255,90,37,0.1)]">
+                                ВИРОБЛЕНО: {item.todayProduction} {item.unit || 'кг'}
+                              </span>
+                            </div>
+                          )}
+
+                          {item.portion_size && item.portion_size > 0 && item.recommendedQtyKg > 0 && (
+                            <div className="mb-3">
+                              <span className="text-[11px] px-2 py-1.5 rounded bg-[#00E0FF]/10 text-[#00E0FF] border border-[#00E0FF]/30 font-bold uppercase tracking-widest inline-flex items-center gap-1 font-display">
+                                К-СТЬ ПОРЦІЙ: {Math.ceil(item.recommendedQtyKg / item.portion_size)} (по {item.portion_size} {item.portion_unit || 'кг'})
+                              </span>
+                            </div>
+                          )}
+
+                          <div className="grid grid-cols-2 gap-2 mt-2 border-t border-white/5 pt-3">
+                            {item.stores.map((store, storeIndex) => {
+                              const key = `${item.productCode}_${store.storeName}`;
+                              const isSelected = selectedStores.has(key);
+                              return (
+                                <div
+                                  key={store.storeName || `${item.productCode}_${storeIndex}`}
+                                  className={cn(
+                                    "flex flex-col gap-1 p-2 rounded-lg cursor-pointer transition-all border",
+                                    isSelected
+                                      ? "bg-[#00E0FF]/10 border-[#00E0FF]/40 ring-1 ring-[#00E0FF]/20"
+                                      : "bg-white/5 border-transparent hover:bg-white/10 hover:border-white/20"
+                                  )}
+                                  onClick={() => toggleStoreSelection(item.productCode, store.storeName)}
+                                >
+                                  <div className="flex items-center gap-2 overflow-hidden mb-1">
+                                    <div className={cn("w-3.5 h-3.5 rounded flex items-center justify-center border shrink-0 transition-colors", isSelected ? "bg-[#00E0FF] border-[#00E0FF] shadow-[0_0_8px_rgba(0,224,255,0.5)]" : "border-white/20 bg-transparent")}>
+                                      {isSelected && <CheckCircle2 size={10} className="text-[#0A1931]" />}
+                                    </div>
+                                    <span className={cn("truncate text-[11px] uppercase tracking-tighter", isSelected ? "font-bold text-white" : "font-medium text-white/50")}>
+                                      {store.storeName.replace('Магазин ', '').replace(/"/g, '')}
+                                    </span>
+                                  </div>
+                                  <div className="flex justify-between font-mono text-[10px] items-baseline">
+                                    <span className="text-white/20 flex items-center gap-1">
+                                      Ф:<span className="text-white/40 ml-0.5">{Number(store.currentStock).toFixed(0)}</span>
+                                      {store.isLive === false && (
+                                        <span title="Дані з БД (не live)" className="text-orange-500/60 flex items-center">
+                                          <AlertCircle size={10} />
+                                        </span>
+                                      )}
+                                    </span>
+                                    <span className={cn("font-bold text-[12px] flex items-center gap-1", store.deficitKg > 0 ? "text-status-critical" : (isSelected ? "text-[#00E0FF]" : "text-white/60"))}>
+                                      {Number(store.recommendedKg).toFixed(1)}
+                                      {store.isLive === false && (
+                                        <span title="Дані з БД (не live)" className="text-orange-500/80">
+                                          <AlertCircle size={12} />
+                                        </span>
+                                      )}
+                                    </span>
+                                  </div>
+                                </div>
+                              )
+                            })}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </motion.div>
+              );
+            })()}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

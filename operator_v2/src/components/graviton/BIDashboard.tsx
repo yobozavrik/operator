@@ -151,20 +151,20 @@ export const BIDashboard = () => {
     const handleRefresh = async () => {
         setIsRefreshing(true);
         try {
-            const results = await Promise.allSettled([
-                fetch('/api/proxy/webhook', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ action: 'refresh_stock', timestamp: new Date().toISOString() })
-                }),
-                fetch('https://n8n.dmytrotovstytskyi.online/webhook/operator', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ action: 'refresh_stock', timestamp: new Date().toISOString() })
-                })
-            ]);
-            const hasSuccess = results.some(r => r.status === 'fulfilled' && r.value.ok);
-            if (hasSuccess) {
+            const response = await fetch('/api/graviton/sync-stocks', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+            });
+            const text = await response.text();
+            let result;
+            try {
+                result = JSON.parse(text);
+            } catch (e) {
+                console.error("API Error HTML:", text.substring(0, 500));
+                throw new Error(`API returned non-JSON. HTTP ${response.status}: ${text.substring(0, 100)}`);
+            }
+
+            if (response.ok && result.success) {
                 await new Promise(resolve => setTimeout(resolve, 4000));
                 const now = Date.now();
                 setLastManualRefresh(now);

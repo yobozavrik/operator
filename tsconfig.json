@@ -40,6 +40,8 @@
     "node_modules",
     "operator_v2",
     "test_rpc.ts",
-    "test_rpc.js"
+    "test_rpc.js",
+    "tmp",
+    "scripts"
   ]
 }

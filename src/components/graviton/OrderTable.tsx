@@ -83,8 +83,13 @@ export const OrderTable: React.FC<OrderTableProps> = ({ data, summary }) => {
                                     <td className="p-3 text-sm text-text-muted font-mono">{item.rank}</td>
                                     <td className="p-3 text-sm font-semibold text-text-primary">{item.product_name}</td>
                                     <td className="p-3 text-xs text-text-secondary">{item.category_name}</td>
-                                    <td className="p-3 text-base text-text-primary font-mono font-bold text-right">
-                                        {item.final_qty}
+                                    <td className="p-3 text-base text-text-primary font-mono font-bold text-right flex flex-col items-end">
+                                        <span>{item.final_qty}</span>
+                                        {item.portion_size > 0 && item.final_qty > 0 && (
+                                            <span className="text-[10px] font-medium text-text-muted mt-0.5 whitespace-nowrap">
+                                                {Math.ceil(item.final_qty / item.portion_size)} замісів
+                                            </span>
+                                        )}
                                     </td>
                                     <td className="p-3 text-sm text-text-secondary font-mono text-right">{item.portion_size}</td>
                                     <td className="p-3 text-sm text-status-warning font-mono text-right">{item.risk_index}</td>

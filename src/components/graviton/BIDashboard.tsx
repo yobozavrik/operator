@@ -21,6 +21,11 @@ import { useToast, AlertBanner } from '@/components/ui';
 import { authedFetcher } from '@/lib/authed-fetcher';
 const fetcher = authedFetcher;
 
+const normalizeName = (value: string): string => {
+    if (!value) return '';
+    return value.trim().toLowerCase().replace(/\s+/g, ' ');
+};
+
 import {
     MapPin,
     ArrowLeft,
@@ -98,6 +103,69 @@ export const BIDashboard = () => {
 
     const [planningDays, setPlanningDays] = React.useState(1);
     const [lastManualRefresh, setLastManualRefresh] = React.useState<number | null>(null);
+    const [posterData, setPosterData] = React.useState<any[] | null>(null);
+    const [posterManufactures, setPosterManufactures] = React.useState<any[] | null>(null);
+    const [posterCatalog, setPosterCatalog] = React.useState<any[] | null>(null);
+    const [posterShops, setPosterShops] = React.useState<any[] | null>(null);
+    const [lastLiveSyncAt, setLastLiveSyncAt] = React.useState<string | null>(null);
+    const [manufacturesWarning, setManufacturesWarning] = React.useState(false);
+    const [productionSummary, setProductionSummary] = React.useState<{
+        total_kg: number;
+        storage_id: number;
+        items_count: number;
+    } | null>(null);
+
+    const normalizeName = (value: string): string => {
+        if (!value) return '';
+        return value.trim().toLowerCase().replace(/\s+/g, ' ');
+    };
+
+    const syncMatchStats = useMemo(() => {
+        if (!allProductsData || !posterData || !posterShops) return null;
+
+        const shopBySpotId = new Map(posterShops.map(s => [s.spot_id, s]));
+        const liveStocksByStorageAndName = new Map(
+            posterData.map(s => [`${s.storage_id}::${s.ingredient_name_normalized}`, s])
+        );
+
+        let totalExpected = 0;
+        let totalMatched = 0;
+        const shopStats = new Map<number, { expected: number, matched: number, name: string }>();
+
+        allProductsData.forEach(row => {
+            const shop = shopBySpotId.get(row.код_магазину);
+            if (!shop) return;
+
+            if (!shopStats.has(shop.storage_id)) {
+                shopStats.set(shop.storage_id, { expected: 0, matched: 0, name: shop.spot_name });
+            }
+            const stats = shopStats.get(shop.storage_id)!;
+            stats.expected++;
+            totalExpected++;
+
+            const key = `${shop.storage_id}::${normalizeName(row.назва_продукту)}`;
+            if (liveStocksByStorageAndName.has(key)) {
+                stats.matched++;
+                totalMatched++;
+            }
+        });
+
+        return {
+            totalExpected,
+            totalMatched,
+            percent: totalExpected > 0 ? (totalMatched / totalExpected) * 100 : 0,
+            shopStats: Array.from(shopStats.entries()).map(([id, s]) => ({
+                id,
+                ...s,
+                percent: s.expected > 0 ? (s.matched / s.expected) * 100 : 0
+            }))
+        };
+    }, [allProductsData, posterData, posterShops]);
+
+
+    const totalProductionKg = productionSummary?.total_kg || 0;
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [showBreakdownModal, setShowBreakdownModal] = React.useState(false); // Legacy modal state kept for backward compat if needed
 
@@ -138,48 +206,193 @@ export const BIDashboard = () => {
     const formattedTime = currentTime?.toLocaleTimeString('uk-UA', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) || '00:00:00';
 
     const handleRefresh = async () => {
+        if (isRefreshing) return;
         setIsRefreshing(true);
         try {
-            const results = await Promise.allSettled([
-                fetch('/api/proxy/webhook', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ action: 'refresh_stock', timestamp: new Date().toISOString() })
-                }),
-                fetch('https://n8n.dmytrotovstytskyi.online/webhook/operator', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ action: 'refresh_stock', timestamp: new Date().toISOString() })
-                })
-            ]);
-            const hasSuccess = results.some(r => r.status === 'fulfilled' && r.value.ok);
-            if (hasSuccess) {
-                await new Promise(resolve => setTimeout(resolve, 4000));
+            const response = await fetch('/api/graviton/sync-stocks', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+            });
+            const result = await response.json();
+
+            if (response.ok && result.success) {
+                setPosterData(result.live_stocks || []);
+                setPosterManufactures(result.manufactures || []);
+                setPosterCatalog(result.catalog || []);
+                setPosterShops(result.shops || []);
+                setLastLiveSyncAt(result.timestamp);
+                setManufacturesWarning(!!result.manufactures_warning);
+                setProductionSummary(result.production_summary || null);
+
                 const now = Date.now();
                 setLastManualRefresh(now);
                 localStorage.setItem('lastManualRefresh', now.toString());
+
+                // Revalidate UI data
                 await Promise.all([mutateDeficit(), mutateMetrics(), mutateAllProducts()]);
-                toast.success('Дані оновлено', 'Залишки синхронізовано з Poster');
+
+                if (result.partial_sync) {
+                    const failedNames = (result.failed_storages || [])
+                        .map((id: number) => result.shops?.find((s: any) => s.storage_id === id)?.spot_name || `ID ${id}`)
+                        .join(', ');
+                    toast.warning('Часткова синхронізація', `Не вдалося отримати live дані для: ${failedNames}. Використовуються застарілі залишки.`);
+                } else if (result.manufactures_warning) {
+                    toast.warning('Залишки оновлено', 'Виробництво за сьогодні недоступне, показано live залишки без корекції цеху');
+                } else {
+                    toast.success('Дані оновлено', 'Залишки синхронізовано з Poster');
+                }
             } else {
-                toast.warning('Часткове оновлення', 'Не вдалося підключитися до всіх серверів');
+                throw new Error(result.error || 'Sync failed');
             }
-        } catch (err) {
+        } catch (err: any) {
             console.error('Refresh error:', err);
-            toast.error('Помилка оновлення', 'Перевірте підключення до мережі');
+            toast.error('Помилка оновлення', `Не вдалося отримати live залишки з Poster: ${err.message}`);
         } finally {
             setIsRefreshing(false);
         }
     };
 
-    const deficitQueue = useMemo((): ProductionTask[] => {
+    const mergedDeficitData = useMemo(() => {
         if (!deficitData || !Array.isArray(deficitData)) return [];
-        return transformDeficitData(deficitData);
-    }, [deficitData]);
+        if (!posterData || !posterShops) return deficitData;
+
+        // Step 10: Build lookup maps
+        const shopBySpotId = new Map(posterShops.map(s => [s.spot_id, s]));
+        const liveStocksByStorageAndName = new Map(
+            posterData.map(s => [`${s.storage_id}::${s.ingredient_name_normalized}`, s])
+        );
+        const manufacturedQtyByStorageAndName = new Map();
+        if (posterManufactures) {
+            posterManufactures.forEach(m => {
+                const key = `${m.storage_id}::${m.product_name_normalized}`;
+                manufacturedQtyByStorageAndName.set(key, (manufacturedQtyByStorageAndName.get(key) || 0) + m.quantity);
+            });
+        }
+
+        return deficitData.map(row => {
+            const spotId = row.код_магазину;
+            const shop = shopBySpotId.get(spotId);
+            const storageId = shop?.storage_id;
+            const normalizedName = normalizeName(row.назва_продукту);
+
+            let updatedStock = row.current_stock;
+            let liveStockEntry = null;
+            if (storageId) {
+                const stockKey = `${storageId}::${normalizedName}`;
+                liveStockEntry = liveStocksByStorageAndName.get(stockKey);
+                if (liveStockEntry) {
+                    updatedStock = liveStockEntry.stock_left;
+                }
+            }
+
+            // --- Graviton specific logic (dynamic hub flag) ---
+            if (shop?.is_production_hub && storageId) {
+                const prodKey = `${storageId}::${normalizedName}`;
+                const manufacturedToday = manufacturedQtyByStorageAndName.get(prodKey) || 0;
+                updatedStock = updatedStock - manufacturedToday;
+            }
+
+            return {
+                ...row,
+                current_stock: updatedStock,
+                is_live: !!liveStockEntry
+            };
+        });
+    }, [deficitData, posterData, posterManufactures, posterShops]);
+
+    const mergedAllProductsData = useMemo(() => {
+        if (!allProductsData || !Array.isArray(allProductsData)) return [];
+        if (!posterData || !posterShops) return allProductsData;
+
+        const shopBySpotId = new Map(posterShops.map(s => [s.spot_id, s]));
+        const liveStocksByStorageAndName = new Map(
+            posterData.map(s => [`${s.storage_id}::${s.ingredient_name_normalized}`, s])
+        );
+        const manufacturedQtyByStorageAndName = new Map();
+        if (posterManufactures) {
+            posterManufactures.forEach(m => {
+                const key = `${m.storage_id}::${m.product_name_normalized}`;
+                manufacturedQtyByStorageAndName.set(key, (manufacturedQtyByStorageAndName.get(key) || 0) + m.quantity);
+            });
+        }
+
+        return allProductsData.map(row => {
+            const spotId = row.код_магазину;
+            const shop = shopBySpotId.get(spotId);
+            const storageId = shop?.storage_id;
+            const normalizedName = normalizeName(row.назва_продукту);
+
+            let updatedStock = row.current_stock;
+            let liveStockEntry = null;
+            if (storageId) {
+                const stockKey = `${storageId}::${normalizedName}`;
+                liveStockEntry = liveStocksByStorageAndName.get(stockKey);
+                if (liveStockEntry) {
+                    updatedStock = liveStockEntry.stock_left;
+                }
+            }
+
+            if (shop?.is_production_hub && storageId) {
+                const prodKey = `${storageId}::${normalizedName}`;
+                const manufacturedToday = manufacturedQtyByStorageAndName.get(prodKey) || 0;
+                updatedStock = updatedStock - manufacturedToday;
+            }
+
+            return {
+                ...row,
+                current_stock: updatedStock,
+                is_live: !!liveStockEntry
+            };
+        });
+    }, [allProductsData, posterData, posterManufactures, posterShops]);
+
+    const deficitQueue = useMemo((): ProductionTask[] => {
+        if (!mergedDeficitData) return [];
+        const transformed = transformDeficitData(mergedDeficitData);
+
+        if (posterManufactures && posterShops) {
+            const manufacturedQtyByStorageAndName = new Map();
+            posterManufactures.forEach(m => {
+                const key = `${m.storage_id}::${m.product_name_normalized}`;
+                manufacturedQtyByStorageAndName.set(key, (manufacturedQtyByStorageAndName.get(key) || 0) + m.quantity);
+            });
+
+            const productionHubStorageId = posterShops.find(s => s.is_production_hub)?.storage_id;
+
+            if (productionHubStorageId) {
+                return transformed.map(task => {
+                    const prodKey = `${productionHubStorageId}::${normalizeName(task.name)}`;
+                    const manufacturedToday = manufacturedQtyByStorageAndName.get(prodKey) || 0;
+                    return { ...task, todayProduction: manufacturedToday };
+                });
+            }
+        }
+        return transformed;
+    }, [mergedDeficitData, posterManufactures, posterShops]);
 
     const allProductsQueue = useMemo((): ProductionTask[] => {
-        if (!allProductsData || !Array.isArray(allProductsData)) return [];
-        return transformDeficitData(allProductsData);
-    }, [allProductsData]);
+        if (!mergedAllProductsData) return [];
+        const transformed = transformDeficitData(mergedAllProductsData);
+
+        if (posterManufactures && posterShops) {
+            const manufacturedQtyByStorageAndName = new Map();
+            posterManufactures.forEach(m => {
+                const key = `${m.storage_id}::${m.product_name_normalized}`;
+                manufacturedQtyByStorageAndName.set(key, (manufacturedQtyByStorageAndName.get(key) || 0) + m.quantity);
+            });
+
+            const productionHubStorageId = posterShops.find(s => s.is_production_hub)?.storage_id;
+
+            if (productionHubStorageId) {
+                return transformed.map(task => {
+                    const prodKey = `${productionHubStorageId}::${normalizeName(task.name)}`;
+                    const manufacturedToday = manufacturedQtyByStorageAndName.get(prodKey) || 0;
+                    return { ...task, todayProduction: manufacturedToday };
+                });
+            }
+        }
+        return transformed;
+    }, [mergedAllProductsData, posterManufactures, posterShops]);
 
     const dynamicStores = useMemo(() => {
         if (!deficitQueue || !Array.isArray(deficitQueue)) return [{ id: 'Усі', name: 'УСІ' }];
@@ -469,6 +682,36 @@ export const BIDashboard = () => {
                                 <div className="text-left">
                                     <div className="text-[10px] text-accent-primary uppercase font-bold tracking-widest font-display">{isRefreshing ? 'СИНХРОНІЗАЦІЯ...' : 'СИНХРОНІЗАЦІЯ'}</div>
                                     <div className="text-text-primary font-bold font-display text-lg leading-none">ОНОВИТИ<br />ЗАЛИШКИ</div>
+                                    {lastLiveSyncAt && (
+                                        <div className="flex flex-col mt-1">
+                                            <div className="text-[9px] text-text-muted uppercase tracking-tighter">
+                                                Live: {new Date(lastLiveSyncAt).toLocaleTimeString('uk-UA')}
+                                            </div>
+                                            {syncMatchStats && (
+                                                <div className="mt-2 space-y-1 border-t border-accent-primary/10 pt-2">
+                                                    <div className={cn(
+                                                        "text-[9px] uppercase font-bold tracking-tighter",
+                                                        syncMatchStats.percent < 95 ? "text-orange-500" : "text-status-success/70"
+                                                    )}>
+                                                        Загалом: {syncMatchStats.totalMatched}/{syncMatchStats.totalExpected} ({Math.round(syncMatchStats.percent)}%)
+                                                    </div>
+                                                    <div className="grid grid-cols-2 gap-x-2 gap-y-0.5 max-h-20 overflow-y-auto custom-scrollbar pr-1">
+                                                        {syncMatchStats.shopStats.map(shop => (
+                                                            <div key={shop.id} className="flex justify-between items-center text-[8px] border-b border-white/5 pb-0.5">
+                                                                <span className="text-text-muted truncate max-w-[50px]">{shop.name}</span>
+                                                                <span className={cn(
+                                                                    "font-mono font-bold",
+                                                                    shop.percent < 95 ? "text-orange-400" : "text-status-success/90"
+                                                                )}>
+                                                                    {Math.round(shop.percent)}%
+                                                                </span>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
                                 </div>
                             </button>
 
@@ -493,7 +736,15 @@ export const BIDashboard = () => {
                                 <Truck size={24} className="text-text-muted group-hover:text-accent-primary transition-colors" />
                                 <div className="text-left">
                                     <div className="text-[10px] text-text-secondary uppercase font-bold tracking-widest group-hover:text-text-muted font-display">ЛОГІСТИКА</div>
-                                    <div className="text-text-primary font-bold font-display text-lg">РОЗПОДІЛ</div>
+                                    <div className="flex items-center gap-1.5">
+                                        <Truck className="w-5 h-5 text-accent-primary" />
+                                        <span className="text-xl font-black tracking-widest text-text-primary uppercase font-display">РОЗПОДІЛ</span>
+                                        {totalProductionKg > 0 && !manufacturesWarning && (
+                                            <span className="flex items-center gap-1 px-2 py-0.5 bg-status-ok/20 border border-status-ok/30 rounded-full text-[10px] font-black text-status-ok animate-pulse">
+                                                +{totalProductionKg} кг
+                                            </span>
+                                        )}
+                                    </div>
                                 </div>
                             </button>
                         </div>
@@ -545,7 +796,7 @@ export const BIDashboard = () => {
                     {/* Content Columns */}
                     <div className="grid grid-cols-12 gap-6 flex-1 min-h-0">
                         {/* Main Interaction Area */}
-                        <div className="col-span-12 xl:col-span-8 flex flex-col h-full min-h-[400px] bg-panel-bg shadow-[var(--panel-shadow)] border border-panel-border rounded-2xl overflow-hidden">
+                        <div className="col-span-12 flex flex-col h-full min-h-[400px] bg-panel-bg shadow-[var(--panel-shadow)] border border-panel-border rounded-2xl overflow-hidden">
                             <ErrorBoundary>
                                 {selectedStore === 'Персонал' ? (
                                     <PersonnelView />
@@ -563,88 +814,6 @@ export const BIDashboard = () => {
                                     />
                                 )}
                             </ErrorBoundary>
-                        </div>
-
-                        {/* Right Analytics Panel */}
-                        <div className="col-span-12 xl:col-span-4 flex flex-col space-y-4 h-full min-h-[400px] overflow-hidden">
-                            <h2 className="text-accent-primary font-display font-bold text-sm tracking-widest uppercase pl-1 border-l-2 border-accent-primary shrink-0">Оперативна Аналітика</h2>
-
-                            <div className="bg-panel-bg shadow-[var(--panel-shadow)] border border-panel-border rounded-2xl p-1 shrink-0">
-                                <button onClick={() => toast.info("Сповіщення надіслано", "Менеджери отримали повідомлення")} className="w-full bg-status-critical/10 hover:bg-status-critical/20 border border-status-critical/30 text-status-critical rounded-xl p-2 text-xs font-bold uppercase tracking-wider flex items-center justify-center space-x-2 transition-colors font-display">
-                                    <AlertTriangle size={16} />
-                                    <span>Звернути Увагу</span>
-                                </button>
-                            </div>
-
-                            <div className="bg-panel-bg shadow-[var(--panel-shadow)] border border-panel-border rounded-2xl p-4 relative overflow-hidden group shrink-0">
-                                <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-bl from-status-critical/10 to-transparent rounded-bl-full"></div>
-                                <div className="flex items-start space-x-3 mb-4">
-                                    <div className="p-2 bg-status-critical/10 rounded-xl border border-status-critical/20 text-status-critical">
-                                        <Package size={20} />
-                                    </div>
-                                    <div>
-                                        <h3 className="text-text-primary font-bold text-sm uppercase font-display">Топ-5 Дефіцитів</h3>
-                                        <p className="text-xs text-text-secondary font-sans">Сумарна нестача по мережі</p>
-                                    </div>
-                                </div>
-                                <div className="space-y-2">
-                                    {aggregatedProducts.slice(0, 5).map((prod, i) => (
-                                        <div key={i} className="bg-bg-primary/50 p-3 rounded-xl border border-panel-border flex justify-between items-center group/item hover:border-status-critical/50 transition-colors">
-                                            <div className="flex-1 min-w-0 pr-2">
-                                                <div className="text-text-primary text-xs font-bold uppercase font-sans truncate" title={prod.name}>{prod.name}</div>
-                                                <div className="text-[10px] text-text-secondary">Пріоритет {i + 1}</div>
-                                            </div>
-                                            <div className="text-right shrink-0">
-                                                <div className="text-status-critical font-bold font-mono text-sm">{Math.round(prod.deficit)}</div>
-                                                <div className="text-[8px] text-status-critical uppercase tracking-widest font-display">КГ</div>
-                                            </div>
-                                        </div>
-                                    ))}
-                                    {aggregatedProducts.length === 0 && (
-                                        <div className="text-center text-xs text-text-muted py-2">Дефіцитів немає</div>
-                                    )}
-                                </div>
-                            </div>
-
-                            {/* AI Chart Widget */}
-                            <div className="bg-panel-bg shadow-[var(--panel-shadow)] border border-panel-border rounded-2xl p-4 flex-1 relative overflow-hidden flex flex-col min-h-[200px]">
-                                <div className="absolute inset-0 bg-gradient-to-b from-accent-primary/5 to-transparent pointer-events-none"></div>
-                                <div className="flex items-start space-x-3 mb-4 relative z-10 shrink-0">
-                                    <div className="p-2 bg-accent-primary/10 rounded-xl border border-accent-primary/20 text-accent-primary">
-                                        <TrendingUp size={20} />
-                                    </div>
-                                    <div>
-                                        <h3 className="text-text-primary font-bold text-sm uppercase font-display">Прогноз</h3>
-                                        <p className="text-xs text-text-secondary font-sans">AI Моделювання</p>
-                                    </div>
-                                </div>
-                                <div className="flex-1 w-full bg-bg-primary/50 rounded-xl border border-panel-border relative overflow-hidden flex items-end justify-center mb-4 min-h-[100px]">
-                                    <div className="absolute inset-0" style={{ backgroundImage: "linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px)", backgroundSize: "20px 20px" }}></div>
-                                    <svg className="w-full h-24 absolute bottom-0" preserveAspectRatio="none" viewBox="0 0 100 50">
-                                        <path d="M0,50 C20,40 30,10 50,25 C70,40 80,0 100,20 L100,50 L0,50 Z" fill="url(#grad2)" stroke="#00D4FF" strokeWidth="0.8" opacity="0.5"></path>
-                                        <defs>
-                                            <linearGradient id="grad2" x1="0%" x2="0%" y1="0%" y2="100%">
-                                                <stop offset="0%" style={{ stopColor: "#00D4FF", stopOpacity: 0.1 }}></stop>
-                                                <stop offset="100%" style={{ stopColor: "#00D4FF", stopOpacity: 0 }}></stop>
-                                            </linearGradient>
-                                        </defs>
-                                    </svg>
-                                    <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center bg-panel-bg/80 p-2 rounded-xl backdrop-blur border border-panel-border shadow-[var(--panel-shadow)]">
-                                        <div className="text-[10px] text-accent-primary font-display tracking-widest uppercase">AI АНАЛІЗ</div>
-                                        <div className="text-[8px] text-text-secondary animate-pulse">ОЧІКУВАННЯ ДАНИХ...</div>
-                                    </div>
-                                </div>
-
-                                <div className="bg-bg-primary/50 rounded-xl p-3 border border-panel-border flex items-center justify-between shrink-0 relative z-10">
-                                    <div className="flex items-center space-x-2">
-                                        <Info className="text-accent-primary" size={16} />
-                                        <div className="text-[9px] leading-tight text-text-primary font-bold uppercase font-display">Смарт-<br />Асистент</div>
-                                    </div>
-                                    <button onClick={() => toast.success("AI Асистент активовоано")} className="bg-accent-primary/10 hover:bg-accent-primary/20 text-accent-primary border border-accent-primary/50 text-[10px] font-bold uppercase py-2 px-3 rounded-lg transition-colors shadow-[0_0_10px_rgba(var(--color-accent-primary),0.3)] font-display">
-                                        ЗГЕНЕРУВАТИ
-                                    </button>
-                                </div>
-                            </div>
                         </div>
                     </div>
                 </div>
@@ -677,3 +846,4 @@ export const BIDashboard = () => {
         </div>
     );
 };
+

@@ -34,32 +34,32 @@ export async function GET(request: Request) {
 
         const p_date = p_end_date;
 
-        const supabase = await createClient();
+        const { createClient: createSupabaseJSClient } = await import('@supabase/supabase-js');
+        const supabase = createSupabaseJSClient(
+            process.env.NEXT_PUBLIC_SUPABASE_URL!,
+            process.env.SUPABASE_SERVICE_ROLE_KEY!
+        );
 
-        // 1. Network Metrics
-        const { data: networkMetrics, error: networkErr } = await supabase.rpc('f_craft_get_network_metrics', {
-            p_start_date, p_end_date
-        });
+        // Run RPCs in parallel to reduce waterfall loading time
+        const [
+            { data: networkMetrics, error: networkErr },
+            { data: rankings, error: rankingErr },
+            { data: trends, error: trendErr }
+        ] = await Promise.all([
+            supabase.rpc('f_craft_get_network_metrics', { p_start_date, p_end_date }),
+            supabase.rpc('f_craft_get_store_ranking', { p_start_date, p_end_date }),
+            supabase.rpc('f_craft_get_sku_trend', { p_date })
+        ]);
 
         if (networkErr) {
             Logger.error('RPC Error f_craft_get_network_metrics', { error: networkErr.message });
             throw new Error(`networkMetrics: ${networkErr.message}`);
         }
 
-        // 2. Rankings (Stores & SKU ABC)
-        const { data: rankings, error: rankingErr } = await supabase.rpc('f_craft_get_store_ranking', {
-            p_start_date, p_end_date
-        });
-
         if (rankingErr) {
             Logger.error('RPC Error f_craft_get_store_ranking', { error: rankingErr.message });
             throw new Error(`rankings: ${rankingErr.message}`);
         }
-
-        // 3. Trends (Matrix)
-        const { data: trends, error: trendErr } = await supabase.rpc('f_craft_get_sku_trend', {
-            p_date
-        });
 
         if (trendErr) {
             Logger.error('RPC Error f_craft_get_sku_trend', { error: trendErr.message });
@@ -77,7 +77,7 @@ export async function GET(request: Request) {
             params: { p_start_date, p_end_date }
         });
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
         Logger.error('Critical Bakery API Error', { error: err.message || String(err) });
         return NextResponse.json({

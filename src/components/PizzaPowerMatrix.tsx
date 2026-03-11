@@ -250,20 +250,21 @@ export const PizzaPowerMatrix = ({ data, onRefresh, initialViewMode = 'products'
     const handleUpdateStock = async () => {
         setIsUpdatingStock(true);
         try {
-            const response = await fetch('/api/pizza/update-stock', {
+            const response = await fetch('/api/pizza/sync-stocks', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ action: 'update_stock', timestamp: new Date().toISOString() })
+                headers: { 'Content-Type': 'application/json' }
             });
 
             if (response.ok) {
                 // Refresh data after stock update
                 await onRefresh();
             } else {
-                console.error('Stock update failed:', response.status);
+                console.error('Stock sync failed:', response.status);
+                alert('Помилка синхронізації з Poster: ' + response.status);
             }
         } catch (error) {
-            console.error('Stock update error:', error);
+            console.error('Stock sync error:', error);
+            alert('Помилка мережі при синхронізації');
         } finally {
             setIsUpdatingStock(false);
         }
@@ -416,7 +417,7 @@ export const PizzaPowerMatrix = ({ data, onRefresh, initialViewMode = 'products'
                                 : "text-slate-400 hover:text-white hover:bg-white/5 border border-transparent"
                         )}
                     >
-                        Products
+                        Продукція
                     </button>
                     <button
                         onClick={() => setViewMode('stores')}
@@ -427,7 +428,7 @@ export const PizzaPowerMatrix = ({ data, onRefresh, initialViewMode = 'products'
                                 : "text-slate-400 hover:text-white hover:bg-white/5 border border-transparent"
                         )}
                     >
-                        Locations
+                        Магазини
                     </button>
                 </div>
             </div>
@@ -465,19 +466,19 @@ export const PizzaPowerMatrix = ({ data, onRefresh, initialViewMode = 'products'
 
                                     {isOutOfStock ? (
                                         <div className="flex-1 flex items-center justify-center italic text-[10px] text-status-critical/80 font-medium font-[family-name:var(--font-jetbrains)] uppercase tracking-[0.2em] text-center">
-                                            Out of stock / Deficit
+                                            НЕМАЄ В НАЯВНОСТІ / ДЕФІЦИТ
                                         </div>
                                     ) : (
                                         <>
                                             <div className="grid grid-cols-2 gap-2 my-1 relative z-10">
                                                 <div className="flex flex-col">
-                                                    <span className="text-[9px] uppercase font-bold text-slate-500 mb-0 font-[family-name:var(--font-jetbrains)] tracking-widest">Act</span>
+                                                    <span className="text-[9px] uppercase font-bold text-slate-500 mb-0 font-[family-name:var(--font-jetbrains)] tracking-widest">Факт</span>
                                                     <span className={`text-2xl font-bold font-[family-name:var(--font-jetbrains)] ${actualColorClass} leading-none`}>
                                                         {product.computed.totalStock.toFixed(0)}
                                                     </span>
                                                 </div>
                                                 <div className="flex flex-col items-end">
-                                                    <span className="text-[9px] uppercase font-bold text-slate-500 mb-0 font-[family-name:var(--font-jetbrains)] tracking-widest">Tgt</span>
+                                                    <span className="text-[9px] uppercase font-bold text-slate-500 mb-0 font-[family-name:var(--font-jetbrains)] tracking-widest">Ціль</span>
                                                     <span className="text-2xl font-bold text-slate-300 font-[family-name:var(--font-jetbrains)] leading-none">
                                                         {product.computed.totalRecommended.toFixed(0)}
                                                     </span>
@@ -486,7 +487,7 @@ export const PizzaPowerMatrix = ({ data, onRefresh, initialViewMode = 'products'
 
                                             <div className="space-y-2 pt-2 border-t border-white/5 mt-auto relative z-10">
                                                 <div className="flex justify-between items-center text-xs">
-                                                    <span className="text-slate-400 font-[family-name:var(--font-jetbrains)] uppercase text-[9px] tracking-widest">Min. Stock</span>
+                                                    <span className="text-slate-400 font-[family-name:var(--font-jetbrains)] uppercase text-[9px] tracking-widest">Мін. Запас</span>
                                                     <span className="font-medium text-slate-200 bg-white/5 px-1.5 py-0.5 rounded font-[family-name:var(--font-jetbrains)] text-[10px]">
                                                         {product.computed.totalMinStock.toFixed(0)}
                                                     </span>
@@ -510,7 +511,7 @@ export const PizzaPowerMatrix = ({ data, onRefresh, initialViewMode = 'products'
                             <div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center group-hover:bg-[#00E0FF]/20 transition-colors">
                                 <span className="text-slate-400 group-hover:text-[#00E0FF] text-xl font-light">+</span>
                             </div>
-                            <span className="text-xs font-medium text-slate-400 group-hover:text-white mt-1 font-[family-name:var(--font-chakra)] uppercase tracking-wider text-center">Add Product</span>
+                            <span className="text-xs font-medium text-slate-400 group-hover:text-white mt-1 font-[family-name:var(--font-chakra)] uppercase tracking-wider text-center">Додати</span>
                         </div>
                     </div>
                 ) : (
@@ -546,7 +547,7 @@ export const PizzaPowerMatrix = ({ data, onRefresh, initialViewMode = 'products'
 
                                         <div className="grid grid-cols-3 gap-2 relative z-10">
                                             <div className="bg-white/5 rounded-xl p-2 text-center">
-                                                <div className="text-[9px] text-slate-400 uppercase tracking-widest mb-0.5 font-[family-name:var(--font-jetbrains)] font-bold">Stock</div>
+                                                <div className="text-[9px] text-slate-400 uppercase tracking-widest mb-0.5 font-[family-name:var(--font-jetbrains)] font-bold">ЗАПАС</div>
                                                 <div className={cn(
                                                     "text-xl font-bold font-[family-name:var(--font-jetbrains)]",
                                                     hasIssues ? "text-status-critical drop-shadow-[0_0_8px_rgba(244,63,94,0.5)]" : "text-status-success drop-shadow-[0_0_8px_rgba(16,185,129,0.3)]"
@@ -558,7 +559,7 @@ export const PizzaPowerMatrix = ({ data, onRefresh, initialViewMode = 'products'
                                                 "rounded-xl p-2 text-center border",
                                                 store.criticalProducts > 0 ? "bg-status-critical/10 border-status-critical/20" : "bg-status-success/5 border-status-success/20"
                                             )}>
-                                                <div className="text-[9px] text-slate-400 uppercase tracking-widest mb-0.5 font-[family-name:var(--font-jetbrains)] font-bold">Critical</div>
+                                                <div className="text-[9px] text-slate-400 uppercase tracking-widest mb-0.5 font-[family-name:var(--font-jetbrains)] font-bold">КРИТИЧНО</div>
                                                 <div className={cn(
                                                     "text-xl font-bold font-[family-name:var(--font-jetbrains)]",
                                                     store.criticalProducts > 0 ? "text-status-critical drop-shadow-[0_0_8px_rgba(244,63,94,0.5)]" : "text-status-success drop-shadow-[0_0_8px_rgba(16,185,129,0.3)]"
@@ -571,7 +572,7 @@ export const PizzaPowerMatrix = ({ data, onRefresh, initialViewMode = 'products'
                                             <div className="bg-[#00E0FF]/10 rounded-xl p-2 text-center border border-[#00E0FF]/20 flex flex-col justify-center">
                                                 <div className="flex items-center justify-center gap-1 text-[8px] text-[#00E0FF] uppercase tracking-widest font-[family-name:var(--font-jetbrains)] font-bold mb-0.5 whitespace-nowrap">
                                                     <TrendingUp size={10} />
-                                                    <span>Sales/Day</span>
+                                                    <span>ПРОДАЖІ</span>
                                                 </div>
                                                 <div className="text-xl font-bold text-[#00E0FF] leading-none drop-shadow-[0_0_8px_rgba(0,224,255,0.4)] font-[family-name:var(--font-jetbrains)]">
                                                     {store.totalAvgSales.toFixed(0)}

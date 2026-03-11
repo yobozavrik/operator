@@ -1,5 +1,6 @@
 import React from 'react';
 import { cn } from '@/lib/utils';
+import { AlertCircle } from 'lucide-react';
 import { ProductionTask } from '@/types/bi';
 
 interface StoreProductCardProps {
@@ -42,10 +43,15 @@ export const StoreProductCard = ({ item }: StoreProductCardProps) => {
                 <div className="flex flex-col items-center">
                     <span className="text-[9px] font-bold tracking-[0.2em] text-slate-400 mb-1 uppercase font-[family-name:var(--font-jetbrains)]">Факт</span>
                     <span className={cn(
-                        "text-lg font-bold font-[family-name:var(--font-jetbrains)] leading-none",
+                        "text-lg font-bold font-[family-name:var(--font-jetbrains)] leading-none flex items-center gap-1",
                         isLowStock ? "text-status-critical drop-shadow-[0_0_8px_rgba(255,42,85,0.5)]" : "text-status-success drop-shadow-[0_0_8px_rgba(16,185,129,0.3)]"
                     )}>
                         {currentStock.toFixed(0)}
+                        {storeData.isLive === false && (
+                            <span title="Дані з БД (не live)" className="text-orange-500/80">
+                                <AlertCircle size={12} />
+                            </span>
+                        )}
                     </span>
                 </div>
                 <div className="flex flex-col items-center">
@@ -61,6 +67,6 @@ export const StoreProductCard = ({ item }: StoreProductCardProps) => {
                     </span>
                 </div>
             </div>
-        </div>
+        </div >
     );
 };

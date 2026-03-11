@@ -168,7 +168,7 @@ export const ProductionOpsTable = ({ data, onRefresh }: Props) => {
                         )}
                     >
                         {isExporting ? <Loader2 size={16} className="animate-spin" /> : <FileSpreadsheet size={18} strokeWidth={2.5} />}
-                        {isExporting ? "Експорт..." : "Excel звір"}
+                        {isExporting ? "Експорт..." : "Excel звіт"}
                     </button>
                 )}
 
@@ -222,7 +222,7 @@ export const ProductionOpsTable = ({ data, onRefresh }: Props) => {
                         {Object.entries(planData.reduce((acc, item) => {
                             (acc[item.p_day] = acc[item.p_day] || []).push(item);
                             return acc;
-                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                            // eslint-disable-next-line @typescript-eslint/no-explicit-any
                         }, {} as Record<number, any[]>))
                             .sort(([dayA], [dayB]) => Number(dayA) - Number(dayB))
                             // eslint-disable-next-line @typescript-eslint/no-explicit-any

@@ -31,7 +31,11 @@ export async function GET(request: Request) {
             p_end_date = endDate.toISOString().split('T')[0];
         }
 
-        const supabase = await createClient();
+        const { createClient: createSupabaseJSClient } = await import('@supabase/supabase-js');
+        const supabase = createSupabaseJSClient(
+            process.env.NEXT_PUBLIC_SUPABASE_URL!,
+            process.env.SUPABASE_SERVICE_ROLE_KEY!
+        );
 
         const { data: cards, error } = await supabase.rpc('f_craft_get_sku_cards', {
             p_start_date, p_end_date
@@ -47,7 +51,7 @@ export async function GET(request: Request) {
             params: { p_days: days }
         });
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
         Logger.error('Critical Bakery Catalog API Error', { error: err.message || String(err) });
         return NextResponse.json({

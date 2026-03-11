@@ -4,6 +4,9 @@ interface GravitonResult {
     "Название продукта": string;
     "Магазин": string;
     "Количество": number;
+    "Факт. залишок"?: number | null;
+    "Мін. залишок"?: number | null;
+    "Сер. продажі"?: number | null;
     "Время расчета"?: string;
 }
 
@@ -12,7 +15,7 @@ export const generateDistributionExcel = async (data: GravitonResult[]) => {
     const worksheet = workbook.addWorksheet('Розподіл');
 
     // --- HEADER ---
-    worksheet.mergeCells('A1:B1'); // Merged A-B for 2 columns
+    worksheet.mergeCells('A1:E1'); // Merged A-E for 5 columns
     const titleCell = worksheet.getCell('A1');
     titleCell.value = 'РОЗПОДІЛ ПРОДУКЦІЇ (ГАЛЯ БАЛУВАНА)';
     titleCell.font = { bold: true, size: 16, color: { argb: 'FFFFFFFF' } };
@@ -31,7 +34,7 @@ export const generateDistributionExcel = async (data: GravitonResult[]) => {
 
     // --- TABLE HEADERS ---
     const headerRow = worksheet.getRow(5);
-    headerRow.values = ['НАЗВА ПРОДУКТУ', 'КІЛЬКІСТЬ (кг/шт)'];
+    headerRow.values = ['НАЗВА ПРОДУКТУ', 'ФАКТ. ЗАЛИШОК', 'МІН. ЗАЛИШОК', 'СЕР. ПРОДАЖІ', 'КІЛЬКІСТЬ (кг/шт)'];
     headerRow.height = 20;
 
     const headerFill = {
@@ -42,7 +45,7 @@ export const generateDistributionExcel = async (data: GravitonResult[]) => {
     const headerFont = { bold: true, color: { argb: 'FFFFFFFF' } };
     const headerAlign = { horizontal: 'center', vertical: 'middle' } as ExcelJS.Alignment;
 
-    [1, 2].forEach(col => {
+    [1, 2, 3, 4, 5].forEach(col => {
         const cell = headerRow.getCell(col);
         cell.fill = headerFill;
         cell.font = headerFont;
@@ -69,7 +72,7 @@ export const generateDistributionExcel = async (data: GravitonResult[]) => {
             currentStore = item['Магазин'];
 
             const storeRow = worksheet.getRow(rowIndex);
-            worksheet.mergeCells(`A${rowIndex}:B${rowIndex}`);
+            worksheet.mergeCells(`A${rowIndex}:E${rowIndex}`);
             storeRow.getCell(1).value = currentStore;
 
             // Store Header Style
@@ -97,16 +100,22 @@ export const generateDistributionExcel = async (data: GravitonResult[]) => {
         const row = worksheet.getRow(rowIndex);
         row.values = [
             item['Название продукта'],
+            item['Факт. залишок'] != null ? Number(item['Факт. залишок']).toFixed(2) : '',
+            item['Мін. залишок'] != null ? Number(item['Мін. залишок']).toFixed(0) : '',
+            item['Сер. продажі'] != null ? Number(item['Сер. продажі']).toFixed(2) : '',
             item['Количество']
         ];
 
         // Styling
         row.getCell(1).alignment = { horizontal: 'left', indent: 1 };
         row.getCell(2).alignment = { horizontal: 'center' };
-        row.getCell(2).font = { bold: true };
+        row.getCell(3).alignment = { horizontal: 'center' };
+        row.getCell(4).alignment = { horizontal: 'center' };
+        row.getCell(5).alignment = { horizontal: 'center' };
+        row.getCell(5).font = { bold: true };
 
         // Borders
-        [1, 2].forEach(col => {
+        [1, 2, 3, 4, 5].forEach(col => {
             row.getCell(col).border = {
                 top: { style: 'thin', color: { argb: 'FFEEEEEE' } },
                 left: { style: 'thin', color: { argb: 'FFEEEEEE' } },
@@ -122,14 +131,14 @@ export const generateDistributionExcel = async (data: GravitonResult[]) => {
     rowIndex++; // Spacing
     const totalQty = data.reduce((sum, item) => sum + (Number(item['Количество']) || 0), 0);
     const totalRow = worksheet.getRow(rowIndex);
-    totalRow.values = ['ВСЬОГО:', totalQty];
+    totalRow.values = ['ВСЬОГО:', '', '', '', totalQty];
 
     totalRow.getCell(1).font = { bold: true };
     totalRow.getCell(1).alignment = { horizontal: 'right' };
 
-    totalRow.getCell(2).font = { bold: true, size: 12, color: { argb: 'FFFFFFFF' } };
-    totalRow.getCell(2).alignment = { horizontal: 'center' };
-    totalRow.getCell(2).fill = {
+    totalRow.getCell(5).font = { bold: true, size: 12, color: { argb: 'FFFFFFFF' } };
+    totalRow.getCell(5).alignment = { horizontal: 'center' };
+    totalRow.getCell(5).fill = {
         type: 'pattern',
         pattern: 'solid',
         fgColor: { argb: 'FF00D4FF' }
@@ -137,7 +146,10 @@ export const generateDistributionExcel = async (data: GravitonResult[]) => {
 
     // --- COLUMNS WIDTH ---
     worksheet.columns = [
-        { width: 50 }, // Product (Wider since only 2 cols)
+        { width: 35 }, // Product
+        { width: 18 }, // Stock
+        { width: 18 }, // Min Stock
+        { width: 18 }, // Sales
         { width: 20 }, // Quantity
     ];
 

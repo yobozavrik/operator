@@ -10,7 +10,8 @@ export async function GET(request: NextRequest) {
 
     const supabase = await createClient();
 
-    await serverAuditLog('VIEW_METRICS', '/api/graviton/metrics', request, {
+    // Log API access (non-blocking)
+    serverAuditLog('VIEW_METRICS', '/api/graviton/metrics', request, {
         timestamp: new Date().toISOString()
     });
 

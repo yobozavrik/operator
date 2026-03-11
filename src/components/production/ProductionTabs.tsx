@@ -118,10 +118,9 @@ export const ProductionTabs = ({ data, onRefresh, showTabs = true }: Props) => {
     const handleUpdateStock = async () => {
         setIsUpdatingStock(true);
         try {
-            const response = await fetch('/api/pizza/update-stock', {
+            const response = await fetch('/api/pizza/sync-stocks', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ action: 'update_stock', timestamp: new Date().toISOString() })
+                headers: { 'Content-Type': 'application/json' }
             });
 
             // Оновлюємо внутрішній таймер незалежно від статусу бекенду, 
@@ -131,10 +130,12 @@ export const ProductionTabs = ({ data, onRefresh, showTabs = true }: Props) => {
             if (response.ok) {
                 await onRefresh();
             } else {
-                console.warn(`[Stock Update] Backend (n8n) reported an issue (Status: ${response.status}), but UI timer was reset.`);
+                console.warn(`[Stock Update] Backend reported an issue (Status: ${response.status}), but UI timer was reset.`);
+                alert('Помилка синхронізації з Poster: ' + response.status);
             }
         } catch (error) {
             console.warn('[Stock Update] Network/Fetch error:', error);
+            alert('Помилка мережі при синхронізації');
         } finally {
             setIsUpdatingStock(false);
         }
@@ -338,7 +339,7 @@ export const ProductionTabs = ({ data, onRefresh, showTabs = true }: Props) => {
                                     <ChefHat size={16} strokeWidth={2.5} />
                                 </div>
                                 <span className="hidden xl:inline">ВИРОБНИЦТВО</span>
-                                <span className="xl:hidden">PROD</span>
+                                <span className="xl:hidden">ВИР</span>
                             </button>
 
                             <button
@@ -356,8 +357,8 @@ export const ProductionTabs = ({ data, onRefresh, showTabs = true }: Props) => {
                                 )}>
                                     <Truck size={16} strokeWidth={2.5} />
                                 </div>
-                                <span className="hidden xl:inline">ЛОГІСТИКА (NEW)</span>
-                                <span className="xl:hidden">LOG</span>
+                                <span className="hidden xl:inline">ЛОГІСТИКА</span>
+                                <span className="xl:hidden">ЛОГ</span>
                             </button>
 
                             <button
@@ -376,7 +377,7 @@ export const ProductionTabs = ({ data, onRefresh, showTabs = true }: Props) => {
                                     <Settings2 size={16} strokeWidth={2.5} />
                                 </div>
                                 <span className="hidden xl:inline">СИМУЛЯТОР</span>
-                                <span className="xl:hidden">SIM</span>
+                                <span className="xl:hidden">СИМ</span>
                             </button>
                         </div>
                     )}
