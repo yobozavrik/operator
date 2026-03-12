@@ -12,7 +12,20 @@ interface DistributionResult {
     product_name: string;
     spot_name: string;
     quantity_to_ship: number;
-    calc_time: string;
+    min_stock?: number;
+    current_stock?: number;
+    avg_sales?: number;
+    calc_time?: string;
+    created_at?: string;
+}
+
+interface DistributionRunResponse {
+    success?: boolean;
+    error?: string;
+    message?: string;
+    batch_id?: string;
+    products_processed?: number;
+    total_kg?: number;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -57,15 +70,35 @@ export const BulvarDistributionControlPanel = () => {
     const handleRunDistribution = async () => {
         setIsRunning(true);
         setLastRunResult(null);
+
         try {
-            const res = await fetch('/api/bulvar/distribution/run', { method: 'POST' });
-            const json = await res.json();
+            const res = await fetch('/api/bulvar/distribution/run', {
+                method: 'POST',
+                credentials: 'include',
+                headers: {
+                    Accept: 'application/json',
+                },
+            });
 
-            if (!res.ok) throw new Error(json.error || 'Failed to run distribution');
+            const contentType = res.headers.get('content-type') || '';
+            const isJson = contentType.includes('application/json');
 
-            setLastRunResult(json.message || 'Success');
+            let payload: DistributionRunResponse = {};
+            if (isJson) {
+                payload = await res.json();
+            } else {
+                const text = await res.text();
+                throw new Error(`Non-JSON response from /api/bulvar/distribution/run (status ${res.status}): ${text.slice(0, 200)}`);
+            }
+
+            if (!res.ok) {
+                throw new Error(payload.error || payload.message || 'Failed to run distribution');
+            }
+
+            const uiMessage = payload.message || `Batch: ${String(payload.batch_id ?? '').slice(0, 8)} | Позицій: ${payload.products_processed ?? 0} | Вага: ${payload.total_kg ?? 0} кг`;
+            setLastRunResult(uiMessage);
             await refreshResults(); // Immediately update table
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (error: any) {
             console.error('Distribution error:', error);
             setLastRunResult(`Error: ${error.message}`);
@@ -159,10 +192,13 @@ export const BulvarDistributionControlPanel = () => {
                 <div className="bg-panel-bg h-full flex flex-col overflow-hidden rounded-2xl border border-panel-border shadow-[var(--panel-shadow)]">
 
                     {/* Table Header */}
-                    <div className="grid grid-cols-12 gap-4 p-4 border-b border-panel-border bg-[#131B2C]/50 text-[10px] uppercase font-bold tracking-widest text-text-secondary font-[family-name:var(--font-jetbrains)]">
+                    <div className="grid grid-cols-12 gap-4 p-4 border-b border-panel-border bg-[#131B2C]/50 text-[10px] uppercase font-bold tracking-widest text-text-secondary font-[family-name:var(--font-jetbrains)] items-center">
                         <div className="col-span-1 text-center">#</div>
-                        <div className="col-span-5">Товар</div>
-                        <div className="col-span-4">Магазин</div>
+                        <div className="col-span-3">Товар</div>
+                        <div className="col-span-2">Магазин</div>
+                        <div className="col-span-1 text-center">Факт</div>
+                        <div className="col-span-1 text-center">Мін</div>
+                        <div className="col-span-2 text-center">Сер. прод</div>
                         <div className="col-span-2 text-right">К-ть</div>
                     </div>
 
@@ -191,12 +227,24 @@ export const BulvarDistributionControlPanel = () => {
                                         className="grid grid-cols-12 gap-4 p-3 rounded-lg hover:bg-bg-primary transition-colors border border-transparent hover:border-panel-border items-center group"
                                     >
                                         <div className="col-span-1 text-center text-text-secondary font-[family-name:var(--font-jetbrains)] text-[11px]">{idx + 1}</div>
-                                        <div className="col-span-5 font-bold text-text-primary text-sm group-hover:text-orange-400 transition-colors line-clamp-1" title={row.product_name}>
+                                        <div className="col-span-3 font-bold text-text-primary text-sm group-hover:text-orange-400 transition-colors line-clamp-2" title={row.product_name}>
                                             {row.product_name}
                                         </div>
-                                        <div className="col-span-4 text-xs text-text-secondary line-clamp-1 font-medium group-hover:text-text-primary transition-colors" title={row.spot_name}>
+                                        <div className="col-span-2 text-[11px] text-text-secondary line-clamp-2 font-medium group-hover:text-text-primary transition-colors" title={row.spot_name}>
                                             {row.spot_name}
                                         </div>
+
+                                        {/* NEW METRICS */}
+                                        <div className="col-span-1 text-center font-mono text-[11px] text-emerald-500/80">
+                                            {Number(row.current_stock || 0).toFixed(0)}
+                                        </div>
+                                        <div className="col-span-1 text-center font-mono text-[11px] text-orange-400/80">
+                                            {Number(row.min_stock || 0).toFixed(0)}
+                                        </div>
+                                        <div className="col-span-2 text-center font-mono text-[11px] text-blue-400/80">
+                                            {Number(row.avg_sales || 0).toFixed(1)}
+                                        </div>
+
                                         <div className="col-span-2 text-right">
                                             <span className="inline-flex items-center justify-center px-4 py-1.5 rounded-lg bg-orange-500/10 text-orange-400 text-sm font-black font-[family-name:var(--font-jetbrains)] border border-orange-500/20 min-w-[3.5rem] shadow-[0_0_10px_rgba(255,138,0,0.1)]">
                                                 {row.quantity_to_ship}
@@ -223,3 +271,4 @@ export const BulvarDistributionControlPanel = () => {
         </div>
     );
 };
+

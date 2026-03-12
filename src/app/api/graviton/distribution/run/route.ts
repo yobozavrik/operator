@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { requireAuth } from '@/lib/auth-guard';
 import crypto from 'crypto';
 
 const POSTER_TOKEN = process.env.POSTER_TOKEN || '';
@@ -36,8 +37,22 @@ function normalizeName(value: string): string {
     return value.trim().toLowerCase().replace(/\s+/g, ' ');
 }
 
+
+function hasInternalApiAccess(request: Request): boolean {
+    const secret = process.env.INTERNAL_API_SECRET;
+    if (!secret) return false;
+
+    const authHeader = request.headers.get('authorization');
+    const headerSecret = request.headers.get('x-internal-api-secret');
+
+    return authHeader === `Bearer ${secret}` || headerSecret === secret;
+}
 export async function POST(request: Request) {
     try {
+        if (!hasInternalApiAccess(request)) {
+            const auth = await requireAuth();
+            if (auth.error) return auth.error;
+        }
         const body = await request.json().catch(() => ({}));
         let requestedShopIds: number[] | null = null;
 
@@ -45,52 +60,70 @@ export async function POST(request: Request) {
             requestedShopIds = body.shop_ids;
         }
 
-        const supabase = createClient(
-            process.env.NEXT_PUBLIC_SUPABASE_URL || '',
-            process.env.SUPABASE_SERVICE_ROLE_KEY || ''
-        );
+        const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+        const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+        if (!supabaseUrl || !serviceRoleKey) {
+            throw new Error('Missing Supabase service credentials');
+        }
+
+        const supabase = createClient(supabaseUrl, serviceRoleKey);
         const gravitonDb = supabase.schema('graviton');
 
         // 1. Fetch active shops
-        const { data: shopsRaw, error: shopsError } = await supabase.rpc('exec_sql', {
-            query: `
-                SELECT 
-                    ds.spot_id, 
-                    ds.storage_id, 
-                    sp.name as spot_name
-                FROM graviton.distribution_shops ds
-                JOIN categories.spots sp ON sp.spot_id = ds.spot_id
-                WHERE ds.is_active = true AND ds.storage_id IS NOT NULL
-            `
-        });
+        const categoriesDb = supabase.schema('categories');
+
+        const { data: shopRows, error: shopsError } = await gravitonDb
+            .from('distribution_shops')
+            .select('spot_id, storage_id')
+            .eq('is_active', true)
+            .not('storage_id', 'is', null);
 
         if (shopsError) throw new Error(`Error fetching shops: ${shopsError.message}`);
-        if (!shopsRaw || shopsRaw.length === 0) throw new Error("No active graviton shops found in DB.");
+        if (!shopRows || shopRows.length === 0) throw new Error('No active graviton shops found in DB.');
+
+        const spotIds = Array.from(new Set(shopRows.map((row: any) => Number(row.spot_id))));
+        const { data: spotsRows, error: spotsError } = await categoriesDb
+            .from('spots')
+            .select('spot_id, name')
+            .in('spot_id', spotIds);
+
+        if (spotsError) throw new Error(`Error fetching spot names: ${spotsError.message}`);
+
+        const spotNameById = new Map<number, string>(
+            (spotsRows || []).map((spot: any) => [Number(spot.spot_id), String(spot.name || '')])
+        );
+
+        const shopsRaw = (shopRows || []).map((row: any) => ({
+            spot_id: Number(row.spot_id),
+            storage_id: Number(row.storage_id),
+            spot_name: spotNameById.get(Number(row.spot_id)) || `Spot ${row.spot_id}`,
+        }));
 
         // 2. Determine effective scope
         let activeShops = shopsRaw as any[];
         if (requestedShopIds && requestedShopIds.length > 0) {
-            activeShops = activeShops.filter(s => requestedShopIds!.includes(s.spot_id));
+            activeShops = activeShops.filter((s) => requestedShopIds.includes(s.spot_id));
         }
 
         if (activeShops.length === 0) {
-            return NextResponse.json({ success: false, error: "No matching active shops found for the requested subset." }, { status: 400 });
+            return NextResponse.json({ success: false, error: 'No matching active shops found for the requested subset.' }, { status: 400 });
         }
 
         const storageIds = activeShops.map((s: any) => s.storage_id);
         const resolvedShopIds = activeShops.map((s: any) => s.spot_id);
-        const mapStorageToSpot = new Map(activeShops.map(s => [s.storage_id, s.spot_id]));
+        const mapStorageToSpot = new Map(activeShops.map((s) => [s.storage_id, s.spot_id]));
 
         // 3. Fetch active catalog
-        const { data: catalogRaw, error: catalogError } = await supabase.rpc('exec_sql', {
-            query: "SELECT product_id, product_name FROM graviton.production_catalog WHERE is_active = true"
-        });
+        const { data: catalogRaw, error: catalogError } = await gravitonDb
+            .from('production_catalog')
+            .select('product_id, product_name')
+            .eq('is_active', true);
 
         if (catalogError) throw new Error(`Error fetching catalog: ${catalogError.message}`);
 
         const catalogNamesNormalized = new Set<string>();
         const catalogData = new Map<string, number>();
-        catalogRaw.forEach((c: any) => {
+        (catalogRaw || []).forEach((c: any) => {
             const norm = normalizeName(c.product_name);
             catalogNamesNormalized.add(norm);
             catalogData.set(norm, c.product_id);
@@ -295,9 +328,10 @@ export async function POST(request: Request) {
 
         // 10. Run orchestration
         const isFullRun = !requestedShopIds || requestedShopIds.length === 0;
-        const shopIdsArg = !isFullRun && resolvedShopIds.length > 0 ? `ARRAY[${resolvedShopIds.join(',')}]::int[]` : 'NULL::int[]';
-        const { error: runError } = await supabase.rpc('exec_sql', {
-            query: `SELECT graviton.fn_orchestrate_distribution_live('${batchId}', '${dateStr}', ${shopIdsArg})`
+        const { error: runError } = await gravitonDb.rpc('fn_orchestrate_distribution_live', {
+            p_batch_id: batchId,
+            p_business_date: dateStr,
+            p_shop_ids: isFullRun ? null : resolvedShopIds
         });
 
         if (runError) {
@@ -345,3 +379,8 @@ export async function POST(request: Request) {
         return NextResponse.json({ success: false, error: error.message }, { status: 500 });
     }
 }
+
+
+
+
+

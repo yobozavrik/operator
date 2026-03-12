@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { requireAuth } from '@/lib/auth-guard';
 
 const POSTER_TOKEN = process.env.POSTER_TOKEN || '';
 const POSTER_ACCOUNT = 'galia-baluvana34';
@@ -34,12 +35,30 @@ async function posterRequest(method: string, params: Record<string, string> = {}
     return data;
 }
 
+
+function hasInternalApiAccess(request: Request): boolean {
+    const secret = process.env.INTERNAL_API_SECRET;
+    if (!secret) return false;
+
+    const authHeader = request.headers.get('authorization');
+    const headerSecret = request.headers.get('x-internal-api-secret');
+
+    return authHeader === `Bearer ${secret}` || headerSecret === secret;
+}
 export async function POST(request: Request) {
     try {
-        const supabase = createClient(
-            process.env.NEXT_PUBLIC_SUPABASE_URL || '',
-            process.env.SUPABASE_SERVICE_ROLE_KEY || ''
-        );
+        if (!hasInternalApiAccess(request)) {
+            const auth = await requireAuth();
+            if (auth.error) return auth.error;
+        }
+
+        const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+        const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+        if (!supabaseUrl || !serviceRoleKey) {
+            throw new Error('Missing Supabase service credentials');
+        }
+
+        const supabase = createClient(supabaseUrl, serviceRoleKey);
 
         function normalizeName(value: string): string {
             if (!value) return '';
@@ -47,34 +66,59 @@ export async function POST(request: Request) {
         }
 
         // 5.2. Fetch active shops
-        const { data: shopsRaw, error: shopsError } = await supabase.rpc('exec_sql', {
-            query: `
-                SELECT 
-                    ds.spot_id, 
-                    ds.storage_id, 
-                    st.storage_name,
-                    sp.name as spot_name, 
-                    (ds.storage_id = 2) as is_production_hub
-                FROM graviton.distribution_shops ds
-                JOIN categories.storages st ON st.storage_id = ds.storage_id
-                JOIN categories.spots sp ON sp.spot_id = ds.spot_id
-                WHERE ds.is_active = true AND ds.storage_id IS NOT NULL
-            `
-        });
+        const gravitonDb = supabase.schema('graviton');
+        const categoriesDb = supabase.schema('categories');
+
+        const { data: shopRows, error: shopsError } = await gravitonDb
+            .from('distribution_shops')
+            .select('spot_id, storage_id')
+            .eq('is_active', true)
+            .not('storage_id', 'is', null);
 
         if (shopsError) throw new Error(`Error fetching shops: ${shopsError.message}`);
-        if (!shopsRaw || shopsRaw.length === 0) throw new Error("No active graviton shops found.");
+        if (!shopRows || shopRows.length === 0) throw new Error('No active graviton shops found.');
 
-        const storageIds = shopsRaw.map((s: any) => s.storage_id);
+        const spotIds = Array.from(new Set(shopRows.map((row: any) => Number(row.spot_id))));
+        const storageIds = Array.from(new Set(shopRows.map((row: any) => Number(row.storage_id))));
+
+        const [spotsResult, storagesResult] = await Promise.all([
+            categoriesDb
+                .from('spots')
+                .select('spot_id, name')
+                .in('spot_id', spotIds),
+            categoriesDb
+                .from('storages')
+                .select('storage_id, storage_name')
+                .in('storage_id', storageIds),
+        ]);
+
+        if (spotsResult.error) throw new Error(`Error fetching spots: ${spotsResult.error.message}`);
+        if (storagesResult.error) throw new Error(`Error fetching storages: ${storagesResult.error.message}`);
+
+        const spotNameById = new Map<number, string>(
+            (spotsResult.data || []).map((spot: any) => [Number(spot.spot_id), String(spot.name || '')])
+        );
+        const storageNameById = new Map<number, string>(
+            (storagesResult.data || []).map((storage: any) => [Number(storage.storage_id), String(storage.storage_name || '')])
+        );
+
+        const shopsRaw = shopRows.map((row: any) => ({
+            spot_id: Number(row.spot_id),
+            storage_id: Number(row.storage_id),
+            storage_name: storageNameById.get(Number(row.storage_id)) || `Storage ${row.storage_id}`,
+            spot_name: spotNameById.get(Number(row.spot_id)) || `Spot ${row.spot_id}`,
+            is_production_hub: Number(row.storage_id) === 2,
+        }));
 
         // 5.4. Fetch active catalog
-        const { data: catalogRaw, error: catalogError } = await supabase.rpc('exec_sql', {
-            query: "SELECT product_id, product_name, is_active FROM graviton.production_catalog WHERE is_active = true"
-        });
+        const { data: catalogRaw, error: catalogError } = await gravitonDb
+            .from('production_catalog')
+            .select('product_id, product_name, is_active')
+            .eq('is_active', true);
 
         if (catalogError) throw new Error(`Error fetching catalog: ${catalogError.message}`);
 
-        const catalog = catalogRaw.map((c: any) => ({
+        const catalog = (catalogRaw || []).map((c: any) => ({
             product_id: c.product_id,
             product_name: c.product_name,
             product_name_normalized: normalizeName(c.product_name),
@@ -241,3 +285,6 @@ export async function POST(request: Request) {
         return NextResponse.json({ success: false, error: error.message }, { status: 500 });
     }
 }
+
+
+

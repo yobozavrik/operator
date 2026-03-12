@@ -206,7 +206,11 @@ interface DistributionResult {
     product_name: string;
     spot_name: string;
     quantity_to_ship: number;
-    calc_time: string;
+    min_stock?: number;
+    current_stock?: number;
+    avg_sales?: number;
+    calc_time?: string;
+    created_at?: string;
 }
 
 export const generateDistributionExcel = async (data: DistributionResult[]) => {
@@ -214,7 +218,7 @@ export const generateDistributionExcel = async (data: DistributionResult[]) => {
     const worksheet = workbook.addWorksheet('Розподіл');
 
     // 1. HEADER STYLING
-    worksheet.mergeCells('A1:D1');
+    worksheet.mergeCells('A1:G1');
     const titleCell = worksheet.getCell('A1');
     titleCell.value = 'ЗВІТ ПО РОЗПОДІЛУ ПРОДУКЦІЇ';
     titleCell.font = { bold: true, size: 16, color: { argb: 'FFFFFFFF' } };
@@ -227,24 +231,27 @@ export const generateDistributionExcel = async (data: DistributionResult[]) => {
     worksheet.getRow(1).height = 30;
 
     // 2. METADATA ROW
-    worksheet.mergeCells('A2:D2');
+    worksheet.mergeCells('A2:G2');
     const dateCell = worksheet.getCell('A2');
     dateCell.value = `Згенеровано: ${new Date().toLocaleString('uk-UA')}`;
     dateCell.font = { italic: true, size: 10, color: { argb: 'FF595959' } };
     dateCell.alignment = { horizontal: 'right', vertical: 'middle' };
 
-    // 3. TABLE HEADERS (Updated: Removed Shop column from main header as it's now a section header)
+    // 3. TABLE HEADERS
     const headerRow = worksheet.getRow(4);
-    headerRow.values = ['ДАТА/ЧАС', 'ТОВАР', 'КІЛЬКІСТЬ (шт)', ''];
-    // Note: We use 3 columns effectively for items now, but let's keep A,B,C mapped. 
-    // Actually, let's keep the structure: A=Date, B=Product, C=Qty. D=Empty/Notes?
-    // Let's refine columns: A=Date, B=Product, C=Qty. A bit wider B.
-
-    headerRow.values = ['ДАТА/ЧАС', 'ТОВАР', 'КІЛЬКІСТЬ (шт)', ''];
+    headerRow.values = [
+        'ДАТА/ЧАС',
+        'ТОВАР',
+        'ФАКТ. ЗАЛИШОК',
+        'МІН. ЗАЛИШОК',
+        'СЕР. ПРОДАЖІ',
+        'КІЛЬКІСТЬ (шт)',
+        ''
+    ];
     headerRow.height = 20;
 
     const headerStyle = {
-        font: { bold: true, color: { argb: 'FFFFFFFF' } },
+        font: { bold: true, color: { argb: 'FFFFFFFF' }, size: 9 },
         fill: {
             type: 'pattern',
             pattern: 'solid',
@@ -259,7 +266,7 @@ export const generateDistributionExcel = async (data: DistributionResult[]) => {
         } as ExcelJS.Borders
     };
 
-    [1, 2, 3].forEach(col => {
+    [1, 2, 3, 4, 5, 6].forEach(col => {
         const cell = headerRow.getCell(col);
         cell.font = headerStyle.font;
         cell.fill = headerStyle.fill;
@@ -270,24 +277,22 @@ export const generateDistributionExcel = async (data: DistributionResult[]) => {
     // 4. DATA ROWS (GROUPED BY SHOP)
     let rowIndex = 5;
 
-    // Group items by Shop Name
     const groupedByShop: Record<string, DistributionResult[]> = {};
     data.forEach(item => {
         if (!groupedByShop[item.spot_name]) groupedByShop[item.spot_name] = [];
         groupedByShop[item.spot_name].push(item);
     });
 
-    // Sort shops alphabetically
     const sortedShops = Object.keys(groupedByShop).sort();
 
     sortedShops.forEach((shopName) => {
         const shopItems = groupedByShop[shopName].sort((a, b) => a.product_name.localeCompare(b.product_name));
 
         // Separator Header for Shop
-        worksheet.mergeCells(`A${rowIndex}:C${rowIndex}`);
+        worksheet.mergeCells(`A${rowIndex}:F${rowIndex}`);
         const groupHeader = worksheet.getCell(`A${rowIndex}`);
         groupHeader.value = shopName.toUpperCase();
-        groupHeader.font = { bold: true, size: 12, color: { argb: 'FF000000' } };
+        groupHeader.font = { bold: true, size: 11, color: { argb: 'FF000000' } };
         groupHeader.fill = {
             type: 'pattern',
             pattern: 'solid',
@@ -300,60 +305,68 @@ export const generateDistributionExcel = async (data: DistributionResult[]) => {
             left: { style: 'thin' },
             right: { style: 'thin' }
         };
-        worksheet.getRow(rowIndex).height = 25;
+        worksheet.getRow(rowIndex).height = 22;
         rowIndex++;
 
-        // Render Items for this Shop
         shopItems.forEach((item, idx) => {
             const excelRow = worksheet.getRow(rowIndex);
+
+            const isWarehouse = item.spot_name.toLowerCase().includes('склад') ||
+                item.spot_name.toLowerCase().includes('залишок на складі');
+
             excelRow.values = [
-                item.calc_time ? new Date(item.calc_time).toLocaleString('uk-UA').split(',')[1] : '-', // Time only? Or full date? Let's show Time if date is same day. Or just full string.
+                (item.calc_time || item.created_at) ? new Date(item.calc_time || item.created_at || '').toLocaleTimeString('uk-UA', { hour: '2-digit', minute: '2-digit' }) : '-',
                 item.product_name,
+                isWarehouse ? '-' : (item.current_stock ?? 0),
+                isWarehouse ? '-' : (item.min_stock ?? 0),
+                isWarehouse ? '-' : Number(item.avg_sales ?? 0).toFixed(1),
                 item.quantity_to_ship,
                 ''
             ];
 
             // Subtle striping
             if (idx % 2 !== 0) {
-                [1, 2, 3].forEach(col => {
+                [1, 2, 3, 4, 5, 6].forEach(col => {
                     excelRow.getCell(col).fill = {
                         type: 'pattern',
                         pattern: 'solid',
-                        fgColor: { argb: 'FFFAFAFA' } // Very subtle gray
+                        fgColor: { argb: 'FFFAFAFA' }
                     };
                 });
             }
 
-            // Borders
-            [1, 2, 3].forEach(col => {
-                excelRow.getCell(col).border = {
+            // Borders & Alignment
+            [1, 2, 3, 4, 5, 6].forEach(col => {
+                const cell = excelRow.getCell(col);
+                cell.border = {
                     top: { style: 'thin', color: { argb: 'FFD9D9D9' } },
                     left: { style: 'thin', color: { argb: 'FFD9D9D9' } },
                     bottom: { style: 'thin', color: { argb: 'FFD9D9D9' } },
                     right: { style: 'thin', color: { argb: 'FFD9D9D9' } }
                 };
+
+                if (col === 2) {
+                    cell.alignment = { horizontal: 'left' };
+                } else {
+                    cell.alignment = { horizontal: 'center' };
+                }
             });
 
-            // Alignment
-            excelRow.getCell(1).alignment = { horizontal: 'center' };
-            excelRow.getCell(2).alignment = { horizontal: 'left' };
-            const qtyCell = excelRow.getCell(3);
-            qtyCell.alignment = { horizontal: 'center' };
-            qtyCell.font = { bold: true };
+            excelRow.getCell(6).font = { bold: true };
 
             rowIndex++;
         });
-
-        // Add empty row separator
-        // rowIndex++;
     });
 
     // 5. COLUMN WIDTHS
     worksheet.columns = [
-        { width: 15 }, // Date/Time
-        { width: 45 }, // Product (Wider now since Shop is header)
+        { width: 10 }, // Time
+        { width: 40 }, // Product
+        { width: 15 }, // Fact
+        { width: 15 }, // Min
+        { width: 15 }, // Avg sales
         { width: 15 }, // Quantity
-        { width: 10 }  // spacer
+        { width: 5 }   // spacer
     ];
 
     // 6. DOWNLOAD
@@ -547,3 +560,4 @@ export const generateProductionPlanExcel = async (planData: PlanItem[], daysCoun
     window.URL.revokeObjectURL(url);
     return fileName;
 };
+

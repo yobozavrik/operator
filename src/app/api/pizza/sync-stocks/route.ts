@@ -1,22 +1,32 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { requireAuth } from '@/lib/auth-guard';
 
 const POSTER_TOKEN = process.env.POSTER_TOKEN || '';
 const POSTER_ACCOUNT = 'galia-baluvana34';
 
+function hasInternalApiAccess(request: Request): boolean {
+    const secret = process.env.INTERNAL_API_SECRET;
+    if (!secret) return false;
+
+    const authHeader = request.headers.get('authorization');
+    const headerSecret = request.headers.get('x-internal-api-secret');
+
+    return authHeader === `Bearer ${secret}` || headerSecret === secret;
+}
+
 async function posterRequest(method: string, params: Record<string, string> = {}) {
     if (!POSTER_TOKEN) {
-        throw new Error("POSTER_TOKEN environment variable is missing.");
+        throw new Error('POSTER_TOKEN environment variable is missing.');
     }
 
     const url = new URL(`https://${POSTER_ACCOUNT}.joinposter.com/api/${method}`);
     url.searchParams.append('token', POSTER_TOKEN);
 
-    Object.keys(params).forEach(key =>
+    Object.keys(params).forEach((key) =>
         url.searchParams.append(key, params[key])
     );
 
-    // Filter out undefined values
     const response = await fetch(url.toString());
     const data = await response.json();
 
@@ -27,21 +37,29 @@ async function posterRequest(method: string, params: Record<string, string> = {}
     return data.response;
 }
 
-export async function POST() {
+export async function POST(request: Request) {
     console.log('[Pizza Sync] Starting synchronous update...');
 
     try {
-        const supabase = createClient(
-            process.env.NEXT_PUBLIC_SUPABASE_URL!,
-            process.env.SUPABASE_SERVICE_ROLE_KEY!
-        );
+        if (!hasInternalApiAccess(request)) {
+            const auth = await requireAuth();
+            if (auth.error) return auth.error;
+        }
+
+        const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+        const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+        if (!supabaseUrl || !serviceRoleKey) {
+            throw new Error('Missing Supabase service credentials');
+        }
+
+        const supabase = createClient(supabaseUrl, serviceRoleKey);
+        const pizzaDb = supabase.schema('pizza1');
 
         const today = new Date().toISOString().split('T')[0];
         const now = new Date().toISOString();
 
-        // 1. Fetch Stocks for all 23 map-linked storages
+        // 1. Fetch stocks for all map-linked storages
         const shopStorageIds = [2, 3, 5, 6, 7, 8, 9, 20, 21, 25, 26, 30, 33, 34, 36, 39, 43, 44, 45, 47, 52, 53, 55];
-
         console.log(`[Pizza Sync] Fetching stocks for ${shopStorageIds.length} storages...`);
 
         const stocksPromises = shopStorageIds.map(async (id) => {
@@ -57,7 +75,7 @@ export async function POST() {
         const stocksResults = await Promise.all(stocksPromises);
         const allStocks: any[] = [];
 
-        stocksResults.forEach(res => {
+        stocksResults.forEach((res) => {
             res.items.forEach((item: any) => {
                 allStocks.push({
                     snapshot_date: today,
@@ -66,79 +84,92 @@ export async function POST() {
                     ingredient_name: item.ingredient_name,
                     storage_ingredient_left: Number(item.storage_ingredient_left || 0),
                     ingredient_unit: item.ingredient_unit,
-                    created_at: now
+                    created_at: now,
                 });
             });
         });
 
-        // 2. Database Transactions via exec_sql
-        console.log('[Pizza Sync] Clearing old data via RPC...');
+        // 2. Replace today's stocks snapshot
+        console.log('[Pizza Sync] Replacing stocks snapshot...');
+        const { error: clearStocksError } = await pizzaDb
+            .from('stocks_now')
+            .delete()
+            .eq('snapshot_date', today);
 
-        // Clear today's stocks
-        await supabase.rpc('exec_sql', {
-            query: `DELETE FROM pizza1.stocks_now WHERE snapshot_date = '${today}'`
-        });
+        if (clearStocksError) throw clearStocksError;
 
-        // INSERT STOCKS in chunks
         console.log(`[Pizza Sync] Inserting ${allStocks.length} stock rows...`);
         for (let i = 0; i < allStocks.length; i += 1000) {
             const chunk = allStocks.slice(i, i + 1000);
-            const values = chunk.map(s =>
-                `('${s.snapshot_date}', ${s.storage_id}, ${s.ingredient_id}, '${s.ingredient_name.replace(/'/g, "''")}', ${s.storage_ingredient_left}, '${s.ingredient_unit}', '${s.created_at}')`
-            ).join(',');
-
-            const query = `
-                INSERT INTO pizza1.stocks_now 
-                (snapshot_date, storage_id, ingredient_id, ingredient_name, storage_ingredient_left, ingredient_unit, created_at)
-                VALUES ${values}
-            `;
-            const { error: insertError } = await supabase.rpc('exec_sql', { query });
-            if (insertError) throw insertError;
+            const { error: insertStocksError } = await pizzaDb
+                .from('stocks_now')
+                .insert(chunk);
+            if (insertStocksError) throw insertStocksError;
         }
 
-        // 3. Handle Manufactures
-        console.log('[Pizza Sync] Fetching today\'s manufactures...');
+        // 3. Handle manufactures
+        console.log("[Pizza Sync] Fetching today's manufactures...");
         const manufactures = await posterRequest('storage.getManufactures', {
             dateFrom: today,
-            dateTo: today
+            dateTo: today,
         });
 
         if (Array.isArray(manufactures)) {
-            // Filter only storage 15 (Workshop) as used in pizza1 views
             const workshopMans = manufactures.filter((m: any) => String(m.storage_id) === '15');
             console.log(`[Pizza Sync] Found ${workshopMans.length} workshop manufactures.`);
 
             if (workshopMans.length > 0) {
-                // Clear old workshop mans for today
-                const manIds = workshopMans.map(m => m.manufacture_id);
-                const manIdsStr = manIds.join(',');
+                const manIds = workshopMans
+                    .map((m: any) => Number(m.manufacture_id))
+                    .filter((id: number) => Number.isFinite(id));
 
-                await supabase.rpc('exec_sql', {
-                    query: `DELETE FROM pizza1.manufacture_items WHERE manufacture_id IN (${manIdsStr})`
-                });
-                await supabase.rpc('exec_sql', {
-                    query: `DELETE FROM pizza1.manufactures WHERE manufacture_id IN (${manIdsStr})`
-                });
+                if (manIds.length > 0) {
+                    const { error: delItemsError } = await pizzaDb
+                        .from('manufacture_items')
+                        .delete()
+                        .in('manufacture_id', manIds);
+                    if (delItemsError) throw delItemsError;
 
-                // Insert Manufactures and Items
-                for (const man of workshopMans) {
-                    // Header
-                    await supabase.rpc('exec_sql', {
-                        query: `INSERT INTO pizza1.manufactures (manufacture_id, storage_id, user_id, manufacture_date, total_sum)
-                                VALUES (${man.manufacture_id}, ${man.storage_id}, ${man.user_id}, '${man.date}', ${man.sum || 0})`
-                    });
+                    const { error: delHeadersError } = await pizzaDb
+                        .from('manufactures')
+                        .delete()
+                        .in('manufacture_id', manIds);
+                    if (delHeadersError) throw delHeadersError;
+                }
 
-                    // Items (if present in the initial fetch)
-                    if (man.products && man.products.length > 0) {
-                        const itemValues = man.products.map((p: any) =>
-                            `(${man.manufacture_id}, ${p.product_id || 0}, ${p.ingredient_id || 0}, '${(p.product_name || '').replace(/'/g, "''")}', ${p.product_num || 0}, ${p.type || 1}, false)`
-                        ).join(',');
+                const manufactureHeaders = workshopMans.map((man: any) => ({
+                    manufacture_id: Number(man.manufacture_id),
+                    storage_id: Number(man.storage_id),
+                    user_id: Number(man.user_id),
+                    manufacture_date: man.date,
+                    total_sum: Number(man.sum || 0),
+                }));
 
-                        await supabase.rpc('exec_sql', {
-                            query: `INSERT INTO pizza1.manufacture_items (manufacture_id, product_id, ingredient_id, product_name, quantity, type, is_deleted)
-                                    VALUES ${itemValues}`
-                        });
-                    }
+                if (manufactureHeaders.length > 0) {
+                    const { error: insertHeadersError } = await pizzaDb
+                        .from('manufactures')
+                        .insert(manufactureHeaders);
+                    if (insertHeadersError) throw insertHeadersError;
+                }
+
+                const manufactureItems = workshopMans.flatMap((man: any) =>
+                    (man.products || []).map((p: any) => ({
+                        manufacture_id: Number(man.manufacture_id),
+                        product_id: Number(p.product_id || 0),
+                        ingredient_id: Number(p.ingredient_id || 0),
+                        product_name: String(p.product_name || ''),
+                        quantity: Number(p.product_num || 0),
+                        type: Number(p.type || 1),
+                        is_deleted: false,
+                    }))
+                );
+
+                for (let i = 0; i < manufactureItems.length; i += 1000) {
+                    const chunk = manufactureItems.slice(i, i + 1000);
+                    const { error: insertItemsError } = await pizzaDb
+                        .from('manufacture_items')
+                        .insert(chunk);
+                    if (insertItemsError) throw insertItemsError;
                 }
             }
         }
@@ -148,9 +179,13 @@ export async function POST() {
 
     } catch (error: any) {
         console.error('[Pizza Sync] Critical Failure:', error);
-        return NextResponse.json({
-            success: false,
-            error: error.message || String(error)
-        }, { status: 500 });
+        return NextResponse.json(
+            {
+                success: false,
+                error: error.message || String(error),
+            },
+            { status: 500 }
+        );
     }
 }
+

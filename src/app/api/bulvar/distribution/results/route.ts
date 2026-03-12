@@ -22,7 +22,7 @@ export async function GET() {
         const { data, error } = await supabaseAdmin
             .schema('bulvar1')
             .from('v_bulvar_today_distribution')
-            .select('*')
+            .select('*, calc_time:created_at')
             .order('product_name', { ascending: true });
 
         if (error) {
@@ -37,3 +37,4 @@ export async function GET() {
         return NextResponse.json({ error: err.message }, { status: 500 });
     }
 }
+

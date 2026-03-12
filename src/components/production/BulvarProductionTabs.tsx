@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import useSWR from 'swr';
 import { cn } from '@/lib/utils';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-import { ChefHat, Activity, CheckCircle, Percent, RefreshCw, Calculator, Loader2, AlertCircle, Truck, Settings2, ClipboardList } from 'lucide-react';
+import { ChefHat, Activity, CheckCircle, Percent, RefreshCw, Calculator, Loader2, AlertCircle, Truck, Settings2, ClipboardList, TrendingUp } from 'lucide-react';
 import { BulvarPowerMatrix } from '../BulvarPowerMatrix';
 import { BulvarProductionOpsTable } from './BulvarProductionOrderTable';
 import { ProductionTask } from '@/types/bi';
@@ -11,6 +11,7 @@ import { BulvarDistributionModal } from '../BulvarDistributionModal';
 import { BulvarProductionDetailModal } from '../BulvarProductionDetailModal';
 import { BulvarDistributionControlPanel } from './BulvarDistributionControlPanel';
 import BulvarProductionSimulator from './BulvarProductionSimulator';
+import { BulvarHistoricalProduction } from './BulvarHistoricalProduction';
 import { ThemeToggle } from '../theme-toggle';
 import { getBulvarUnit } from '@/lib/bulvar-dictionary';
 
@@ -18,6 +19,10 @@ import { getBulvarUnit } from '@/lib/bulvar-dictionary';
 interface ProductionItem {
     product_name: string;
     baked_at_factory: number;
+    total_qty_180d?: number;
+    prod_days?: number;
+    avg_qty_per_prod_day?: number;
+    last_manufacture_at?: string;
 }
 
 const ProductionDetailView = () => {
@@ -55,7 +60,10 @@ const ProductionDetailView = () => {
                         <thead className="bg-bg-primary text-[10px] uppercase font-bold tracking-widest text-text-secondary border-b border-panel-border">
                             <tr>
                                 <th className="p-4">Бульвар-Автовокзал</th>
-                                <th className="p-4 text-right">Виготовлено (од.)</th>
+                                <th className="p-4 text-center">Сьогодні (од.)</th>
+                                <th className="p-4 text-center">За 180 дн.</th>
+                                <th className="p-4 text-center">Виходів</th>
+                                <th className="p-4 text-right">Сер / варку</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-panel-border">
@@ -64,9 +72,20 @@ const ProductionDetailView = () => {
                                     <td className="p-4 text-sm font-medium text-text-primary group-hover:text-accent-primary">
                                         {item.product_name}
                                     </td>
-                                    <td className="p-4 text-right">
-                                        <span className="inline-flex items-center justify-center px-4 py-1.5 rounded-lg bg-accent-primary/10 text-accent-primary font-mono text-sm font-black min-w-[4rem] border border-accent-primary/20">
+                                    <td className="p-4 text-center">
+                                        <span className="inline-flex items-center justify-center px-4 py-1.5 rounded-lg bg-emerald-500/10 text-emerald-500 font-mono text-sm font-black min-w-[4rem] border border-emerald-500/20">
                                             {item.baked_at_factory} <span className="text-[10px] ml-1 opacity-70 lowercase">{getBulvarUnit(item.product_name)}</span>
+                                        </span>
+                                    </td>
+                                    <td className="p-4 text-center text-sm font-mono text-text-secondary">
+                                        {item.total_qty_180d?.toLocaleString() || 0}
+                                    </td>
+                                    <td className="p-4 text-center text-sm font-mono text-text-muted">
+                                        {item.prod_days || 0}
+                                    </td>
+                                    <td className="p-4 text-right">
+                                        <span className="text-sm font-mono font-bold text-accent-primary">
+                                            {Number(item.avg_qty_per_prod_day || 0).toFixed(1)}
                                         </span>
                                     </td>
                                 </tr>
@@ -92,7 +111,7 @@ interface Props {
 
 export const BulvarProductionTabs = ({ data, onRefresh, showTabs = true }: Props) => {
     // UPDATED TABS: 'matrix' replaces old 'distribution', 'logistics' is NEW
-    const [activeTab, setActiveTab] = useState<'orders' | 'matrix' | 'production' | 'logistics' | 'simulator'>('matrix');
+    const [activeTab, setActiveTab] = useState<'orders' | 'matrix' | 'production' | 'history' | 'logistics' | 'simulator'>('matrix');
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [isRefreshing, setIsRefreshing] = useState(false);
     const [isUpdatingStock, setIsUpdatingStock] = useState(false);
@@ -446,6 +465,25 @@ export const BulvarProductionTabs = ({ data, onRefresh, showTabs = true }: Props
                             </button>
 
                             <button
+                                onClick={() => setActiveTab('history')}
+                                className={cn(
+                                    "flex-1 h-11 px-4 text-[13px] font-bold uppercase tracking-wider rounded-lg transition-all duration-300 flex items-center justify-center gap-2 relative overflow-hidden group/tab",
+                                    activeTab === 'history'
+                                        ? "bg-panel-bg text-blue-500 shadow-sm border border-panel-border"
+                                        : "text-text-secondary hover:text-text-primary hover:bg-panel-bg/50"
+                                )}
+                            >
+                                <div className={cn(
+                                    "p-1.5 rounded-md transition-colors",
+                                    activeTab === 'history' ? "bg-blue-500/10 text-blue-500" : "bg-transparent"
+                                )}>
+                                    <TrendingUp size={16} strokeWidth={2.5} />
+                                </div>
+                                <span className="hidden xl:inline">180 ДНІВ</span>
+                                <span className="xl:hidden">180D</span>
+                            </button>
+
+                            <button
                                 onClick={() => setActiveTab('simulator')}
                                 className={cn(
                                     "flex-1 h-11 px-4 text-[13px] font-bold uppercase tracking-wider rounded-lg transition-all duration-300 flex items-center justify-center gap-2 relative overflow-hidden group/tab",
@@ -481,6 +519,9 @@ export const BulvarProductionTabs = ({ data, onRefresh, showTabs = true }: Props
                 )}
                 {(showTabs && activeTab === 'logistics') && (
                     <BulvarDistributionControlPanel />
+                )}
+                {(showTabs && activeTab === 'history') && (
+                    <BulvarHistoricalProduction />
                 )}
                 {(showTabs && activeTab === 'simulator') && (
                     <BulvarProductionSimulator />

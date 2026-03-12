@@ -1,4 +1,4 @@
-﻿import { SupabaseDeficitRow, ProductionTask, PriorityKey, SKUCategory } from '@/types/bi';
+import { SupabaseDeficitRow, ProductionTask, PriorityKey, SKUCategory } from '@/types/bi';
 import { getKonditerkaUnit } from '@/lib/konditerka-dictionary';
 
 export const GRAVITON_SHOPS = [
@@ -158,12 +158,13 @@ export function transformPizzaData(data: any[]): ProductionTask[] {
         const min = safeNumber(row.min_stock || row.min || row.norm_3_days || row.min_qty);
         const netNeed = safeNumber(row.net_need || row.need || row.need_net || row.deficit);
 
-        // Calculate avg if missing (assuming norm is for 3 days as per column name 'norm_3_days')
-        let avg = safeNumber(row.avg_sales_day || row.avg_sales || row.avg);
-        if (avg === 0 && min > 0) {
+        // Keep explicit 0 from backend as 0. Fallback only when avg field is truly absent.
+        const avgSource = row.avg_sales_day ?? row.avg_sales ?? row.avg;
+        let avg = safeNumber(avgSource);
+        const hasExplicitAvg = avgSource !== null && avgSource !== undefined;
+        if (!hasExplicitAvg && avg === 0 && min > 0) {
             avg = min / 3;
         }
-
         // Use product_id (or product_name if id missing) as unique key
         const productKey = row.product_id
             ? String(row.product_id)
@@ -308,3 +309,5 @@ export function transformBulvarData(data: any[]): ProductionTask[] {
         };
     });
 }
+
+

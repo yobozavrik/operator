@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '@/utils/supabase/server';
+import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 import { requireAuth } from '@/lib/auth-guard';
 import { Logger } from '@/lib/logger';
 import { mergeWithPosterLiveStock } from '@/lib/poster-merger';
@@ -11,38 +11,72 @@ export async function GET() {
     if (auth.error) return auth.error;
 
     try {
-        const supabase = await createClient();
+        const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+        const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-        // Максимально чистый запрос без фильтров
-        const { data, error } = await supabase
-            .schema('bulvar1').from('v_bulvar_distribution_stats')
-            .select('*');
-
-        if (error) {
-            Logger.error('Supabase bulvar API error', { error: error.message });
-            return NextResponse.json({ error: error.message }, { status: 500 });
+        if (!supabaseUrl || !serviceKey) {
+            return NextResponse.json(
+                { error: 'Server Config Error', code: 'MISSING_SUPABASE_CONFIG' },
+                { status: 500 }
+            );
         }
 
-        // --- NEW ARCHITECTURE: LIVE POSTER DATA ---
-        // Intead of relying on max 10-minute old n8n webhook syncs into DB,
-        // we merge the live Poster API data in Next.js memory immediately! (~1-2 seconds)
+        const supabase = createSupabaseClient(supabaseUrl, serviceKey, {
+            auth: { persistSession: false },
+        });
+
+        const { data: workshopProducts, error: workshopError } = await supabase
+            .schema('bulvar1')
+            .from('production_180d_products')
+            .select('product_id');
+
+        if (workshopError) {
+            Logger.error('[bulvar Orders API] Workshop products query failed', { error: workshopError.message });
+            return NextResponse.json({
+                error: 'Database query failed',
+                message: workshopError.message,
+                code: 'DB_ERROR'
+            }, { status: 500 });
+        }
+
+        const workshopProductIds = Array.from(
+            new Set((workshopProducts || []).map((row) => Number(row.product_id)).filter((id) => Number.isFinite(id)))
+        );
+
+        if (workshopProductIds.length === 0) {
+            return NextResponse.json([]);
+        }
+
+        const { data, error } = await supabase
+            .schema('bulvar1')
+            .from('v_bulvar_distribution_stats')
+            .select('product_id, product_name, spot_name, stock_now, min_stock, avg_sales_day, need_net')
+            .in('product_id', workshopProductIds);
+
+        if (error) {
+            Logger.error('[bulvar Orders API] Supabase error', { error: error.message });
+            return NextResponse.json({
+                error: 'Database query failed',
+                message: error.message,
+                code: 'DB_ERROR'
+            }, { status: 500 });
+        }
+
         let mergedData = data || [];
         try {
             mergedData = await mergeWithPosterLiveStock(data as any[]);
         } catch (posterErr) {
-            Logger.error('Failed to merge Poster data, falling back to Supabase', { error: String(posterErr) });
-            // Safe fallback keeps DB data
+            Logger.error('[bulvar Orders API] Poster merge failed', { error: String(posterErr) });
         }
 
-        Logger.info("Данные из БД по Кондитерке (Объединенные с Live Poster)", { meta: { count: mergedData.length, firstRow: mergedData[0] } });
-
         return NextResponse.json(mergedData);
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
     } catch (err: any) {
-        Logger.error('Critical bulvar API Error', { error: err.message || String(err) });
+        Logger.error('[bulvar Orders API] Critical Error', { error: err.message || String(err) });
         return NextResponse.json({
             error: 'Internal Server Error',
-            message: err.message
+            message: err.message || 'An unexpected error occurred',
+            code: 'INTERNAL_ERROR'
         }, { status: 500 });
     }
 }

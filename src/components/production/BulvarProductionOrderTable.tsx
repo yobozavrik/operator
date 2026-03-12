@@ -398,13 +398,15 @@ export const BulvarProductionOpsTable = ({ data, onRefresh }: Props) => {
                                                                         </div>
                                                                     </div>
 
-                                                                    <div className="flex items-end justify-between pt-4 border-t border-white/5 relative z-10">
+                                                                    <div className="flex items-center justify-between pt-4 border-t border-white/5 relative z-10">
                                                                         <div className="flex flex-col">
-                                                                            <span className="text-[8px] font-black text-white/30 uppercase mb-1">ФАКТ</span>
-                                                                            <span className={cn("text-xl font-mono font-black leading-none", isDeficit ? "text-[#FF6B6B] drop-shadow-[0_0_8px_rgba(255,107,107,0.5)]" : "text-emerald-500 drop-shadow-[0_0_8px_rgba(16,185,129,0.3)]")}>
-                                                                                {stat.stock_now || 0}
-                                                                                <span className="text-[10px] opacity-70 ml-1 font-sans">{getBulvarUnit(selectedBulvar)}</span>
-                                                                            </span>
+                                                                            <span className="text-[8px] font-black text-white/30 uppercase mb-1">ФАКТ / МІН</span>
+                                                                            <div className="flex items-baseline gap-1.5">
+                                                                                <span className={cn("text-xl font-mono font-black leading-none", isDeficit ? "text-[#FF6B6B] drop-shadow-[0_0_8px_rgba(255,107,107,0.5)]" : "text-emerald-500 drop-shadow-[0_0_8px_rgba(16,185,129,0.3)]")}>
+                                                                                    {stat.stock_now || 0}
+                                                                                </span>
+                                                                                <span className="text-[10px] font-mono font-bold text-white/20">/ {stat.min_stock || 0}</span>
+                                                                            </div>
                                                                         </div>
                                                                         <div className="flex flex-col items-end">
                                                                             <span className="text-[8px] font-black text-[#00D4FF]/50 uppercase mb-1">ТРЕБА</span>
