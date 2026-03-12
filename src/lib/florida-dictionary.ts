@@ -1,22 +1,33 @@
+export type FloridaUnit = 'шт' | 'кг';
+
+const KG_HINTS = ['kg', 'кг', 'кілограм', 'килограмм', 'gram', 'грам', 'гр', 'g'];
+const PCS_HINTS = ['шт', 'pcs', 'pc', 'piece'];
+
 /**
- * Helper file to define unit formats for Florida products
- * By default, products will show as "шт.", but we map specific ones to "кг" or "г".
+ * Legacy name-based fallback for products where upstream unit is unavailable.
  */
-
-export function getFloridaUnit(productName: string): 'шт' | 'кг' {
+export function getFloridaUnit(productName: string): FloridaUnit {
     const normName = productName.toLowerCase().trim();
-
-    // Florida mostly produces semi-finished goods (Вареники, Пельмені, Млинці).
-    // Some are sold by weight, some by piece. 
-    // Let's assume standard ones that might be measured in kg or g.
     if (normName.includes('вагова') || normName.includes('ваговий')) {
         return 'кг';
     }
-
-    // Add any specific metric lookups here based on your database specifics.
-    // E.g., if "Вареники з картоплею" is measured in kg:
-    // if (normName.includes('вареники')) return 'кг';
-
-    // Default to units "шт" 
     return 'шт';
+}
+
+/**
+ * Normalize raw unit from data source to UI-safe unit.
+ * Falls back to name-based heuristic for backward compatibility.
+ */
+export function normalizeFloridaUnit(unitRaw: unknown, productName = ''): FloridaUnit {
+    if (typeof unitRaw === 'string') {
+        const normalized = unitRaw.toLowerCase().trim();
+        if (KG_HINTS.some((hint) => normalized === hint || normalized.includes(hint))) {
+            return 'кг';
+        }
+        if (PCS_HINTS.some((hint) => normalized === hint || normalized.includes(hint))) {
+            return 'шт';
+        }
+    }
+
+    return getFloridaUnit(productName);
 }

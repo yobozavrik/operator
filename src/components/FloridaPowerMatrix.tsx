@@ -21,7 +21,7 @@ const SAFETY_BUFFER = 2; // Days
 interface Props {
     data: ProductionTask[];
     onRefresh: () => void;
-    initialViewMode?: 'products' | 'stores';
+    initialViewMode?: 'products' | 'stores' | 'catalog';
 }
 
 // Internal Component for Distribution Logic per Accordion Item
@@ -225,7 +225,7 @@ export const FloridaPowerMatrix = ({ data, onRefresh, initialViewMode = 'product
     const [planningDays, setPlanningDays] = useState<number>(3);
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [isRefreshing, setIsRefreshing] = useState(false);
-    const [viewMode, setViewMode] = useState<'products' | 'stores'>(initialViewMode);
+    const [viewMode, setViewMode] = useState<'products' | 'stores' | 'catalog'>(initialViewMode);
     const [selectedDrawerProductCode, setSelectedDrawerProductCode] = useState<number | null>(null);
     const [selectedDrawerStoreId, setSelectedDrawerStoreId] = useState<number | null>(null);
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -401,6 +401,25 @@ export const FloridaPowerMatrix = ({ data, onRefresh, initialViewMode = 'product
         return Array.from(storeMap.values()).sort((a, b) => b.totalAvgSales - a.totalAvgSales);
     }, [products]);
 
+    const catalogRows = useMemo(() => {
+        return products
+            .map((product) => ({
+                productCode: product.productCode,
+                name: product.name,
+                unit: product.unit || 'шт',
+                totalStock: product.computed.totalStock,
+                minStock: product.computed.totalMinStock,
+                avgSales: product.computed.totalAvg,
+                storesCount: product.stores.length,
+            }))
+            .sort((a, b) => a.name.localeCompare(b.name));
+    }, [products]);
+
+    const formatByUnit = (value: number, unit: 'шт' | 'кг') => {
+        if (!Number.isFinite(value)) return '0';
+        return unit === 'кг' ? value.toFixed(1) : value.toFixed(0);
+    };
+
     return (
         <div className="flex flex-col h-full w-full font-sans text-text-primary bg-bg-primary min-h-screen">
 
@@ -428,6 +447,17 @@ export const FloridaPowerMatrix = ({ data, onRefresh, initialViewMode = 'product
                         )}
                     >
                         Locations
+                    </button>
+                    <button
+                        onClick={() => setViewMode('catalog')}
+                        className={cn(
+                            "px-4 py-2 rounded-lg text-sm font-medium transition-all focus:outline-none uppercase font-[family-name:var(--font-chakra)]",
+                            viewMode === 'catalog'
+                                ? "bg-[#00E0FF]/20 text-[#00E0FF] shadow-[0_0_15px_rgba(0,224,255,0.15)] border border-[#00E0FF]/30"
+                                : "text-slate-400 hover:text-white hover:bg-white/5 border border-transparent"
+                        )}
+                    >
+                        Catalog
                     </button>
                 </div>
             </div>
@@ -515,7 +545,7 @@ export const FloridaPowerMatrix = ({ data, onRefresh, initialViewMode = 'product
                             <span className="text-xs font-medium text-slate-400 group-hover:text-white mt-1 font-[family-name:var(--font-chakra)] uppercase tracking-wider text-center">Add Product</span>
                         </div>
                     </div>
-                ) : (
+                ) : viewMode === 'stores' ? (
                     /* STORES VIEW */
                     <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-3 pb-20 mt-4">
                         {storesGrouped.map(store => {
@@ -597,6 +627,69 @@ export const FloridaPowerMatrix = ({ data, onRefresh, initialViewMode = 'product
                                 </div>
                             );
                         })}
+                    </div>
+                ) : (
+                    /* CATALOG VIEW */
+                    <div className="mt-4 pb-20">
+                        <div className="glass-panel bg-[#131B2C] border border-[#00E0FF]/20 rounded-2xl overflow-hidden">
+                            <div className="px-4 py-3 border-b border-white/10 flex items-center justify-between">
+                                <h3 className="text-sm font-bold uppercase tracking-wider text-white font-[family-name:var(--font-chakra)]">
+                                    Каталог продуктів Florida
+                                </h3>
+                                <span className="text-[11px] text-slate-400 font-[family-name:var(--font-jetbrains)]">
+                                    Позицій: {catalogRows.length}
+                                </span>
+                            </div>
+                            <div className="overflow-x-auto">
+                                <table className="w-full text-left">
+                                    <thead className="bg-[#0E1627]">
+                                        <tr className="text-[10px] uppercase tracking-widest text-slate-400 font-[family-name:var(--font-jetbrains)]">
+                                            <th className="px-4 py-3 font-bold">ID</th>
+                                            <th className="px-4 py-3 font-bold">Продукт</th>
+                                            <th className="px-4 py-3 font-bold text-center">Од. вим.</th>
+                                            <th className="px-4 py-3 font-bold text-right">Факт</th>
+                                            <th className="px-4 py-3 font-bold text-right">Мін. залишок</th>
+                                            <th className="px-4 py-3 font-bold text-right">Сер. продаж/день</th>
+                                            <th className="px-4 py-3 font-bold text-right">Магазинів</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {catalogRows.map((row) => (
+                                            <tr key={row.productCode} className="border-t border-white/5 hover:bg-white/[0.03] transition-colors">
+                                                <td className="px-4 py-3 text-slate-400 font-[family-name:var(--font-jetbrains)] text-xs">
+                                                    {row.productCode}
+                                                </td>
+                                                <td className="px-4 py-3 text-white text-sm font-semibold">
+                                                    {row.name}
+                                                </td>
+                                                <td className="px-4 py-3 text-center">
+                                                    <span className={cn(
+                                                        "inline-flex items-center justify-center min-w-[42px] px-2 py-0.5 rounded-md text-xs font-bold uppercase font-[family-name:var(--font-jetbrains)]",
+                                                        row.unit === 'кг'
+                                                            ? "bg-emerald-500/15 text-emerald-300 border border-emerald-400/30"
+                                                            : "bg-[#00E0FF]/15 text-[#00E0FF] border border-[#00E0FF]/30"
+                                                    )}>
+                                                        {row.unit}
+                                                    </span>
+                                                </td>
+                                                <td className="px-4 py-3 text-right text-slate-200 font-[family-name:var(--font-jetbrains)]">
+                                                    {formatByUnit(row.totalStock, row.unit)} {row.unit}
+                                                </td>
+                                                <td className="px-4 py-3 text-right text-slate-300 font-[family-name:var(--font-jetbrains)]">
+                                                    {formatByUnit(row.minStock, row.unit)} {row.unit}
+                                                </td>
+                                                <td className="px-4 py-3 text-right text-[#00E0FF] font-[family-name:var(--font-jetbrains)]">
+                                                    {formatByUnit(row.avgSales, row.unit)} {row.unit}
+                                                </td>
+                                                <td className="px-4 py-3 text-right text-slate-400 font-[family-name:var(--font-jetbrains)]">
+                                                    {row.storesCount}
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
                     </div>
                 )}
             </main>

@@ -11,6 +11,7 @@ import { FloridaDistributionModal } from '../FloridaDistributionModal';
 import { FloridaProductionDetailModal } from '../FloridaProductionDetailModal';
 import { FloridaDistributionControlPanel } from './FloridaDistributionControlPanel';
 import FloridaProductionSimulator from './FloridaProductionSimulator';
+import { FloridaHistoricalProduction } from './FloridaHistoricalProduction';
 import { ThemeToggle } from '../theme-toggle';
 import { getFloridaUnit } from '@/lib/florida-dictionary';
 
@@ -54,7 +55,7 @@ const ProductionDetailView = () => {
                     <table className="w-full text-left border-collapse">
                         <thead className="bg-bg-primary text-[10px] uppercase font-bold tracking-widest text-text-secondary border-b border-panel-border">
                             <tr>
-                                <th className="p-4">Бульвар-Автовокзал</th>
+                                <th className="p-4">Флорида</th>
                                 <th className="p-4 text-right">Виготовлено (од.)</th>
                             </tr>
                         </thead>
@@ -92,7 +93,7 @@ interface Props {
 
 export const FloridaProductionTabs = ({ data, onRefresh, showTabs = true }: Props) => {
     // UPDATED TABS: 'matrix' replaces old 'distribution', 'logistics' is NEW
-    const [activeTab, setActiveTab] = useState<'orders' | 'matrix' | 'production' | 'logistics' | 'simulator'>('matrix');
+    const [activeTab, setActiveTab] = useState<'orders' | 'matrix' | 'production' | 'history' | 'logistics' | 'simulator'>('matrix');
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [isRefreshing, setIsRefreshing] = useState(false);
     const [isUpdatingStock, setIsUpdatingStock] = useState(false);
@@ -102,6 +103,7 @@ export const FloridaProductionTabs = ({ data, onRefresh, showTabs = true }: Prop
     const [isStale, setIsStale] = useState(false);
     const [stockData, setStockData] = useState<any>(null);
     const [manufacturedData, setManufacturedData] = useState<any[]>([]);
+    const hasAutoSyncedRef = React.useRef(false);
 
     React.useEffect(() => {
         const checkStaleness = () => {
@@ -144,6 +146,12 @@ export const FloridaProductionTabs = ({ data, onRefresh, showTabs = true }: Prop
             setIsUpdatingStock(false);
         }
     };
+
+    React.useEffect(() => {
+        if (hasAutoSyncedRef.current) return;
+        hasAutoSyncedRef.current = true;
+        void handleUpdateStock();
+    }, []);
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const handleManualRefresh = async () => {
@@ -219,7 +227,7 @@ export const FloridaProductionTabs = ({ data, onRefresh, showTabs = true }: Prop
             totalMin += (Number(p.minStockThresholdKg) || 0);
         });
 
-        // 2. Calculate produced from manufacturedData
+        // 2. Calculate produced from manufacturedData (priority source)
         const cleanStr = (s: string) => s.toLowerCase().replace(/[^а-яіїєґa-z0-9]/g, '');
         // First, check if we have data from posterAPI. If so, use it.
         if (manufacturedData && manufacturedData.length > 0) {
@@ -227,6 +235,11 @@ export const FloridaProductionTabs = ({ data, onRefresh, showTabs = true }: Prop
                 const qty = parseFloat(mItem.product_num || '0');
                 totalProduced += qty;
             });
+        } else {
+            const summaryProduced = Number((productionSummary as any)?.total_baked || 0);
+            if (Number.isFinite(summaryProduced) && summaryProduced > 0) {
+                totalProduced = summaryProduced;
+            }
         }
 
         return {
@@ -237,7 +250,7 @@ export const FloridaProductionTabs = ({ data, onRefresh, showTabs = true }: Prop
                 produced: totalProduced
             }
         };
-    }, [displayData, manufacturedData]);
+    }, [displayData, manufacturedData, productionSummary]);
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const getIndexColor = (val: number) => {
@@ -446,6 +459,25 @@ export const FloridaProductionTabs = ({ data, onRefresh, showTabs = true }: Prop
                             </button>
 
                             <button
+                                onClick={() => setActiveTab('history')}
+                                className={cn(
+                                    "flex-1 h-11 px-4 text-[13px] font-bold uppercase tracking-wider rounded-lg transition-all duration-300 flex items-center justify-center gap-2 relative overflow-hidden group/tab",
+                                    activeTab === 'history'
+                                        ? "bg-panel-bg text-blue-500 shadow-sm border border-panel-border"
+                                        : "text-text-secondary hover:text-text-primary hover:bg-panel-bg/50"
+                                )}
+                            >
+                                <div className={cn(
+                                    "p-1.5 rounded-md transition-colors",
+                                    activeTab === 'history' ? "bg-blue-500/10 text-blue-500" : "bg-transparent"
+                                )}>
+                                    <ClipboardList size={16} strokeWidth={2.5} />
+                                </div>
+                                <span className="hidden xl:inline">180 ДНІВ</span>
+                                <span className="xl:hidden">180D</span>
+                            </button>
+
+                            <button
                                 onClick={() => setActiveTab('simulator')}
                                 className={cn(
                                     "flex-1 h-11 px-4 text-[13px] font-bold uppercase tracking-wider rounded-lg transition-all duration-300 flex items-center justify-center gap-2 relative overflow-hidden group/tab",
@@ -481,6 +513,9 @@ export const FloridaProductionTabs = ({ data, onRefresh, showTabs = true }: Prop
                 )}
                 {(showTabs && activeTab === 'logistics') && (
                     <FloridaDistributionControlPanel />
+                )}
+                {(showTabs && activeTab === 'history') && (
+                    <FloridaHistoricalProduction />
                 )}
                 {(showTabs && activeTab === 'simulator') && (
                     <FloridaProductionSimulator />

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { requireAuth } from '@/lib/auth-guard';
+import { normalizeGravitonName, syncGravitonCatalogFromManufactures } from '@/lib/graviton-catalog';
 
 const POSTER_TOKEN = process.env.POSTER_TOKEN || '';
 const POSTER_ACCOUNT = 'galia-baluvana34';
@@ -60,11 +61,6 @@ export async function POST(request: Request) {
 
         const supabase = createClient(supabaseUrl, serviceRoleKey);
 
-        function normalizeName(value: string): string {
-            if (!value) return '';
-            return value.trim().toLowerCase().replace(/\s+/g, ' ');
-        }
-
         // 5.2. Fetch active shops
         const gravitonDb = supabase.schema('graviton');
         const categoriesDb = supabase.schema('categories');
@@ -110,22 +106,7 @@ export async function POST(request: Request) {
             is_production_hub: Number(row.storage_id) === 2,
         }));
 
-        // 5.4. Fetch active catalog
-        const { data: catalogRaw, error: catalogError } = await gravitonDb
-            .from('production_catalog')
-            .select('product_id, product_name, is_active')
-            .eq('is_active', true);
-
-        if (catalogError) throw new Error(`Error fetching catalog: ${catalogError.message}`);
-
-        const catalog = (catalogRaw || []).map((c: any) => ({
-            product_id: c.product_id,
-            product_name: c.product_name,
-            product_name_normalized: normalizeName(c.product_name),
-            is_active: c.is_active
-        }));
-
-        // 5.1 & 5.6. Call Edge Function for live stocks
+        // 5.4. Call Edge Function for live stocks
         let liveStocks: any[] = [];
         let failed_storages: number[] = [];
         try {
@@ -162,7 +143,7 @@ export async function POST(request: Request) {
                 storage_id: item.storage_id,
                 ingredient_id: item.ingredient_id,
                 ingredient_name: item.ingredient_name,
-                ingredient_name_normalized: normalizeName(item.ingredient_name),
+                ingredient_name_normalized: normalizeGravitonName(item.ingredient_name),
                 stock_left: parseFloat(item.stock_left || item.ingredient_left || item.storage_ingredient_left || '0'),
                 unit: item.unit || item.ingredient_unit || 'кг'
             }));
@@ -181,7 +162,7 @@ export async function POST(request: Request) {
                                 storage_id: storageId,
                                 ingredient_id: parseInt(item.ingredient_id),
                                 ingredient_name: item.ingredient_name,
-                                ingredient_name_normalized: normalizeName(item.ingredient_name),
+                                ingredient_name_normalized: normalizeGravitonName(item.ingredient_name),
                                 stock_left: parseFloat(item.stock_left || item.ingredient_left || item.storage_ingredient_left || '0'),
                                 unit: item.unit || 'кг'
                             }));
@@ -207,6 +188,14 @@ export async function POST(request: Request) {
         const dateStr = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Kyiv' }).format(new Date());
         let manufactures: any[] = [];
         let manufactures_warning = false;
+        let rawManufactures: any[] = [];
+        let catalog_sync = { inserted: 0, renamed: 0, reactivated: 0, skipped_without_id: 0 };
+        let catalog: Array<{
+            product_id: number;
+            product_name: string;
+            product_name_normalized: string;
+            is_active: boolean;
+        }> = [];
         let production_summary = {
             total_kg: 0,
             storage_id: 2,
@@ -219,7 +208,23 @@ export async function POST(request: Request) {
                 dateTo: dateStr
             });
 
-            const rawManufactures = (manufacturesData.response || []) as any[];
+            rawManufactures = (manufacturesData.response || []) as any[];
+            catalog_sync = await syncGravitonCatalogFromManufactures(gravitonDb, categoriesDb, rawManufactures, 2);
+
+            const { data: catalogRaw, error: catalogError } = await gravitonDb
+                .from('production_catalog')
+                .select('product_id, product_name, is_active')
+                .eq('is_active', true);
+
+            if (catalogError) throw new Error(`Error fetching catalog: ${catalogError.message}`);
+
+            catalog = (catalogRaw || []).map((c: any) => ({
+                product_id: c.product_id,
+                product_name: c.product_name,
+                product_name_normalized: normalizeGravitonName(c.product_name),
+                is_active: c.is_active
+            }));
+
             const catalogNamesNormalized = new Set(catalog.map((c: any) => c.product_name_normalized));
 
             rawManufactures.forEach((m: any) => {
@@ -230,7 +235,7 @@ export async function POST(request: Request) {
                 if (m.products && Array.isArray(m.products)) {
                     m.products.forEach((p: any) => {
                         const name = p.product_name || p.ingredient_name || '';
-                        const normalized = normalizeName(name);
+                        const normalized = normalizeGravitonName(name);
                         const quantity = parseFloat(p.product_num || '0');
 
                         // 2. Only items in Graviton catalog
@@ -260,6 +265,22 @@ export async function POST(request: Request) {
             production_summary.items_count = 0;
         }
 
+        if (catalog.length === 0) {
+            const { data: catalogRaw, error: catalogError } = await gravitonDb
+                .from('production_catalog')
+                .select('product_id, product_name, is_active')
+                .eq('is_active', true);
+
+            if (catalogError) throw new Error(`Error fetching catalog: ${catalogError.message}`);
+
+            catalog = (catalogRaw || []).map((c: any) => ({
+                product_id: c.product_id,
+                product_name: c.product_name,
+                product_name_normalized: normalizeGravitonName(c.product_name),
+                is_active: c.is_active
+            }));
+        }
+
         // 5.10. Return unified payload
         return NextResponse.json({
             success: true,
@@ -275,6 +296,7 @@ export async function POST(request: Request) {
             live_stocks: liveStocks,
             manufactures,
             production_summary,
+            catalog_sync,
             manufactures_warning,
             partial_sync: failed_storages.length > 0,
             failed_storages

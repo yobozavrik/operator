@@ -1,8 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { Settings2, TrendingUp, AlertTriangle, Loader2 } from 'lucide-react';
-import { createClient } from '@/utils/supabase/client';
+import { TrendingUp, AlertTriangle, Loader2 } from 'lucide-react';
 
 interface PlanItem {
     plan_day: number;
@@ -17,13 +16,18 @@ interface PlanItem {
     };
 }
 
+interface OrderPlanApiRow {
+    p_day: number;
+    p_name: string;
+    p_order: number;
+    p_avg?: number;
+}
+
 export default function FloridaProductionSimulator() {
     const [days, setDays] = useState<number>(3);
     const [planData, setPlanData] = useState<PlanItem[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-
-    const supabase = createClient();
 
     useEffect(() => {
         const fetchPlan = async () => {
@@ -31,34 +35,34 @@ export default function FloridaProductionSimulator() {
             setError(null);
 
             try {
-                // Виклик RPC-функції Supabase для Бульвар-Автовокзалу
-                const { data, error } = await supabase.rpc('f_generate_production_plan_florida', {
-                    p_days: days
-                });
+                const response = await fetch(`/api/florida/order-plan?days=${days}`);
+                const payload = await response.json().catch(() => null);
 
-                if (error) throw error;
-
-                if (data) {
-                    // Map the response fields back to the PlanItem interface
-                    // f_generate_production_plan_florida returns: plan_day, product_name, quantity, predicted_risk
-                    const mappedData = data.map((item: any) => ({
-                        plan_day: item.plan_day,
-                        product_name: item.product_name,
-                        quantity: item.quantity,
-                        risk_index: item.predicted_risk,
-                        prod_rank: 0, // not returned byflorida func
-                        plan_metadata: {
-                            deficit: 0,
-                            avg_sales: 0,
-                            was_inflated: false
-                        }
-                    }));
-                    setPlanData(mappedData);
+                if (!response.ok) {
+                    const message =
+                        (payload && typeof payload.error === 'string' && payload.error) ||
+                        `HTTP ${response.status}`;
+                    throw new Error(message);
                 }
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            } catch (err: any) {
+
+                const rows = Array.isArray(payload) ? (payload as OrderPlanApiRow[]) : [];
+                const mappedData = rows.map((item) => ({
+                    plan_day: Number(item.p_day) || 0,
+                    product_name: String(item.p_name || ''),
+                    quantity: Number(item.p_order) || 0,
+                    risk_index: Math.round(Number(item.p_avg) || 0),
+                    prod_rank: 0,
+                    plan_metadata: {
+                        deficit: 0,
+                        avg_sales: Number(item.p_avg) || 0,
+                        was_inflated: false,
+                    },
+                }));
+
+                setPlanData(mappedData);
+            } catch (err: unknown) {
                 console.error('Error fetching plan:', err);
-                setError(err.message);
+                setError(err instanceof Error ? err.message : 'Помилка завантаження плану');
                 // У разі помилки можна очистити дані або показати попередні
                 setPlanData([]);
             } finally {

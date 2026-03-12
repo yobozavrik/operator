@@ -3,6 +3,10 @@
 const POSTER_TOKEN = (process.env.POSTER_TOKEN || '').trim();
 const POSTER_ACCOUNT = 'galia-baluvana34';
 
+function getKyivDateString(date = new Date()): string {
+    return new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Kyiv' }).format(date);
+}
+
 export interface PosterStorage {
     storage_id: string;
     storage_name: string;
@@ -22,6 +26,18 @@ export interface StorageWithLeftovers {
     storage_id: string;
     storage_name: string;
     leftovers: PosterLeftover[];
+}
+
+interface GetAllLeftoversOptions {
+    // null means no category filter (all products)
+    categoryKeywords?: string[] | null;
+}
+
+interface GetTodayManufacturesOptions {
+    // null means no category filter (all products)
+    categoryKeywords?: string[] | null;
+    // null means all storages
+    storageId?: number | null;
 }
 
 export async function posterRequest(method: string, params: Record<string, string> = {}) {
@@ -62,24 +78,59 @@ export async function getProducts() {
     return productsData.response || [];
 }
 
-export async function getAllLeftovers(): Promise<StorageWithLeftovers[]> {
-    // 1. Fetch categories to find Konditerka and Morozivo IDs
+async function resolveIngredientIdsByCategoryKeywords(categoryKeywords: string[]): Promise<Set<string>> {
+    const normalizedKeywords = categoryKeywords.map((k) => k.toLowerCase());
+
     const categories = await getCategories();
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const targetCategories = categories.filter((c: any) =>
-        c.category_name.toLowerCase().includes('кондитерка') ||
-        c.category_name.toLowerCase().includes('морозиво')
+        normalizedKeywords.some((kw) => String(c.category_name || '').toLowerCase().includes(kw))
     );
-    const targetCategoryIds = targetCategories.map((c: any) => c.category_id);
+    const targetCategoryIds = new Set(targetCategories.map((c: any) => c.category_id));
 
-    // 2. Fetch all products and filter by these category IDs
     const products = await getProducts();
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const konditerkaProducts = products.filter((p: any) =>
-        targetCategoryIds.includes(p.menu_category_id)
+    const ingredientIds = products
+        .filter((p: any) => targetCategoryIds.has(p.menu_category_id))
+        .map((p: any) => p.ingredient_id)
+        .filter(Boolean)
+        .map(String);
+
+    return new Set(ingredientIds);
+}
+
+async function resolveProductIdsByCategoryKeywords(categoryKeywords: string[]): Promise<Set<string>> {
+    const normalizedKeywords = categoryKeywords.map((k) => k.toLowerCase());
+
+    const categories = await getCategories();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const targetCategories = categories.filter((c: any) =>
+        normalizedKeywords.some((kw) => String(c.category_name || '').toLowerCase().includes(kw))
     );
-    // Poster products that correspond to ingredients in the warehouse have an ingredient_id (string/number)
-    const KONDITERKA_INGREDIENT_IDS = konditerkaProducts.map((p: any) => p.ingredient_id).filter(Boolean).map(String);
+    const targetCategoryIds = new Set(targetCategories.map((c: any) => c.category_id));
+
+    const products = await getProducts();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const productIds = products
+        .filter((p: any) => targetCategoryIds.has(p.menu_category_id))
+        .map((p: any) => p.product_id)
+        .filter(Boolean)
+        .map(String);
+
+    return new Set(productIds);
+}
+
+export async function getAllLeftovers(
+    options: GetAllLeftoversOptions = {}
+): Promise<StorageWithLeftovers[]> {
+    const categoryKeywords = options.categoryKeywords === undefined
+        ? ['кондитерка', 'морозиво']
+        : options.categoryKeywords;
+
+    const ingredientFilter =
+        categoryKeywords && categoryKeywords.length > 0
+            ? await resolveIngredientIdsByCategoryKeywords(categoryKeywords)
+            : null;
 
     console.time('Poster API fetch storages');
     const storagesData = await posterRequest('storage.getStorages');
@@ -102,12 +153,12 @@ export async function getAllLeftovers(): Promise<StorageWithLeftovers[]> {
             storage_id: storage.storage_id
         });
 
-        // 3. Filter the leftovers to only include those belonging to Konditerka/Morozivo
+        // 3. Optional product filtering by category scope
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const rawLeftovers = (data.response || []) as PosterLeftover[];
-        const filteredLeftovers = rawLeftovers.filter(item =>
-            KONDITERKA_INGREDIENT_IDS.includes(String(item.ingredient_id))
-        );
+        const filteredLeftovers = ingredientFilter
+            ? rawLeftovers.filter(item => ingredientFilter.has(String(item.ingredient_id)))
+            : rawLeftovers;
 
         return {
             storage_id: storage.storage_id,
@@ -122,31 +173,21 @@ export async function getAllLeftovers(): Promise<StorageWithLeftovers[]> {
     return results;
 }
 
-export async function getTodayManufactures() {
-    // 1. Storage ID for Konditerka Factory
-    const KONDITERKA_FACTORY_ID = 48; // Склад "Кондитерка"
+export async function getTodayManufactures(
+    options: GetTodayManufacturesOptions = {}
+) {
+    const categoryKeywords = options.categoryKeywords === undefined
+        ? ['кондитерка', 'морозиво']
+        : options.categoryKeywords;
+    const storageId = options.storageId === undefined ? 48 : options.storageId;
 
-    // 2. Date range for today
-    const dateStr = new Date().toISOString().split('T')[0];
+    const dateStr = getKyivDateString();
+    const productFilter =
+        categoryKeywords && categoryKeywords.length > 0
+            ? await resolveProductIdsByCategoryKeywords(categoryKeywords)
+            : null;
 
-    // 3. Fetch categories to find Konditerka and Morozivo IDs
-    const categories = await getCategories();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const targetCategories = categories.filter((c: any) =>
-        c.category_name.toLowerCase().includes('кондитерка') ||
-        c.category_name.toLowerCase().includes('морозиво')
-    );
-    const targetCategoryIds = targetCategories.map((c: any) => c.category_id);
-
-    // 4. Fetch all products and filter by these category IDs
-    const products = await getProducts();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const konditerkaProducts = products.filter((p: any) =>
-        targetCategoryIds.includes(p.menu_category_id)
-    );
-    const KONDITERKA_PRODUCT_IDS = konditerkaProducts.map((p: any) => p.product_id).filter(Boolean).map(String);
-
-    // 5. Fetch manufactures for today
+    // Fetch manufactures for today
     console.time('Poster API fetch manufactures');
     const manufacturesData = await posterRequest('storage.getManufactures', {
         dateFrom: dateStr,
@@ -157,20 +198,21 @@ export async function getTodayManufactures() {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const manufactures = (manufacturesData.response || []) as any[];
 
-    // 6. Filter by factory and extract relevant products
+    // Filter by storage (optional)
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const factoryManufactures = manufactures.filter((m: any) => String(m.storage_id) === String(KONDITERKA_FACTORY_ID));
+    const scopedManufactures = storageId === null
+        ? manufactures
+        : manufactures.filter((m: any) => String(m.storage_id) === String(storageId));
 
-    // We only care about products inside these manufactures that belong to Konditerka/Morozivo
+    // Extract produced items with optional product filtering
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const producedItems: any[] = [];
 
-    for (const manufacture of factoryManufactures) {
+    for (const manufacture of scopedManufactures) {
         if (manufacture.products && Array.isArray(manufacture.products)) {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const relevantProducts = manufacture.products.filter((p: any) =>
-                KONDITERKA_PRODUCT_IDS.includes(String(p.product_id))
-            );
+            const relevantProducts = productFilter
+                ? manufacture.products.filter((p: any) => productFilter.has(String(p.product_id)))
+                : manufacture.products;
             producedItems.push(...relevantProducts);
         }
     }

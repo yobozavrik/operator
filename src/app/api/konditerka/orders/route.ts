@@ -3,6 +3,7 @@ import { createClient } from '@/utils/supabase/server';
 import { requireAuth } from '@/lib/auth-guard';
 import { Logger } from '@/lib/logger';
 import { mergeWithPosterLiveStock } from '@/lib/poster-merger';
+import { getKonditerkaUnit } from '@/lib/konditerka-dictionary';
 
 export const dynamic = 'force-dynamic';
 
@@ -28,7 +29,11 @@ export async function GET() {
         // we merge the live Poster API data in Next.js memory immediately! (~1-2 seconds)
         let mergedData = data || [];
         try {
-            mergedData = await mergeWithPosterLiveStock(data as any[]);
+            mergedData = await mergeWithPosterLiveStock(data as any[], {
+                categoryKeywords: ['кондитерка', 'морозиво'],
+                convertKgToGrams: true,
+                unitResolver: getKonditerkaUnit,
+            });
         } catch (posterErr) {
             Logger.error('Failed to merge Poster data, falling back to Supabase', { error: String(posterErr) });
             // Safe fallback keeps DB data

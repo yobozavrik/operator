@@ -269,14 +269,33 @@ export function transformKonditerkaData(data: any[]): ProductionTask[] {
     });
 }
 
-import { getFloridaUnit } from '@/lib/florida-dictionary';
+import { normalizeFloridaUnit } from '@/lib/florida-dictionary';
 
 // Florida Data Transformer
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function transformFloridaData(data: any[]): ProductionTask[] {
+    const unitByProduct = new Map<string, 'шт' | 'кг'>();
+
+    data.forEach((row) => {
+        const productName = String(row.product_name || row.pizza_name || row.назва_продукту || '').trim();
+        const numericId = Number(row.product_id);
+        const normalizedUnit = normalizeFloridaUnit(row.unit, productName);
+
+        if (Number.isFinite(numericId) && numericId > 0) {
+            unitByProduct.set(`id:${numericId}`, normalizedUnit);
+        }
+
+        if (productName) {
+            unitByProduct.set(`name:${productName.toLowerCase()}`, normalizedUnit);
+        }
+    });
+
     const defaultTransformed = transformPizzaData(data);
     return defaultTransformed.map(task => {
-        const productUnit = getFloridaUnit(task.name);
+        const productUnit =
+            unitByProduct.get(`id:${task.productCode}`) ||
+            unitByProduct.get(`name:${task.name.toLowerCase()}`) ||
+            normalizeFloridaUnit(undefined, task.name);
 
         return {
             ...task,

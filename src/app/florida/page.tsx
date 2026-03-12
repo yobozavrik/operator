@@ -23,6 +23,21 @@ export default function FloridaDashboard() {
         await mutate();
     }, [mutate]);
 
+    React.useEffect(() => {
+        const syncStocks = async () => {
+            try {
+                await fetch('/api/florida/update-stock', {
+                    method: 'POST',
+                    credentials: 'include',
+                });
+                await mutate();
+            } catch {
+                // Silent: dashboard still renders with existing data/fallbacks.
+            }
+        };
+        void syncStocks();
+    }, [mutate]);
+
     const productQueue = React.useMemo(() => {
         if (!allProductsData) return [];
         return transformFloridaData(allProductsData);

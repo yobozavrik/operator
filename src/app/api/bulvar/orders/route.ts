@@ -1,10 +1,22 @@
 import { NextResponse } from 'next/server';
-import { createClient as createSupabaseClient } from '@supabase/supabase-js';
+import { createClient as createSupabaseClient, type SupabaseClient } from '@supabase/supabase-js';
 import { requireAuth } from '@/lib/auth-guard';
 import { Logger } from '@/lib/logger';
 import { mergeWithPosterLiveStock } from '@/lib/poster-merger';
+import { applyBulvarMinStockPolicyToRawRows } from '@/lib/bulvar-min-stock-policy';
+import { syncBranchProductionFromPoster } from '@/lib/branch-production-sync';
 
 export const dynamic = 'force-dynamic';
+
+async function refreshBulvarProductionCatalog(supabase: SupabaseClient) {
+    const { error } = await supabase
+        .schema('bulvar1')
+        .rpc('refresh_production_180d_products', { p_product_ids: null });
+
+    if (error) {
+        Logger.error('[bulvar Orders API] production_180d refresh failed', { error: error.message });
+    }
+}
 
 export async function GET() {
     const auth = await requireAuth();
@@ -25,6 +37,22 @@ export async function GET() {
             auth: { persistSession: false },
         });
 
+        // Keep Bulvar product catalog self-updated from workshop production before reading cards.
+        await refreshBulvarProductionCatalog(supabase);
+
+        const productionSync = await syncBranchProductionFromPoster(supabase, 'bulvar1', 22).catch((error) => {
+            Logger.error('[bulvar Orders API] live production sync failed', { error: String(error) });
+            return null;
+        });
+
+        const liveTodayPosterProductIds = Array.from(
+            new Set(
+                (productionSync?.items || [])
+                    .map((item) => Number(item.product_id))
+                    .filter((id) => Number.isFinite(id) && id > 0)
+            )
+        );
+
         const { data: workshopProducts, error: workshopError } = await supabase
             .schema('bulvar1')
             .from('production_180d_products')
@@ -40,7 +68,10 @@ export async function GET() {
         }
 
         const workshopProductIds = Array.from(
-            new Set((workshopProducts || []).map((row) => Number(row.product_id)).filter((id) => Number.isFinite(id)))
+            new Set([
+                ...(workshopProducts || []).map((row) => Number(row.product_id)),
+                ...liveTodayPosterProductIds,
+            ].filter((id) => Number.isFinite(id) && id > 0))
         );
 
         if (workshopProductIds.length === 0) {
@@ -64,12 +95,17 @@ export async function GET() {
 
         let mergedData = data || [];
         try {
-            mergedData = await mergeWithPosterLiveStock(data as any[]);
+            mergedData = await mergeWithPosterLiveStock(data as any[], {
+                categoryKeywords: null, // Bulvar needs factual leftovers for all products
+                convertKgToGrams: false,
+            });
         } catch (posterErr) {
             Logger.error('[bulvar Orders API] Poster merge failed', { error: String(posterErr) });
         }
 
-        return NextResponse.json(mergedData);
+        const policyAdjustedData = applyBulvarMinStockPolicyToRawRows(mergedData as any[]);
+
+        return NextResponse.json(policyAdjustedData);
 
     } catch (err: any) {
         Logger.error('[bulvar Orders API] Critical Error', { error: err.message || String(err) });

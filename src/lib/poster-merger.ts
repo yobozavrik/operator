@@ -20,15 +20,26 @@ const normalizeStore = (n: string) => {
 };
 const normalizeProd = (n: string) => (n || '').toLowerCase().replace(/['"«»\s]/g, '');
 
-import { getKonditerkaUnit } from './konditerka-dictionary';
+interface MergeWithPosterOptions {
+    // null means no category filter
+    categoryKeywords?: string[] | null;
+    // enable only when backend stores weight products in grams
+    convertKgToGrams?: boolean;
+    unitResolver?: (productName: string) => string;
+}
 
 /**
  * Fetches all live stock from Poster API and merges it with Supabase distribution stats logic.
  * This guarantees the Dashboard always shows accurate, real-time stock and deficit calculations.
  */
-export async function mergeWithPosterLiveStock(dbData: DbOrderRow[]): Promise<DbOrderRow[]> {
+export async function mergeWithPosterLiveStock(
+    dbData: DbOrderRow[],
+    options: MergeWithPosterOptions = {}
+): Promise<DbOrderRow[]> {
     const startTime = Date.now();
-    const allLeftovers = await getAllLeftovers();
+    const categoryKeywords =
+        options.categoryKeywords === undefined ? ['кондитерка', 'морозиво'] : options.categoryKeywords;
+    const allLeftovers = await getAllLeftovers({ categoryKeywords });
     const duration_ms = Date.now() - startTime;
 
     let posterRecords = 0;
@@ -71,8 +82,12 @@ export async function mergeWithPosterLiveStock(dbData: DbOrderRow[]): Promise<Db
             liveStock = posterMap[sKey][pKey];
             matchedCount++;
 
-            // ALIGNMENT FIX: Poster returns native kilograms (e.g. 1.5kg). 
-            if (getKonditerkaUnit(row.product_name) === 'кг') {
+            // Poster returns native kilograms for weight items; some schemas store grams.
+            if (
+                options.convertKgToGrams &&
+                options.unitResolver &&
+                options.unitResolver(row.product_name) === 'кг'
+            ) {
                 liveStock = Math.round(liveStock * 1000);
             }
         } else {
@@ -80,12 +95,15 @@ export async function mergeWithPosterLiveStock(dbData: DbOrderRow[]): Promise<Db
             unmatchedProducts.add(row.product_name);
         }
 
-        // The magic: if Poster reports fewer stock, re-calculate the `need_net` logic directly in JS
-        const newNeedNet = Math.max(0, row.min_stock - Math.max(0, liveStock));
+        const safeLiveStock = Math.max(0, Number(liveStock) || 0);
+        const safeMinStock = Math.max(0, Number(row.min_stock) || 0);
+
+        // Recalculate need from safe (non-negative) stock to prevent negative leftovers in UI.
+        const newNeedNet = Math.max(0, safeMinStock - safeLiveStock);
 
         return {
             ...row,
-            stock_now: liveStock,
+            stock_now: safeLiveStock,
             need_net: newNeedNet
         };
     });

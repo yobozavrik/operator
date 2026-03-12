@@ -121,6 +121,7 @@ export const BulvarProductionTabs = ({ data, onRefresh, showTabs = true }: Props
     const [isStale, setIsStale] = useState(false);
     const [stockData, setStockData] = useState<any>(null);
     const [manufacturedData, setManufacturedData] = useState<any[]>([]);
+    const hasAutoSyncedRef = React.useRef(false);
 
     React.useEffect(() => {
         const checkStaleness = () => {
@@ -163,6 +164,12 @@ export const BulvarProductionTabs = ({ data, onRefresh, showTabs = true }: Props
             setIsUpdatingStock(false);
         }
     };
+
+    React.useEffect(() => {
+        if (hasAutoSyncedRef.current) return;
+        hasAutoSyncedRef.current = true;
+        void handleUpdateStock();
+    }, []);
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const handleManualRefresh = async () => {

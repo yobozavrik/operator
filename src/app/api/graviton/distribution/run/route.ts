@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { requireAuth } from '@/lib/auth-guard';
 import crypto from 'crypto';
+import { normalizeGravitonName, syncGravitonCatalogFromManufactures } from '@/lib/graviton-catalog';
 
 const POSTER_TOKEN = process.env.POSTER_TOKEN || '';
 const POSTER_ACCOUNT = 'galia-baluvana34';
@@ -31,12 +32,6 @@ async function posterRequest(method: string, params: Record<string, string> = {}
     }
     return data;
 }
-
-function normalizeName(value: string): string {
-    if (!value) return '';
-    return value.trim().toLowerCase().replace(/\s+/g, ' ');
-}
-
 
 function hasInternalApiAccess(request: Request): boolean {
     const secret = process.env.INTERNAL_API_SECRET;
@@ -113,23 +108,7 @@ export async function POST(request: Request) {
         const resolvedShopIds = activeShops.map((s: any) => s.spot_id);
         const mapStorageToSpot = new Map(activeShops.map((s) => [s.storage_id, s.spot_id]));
 
-        // 3. Fetch active catalog
-        const { data: catalogRaw, error: catalogError } = await gravitonDb
-            .from('production_catalog')
-            .select('product_id, product_name')
-            .eq('is_active', true);
-
-        if (catalogError) throw new Error(`Error fetching catalog: ${catalogError.message}`);
-
-        const catalogNamesNormalized = new Set<string>();
-        const catalogData = new Map<string, number>();
-        (catalogRaw || []).forEach((c: any) => {
-            const norm = normalizeName(c.product_name);
-            catalogNamesNormalized.add(norm);
-            catalogData.set(norm, c.product_id);
-        });
-
-        // 4. Fetch live stocks for effective scope
+        // 3. Fetch live stocks for effective scope
         let liveStocks: any[] = [];
         let failed_storages: number[] = [];
 
@@ -162,7 +141,7 @@ export async function POST(request: Request) {
                 storage_id: item.storage_id,
                 ingredient_id: item.ingredient_id,
                 ingredient_name: item.ingredient_name,
-                ingredient_name_normalized: normalizeName(item.ingredient_name),
+                ingredient_name_normalized: normalizeGravitonName(item.ingredient_name),
                 stock_left: parseFloat(item.stock_left || item.ingredient_left || item.storage_ingredient_left || '0'),
                 unit: item.unit || item.ingredient_unit || 'кг'
             }));
@@ -180,7 +159,7 @@ export async function POST(request: Request) {
                                 storage_id: storageId,
                                 ingredient_id: parseInt(item.ingredient_id),
                                 ingredient_name: item.ingredient_name,
-                                ingredient_name_normalized: normalizeName(item.ingredient_name),
+                                ingredient_name_normalized: normalizeGravitonName(item.ingredient_name),
                                 stock_left: parseFloat(item.stock_left || item.ingredient_left || item.storage_ingredient_left || '0'),
                                 unit: item.unit || 'кг'
                             }));
@@ -201,10 +180,10 @@ export async function POST(request: Request) {
             throw new Error(`Critical dependency Live stocks sync failed: ${err.message}`);
         }
 
-        // 5. Fetch live production (storage_id = 2)
+        // 4. Fetch live production (storage_id = 2)
         const dateStr = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Kyiv' }).format(new Date());
-        let manufactures: any[] = [];
-        let totalManufacturedKg = 0;
+        let rawManufactures: any[] = [];
+        let catalogSync = { inserted: 0, renamed: 0, reactivated: 0, skipped_without_id: 0 };
 
         try {
             const manufacturesData = await posterRequest('storage.getManufactures', {
@@ -212,8 +191,33 @@ export async function POST(request: Request) {
                 dateTo: dateStr
             });
 
-            const rawManufactures = (manufacturesData.response || []) as any[];
+            rawManufactures = (manufacturesData.response || []) as any[];
+            catalogSync = await syncGravitonCatalogFromManufactures(gravitonDb, categoriesDb, rawManufactures, 2);
+        } catch (err: any) {
+            console.error("Error fetching manufactures for catalog sync:", err);
+            throw new Error(`Critical dependency Live production sync failed: ${err.message}`);
+        }
 
+        // 5. Fetch active catalog (after auto-sync)
+        const { data: catalogRaw, error: catalogError } = await gravitonDb
+            .from('production_catalog')
+            .select('product_id, product_name')
+            .eq('is_active', true);
+
+        if (catalogError) throw new Error(`Error fetching catalog: ${catalogError.message}`);
+
+        const catalogNamesNormalized = new Set<string>();
+        const catalogData = new Map<string, number>();
+        (catalogRaw || []).forEach((c: any) => {
+            const norm = normalizeGravitonName(c.product_name);
+            catalogNamesNormalized.add(norm);
+            catalogData.set(norm, c.product_id);
+        });
+
+        let manufactures: any[] = [];
+        let totalManufacturedKg = 0;
+
+        try {
             rawManufactures.forEach((m: any) => {
                 const storageId = parseInt(m.storage_id);
                 // Only Graviton Production Hub
@@ -222,7 +226,7 @@ export async function POST(request: Request) {
                 if (m.products && Array.isArray(m.products)) {
                     m.products.forEach((p: any) => {
                         const name = p.product_name || p.ingredient_name || '';
-                        const normalized = normalizeName(name);
+                        const normalized = normalizeGravitonName(name);
                         const quantity = parseFloat(p.product_num || '0');
 
                         // Match catalog
@@ -366,6 +370,7 @@ export async function POST(request: Request) {
             selected_shop_ids: resolvedShopIds,
             products_processed: finalProductsProcessed,
             total_kg: parseFloat(finalTotalKg.toFixed(3)),
+            catalog_sync: catalogSync,
             live_sync: {
                 stocks_rows: stocksToInsert.length,
                 manufactures_rows: manufacturesToInsert.length,

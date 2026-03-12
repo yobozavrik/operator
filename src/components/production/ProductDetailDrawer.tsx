@@ -15,6 +15,7 @@ export function ProductDetailDrawer({ isOpen, onClose, product }: DrawerProps) {
     }
 
     const { stores = [] } = product;
+    const unit: 'шт' | 'кг' = product.unit === 'кг' ? 'кг' : 'шт';
 
     // Handle closing when clicking outside the panel (optional, but good UX)
     const handleBackdropClick = (e: React.MouseEvent) => {
@@ -51,14 +52,14 @@ export function ProductDetailDrawer({ isOpen, onClose, product }: DrawerProps) {
                                     "text-3xl font-mono font-black leading-none flex items-baseline gap-1 font-[family-name:var(--font-jetbrains)]",
                                     product.computed.totalUrgentDeficit > 0 ? "text-status-critical drop-shadow-[0_0_8px_rgba(255,42,85,0.5)]" : "text-status-success drop-shadow-[0_0_8px_rgba(16,185,129,0.3)]"
                                 )}>
-                                    {product.computed.totalStock.toFixed(0)} <span className="text-[11px] font-bold text-slate-500 font-[family-name:var(--font-jetbrains)] uppercase tracking-wider">шт</span>
+                                    {product.computed.totalStock.toFixed(0)} <span className="text-[11px] font-bold text-slate-500 font-[family-name:var(--font-jetbrains)] uppercase tracking-wider">{unit}</span>
                                 </div>
                             </div>
                             <div className="w-px h-10 bg-white/10 hidden md:block"></div>
                             <div className="flex flex-col justify-end">
                                 <div className="text-[10px] uppercase font-bold text-slate-400 tracking-[0.2em] mb-2 font-[family-name:var(--font-jetbrains)]">Треба (Ціль)</div>
                                 <div className="text-3xl font-mono font-black text-[#00E0FF] leading-none flex items-baseline gap-1 font-[family-name:var(--font-jetbrains)] drop-shadow-[0_0_8px_rgba(0,224,255,0.4)]">
-                                    {product.computed.totalRecommended.toFixed(0)} <span className="text-[11px] font-bold text-[#00E0FF]/50 font-[family-name:var(--font-jetbrains)] uppercase tracking-wider">шт</span>
+                                    {product.computed.totalRecommended.toFixed(0)} <span className="text-[11px] font-bold text-[#00E0FF]/50 font-[family-name:var(--font-jetbrains)] uppercase tracking-wider">{unit}</span>
                                 </div>
                             </div>
                         </div>
@@ -74,7 +75,6 @@ export function ProductDetailDrawer({ isOpen, onClose, product }: DrawerProps) {
                 {/* SHOPS GRID */}
                 <div className="flex-1 overflow-y-auto custom-scrollbar p-6">
                     <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
-                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
                         {stores.map((store: any, index: number) => {
                             const isLowStock = store.computed.stock < store.computed.minStock;
 
