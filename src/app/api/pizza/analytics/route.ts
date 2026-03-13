@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase';
 import { Logger } from '@/lib/logger';
 import { requireAuth } from '@/lib/auth-guard';
+import { createServiceRoleClient } from '@/lib/branch-api';
+import { syncPizzaLiveDataFromPoster } from '@/lib/pizza-live-sync';
 
 export const dynamic = 'force-dynamic';
 
@@ -10,6 +11,12 @@ export async function GET() {
     if (auth.error) return auth.error;
 
     try {
+        const supabase = createServiceRoleClient();
+        await syncPizzaLiveDataFromPoster(supabase).catch((error) => {
+            Logger.error('[pizza analytics] live sync failed', { error: String(error) });
+            return null;
+        });
+
         // 1. KPI Data - Fetch from public.v_pub_analytics (expecting single row)
         const { data: kpi, error: kpiError } = await supabase
             .from('v_pub_analytics')

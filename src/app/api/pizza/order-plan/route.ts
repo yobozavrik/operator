@@ -1,11 +1,8 @@
-import { createClient } from '@supabase/supabase-js';
 import { NextResponse } from 'next/server';
 import { requireAuth } from '@/lib/auth-guard';
-
-const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
+import { createServiceRoleClient } from '@/lib/branch-api';
+import { syncPizzaLiveDataFromPoster } from '@/lib/pizza-live-sync';
+import { Logger } from '@/lib/logger';
 
 export async function GET(request: Request) {
     const auth = await requireAuth();
@@ -15,6 +12,12 @@ export async function GET(request: Request) {
     const days = parseInt(searchParams.get('days') || '1');
 
     try {
+        const supabase = createServiceRoleClient();
+        await syncPizzaLiveDataFromPoster(supabase).catch((error) => {
+            Logger.error('[pizza order-plan] live sync failed', { error: String(error) });
+            return null;
+        });
+
         // OLD (до 13.02.2026): использовал только физические остатки
         // const { data, error } = await supabase.rpc('f_generate_order_plan', { p_days: days });
 

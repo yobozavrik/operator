@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase';
 import { requireAuth } from '@/lib/auth-guard';
+import { createServiceRoleClient } from '@/lib/branch-api';
+import { syncPizzaLiveDataFromPoster } from '@/lib/pizza-live-sync';
+import { Logger } from '@/lib/logger';
 
 interface DistributionRequest {
     productId: number;
@@ -32,11 +34,18 @@ export async function POST(request: NextRequest) {
     if (auth.error) return auth.error;
 
     try {
+        const supabase = createServiceRoleClient();
+        await syncPizzaLiveDataFromPoster(supabase).catch((error) => {
+            Logger.error('[pizza calculate-distribution] live sync failed', { error: String(error) });
+            return null;
+        });
+
         const body: DistributionRequest = await request.json();
         const { productId, productionQuantity } = body;
 
         // Fetch stats for this product
         const { data: stores, error } = await supabase
+            .schema('pizza1')
             .from('v_pizza_distribution_stats')
             .select('*')
             .eq('product_id', productId);

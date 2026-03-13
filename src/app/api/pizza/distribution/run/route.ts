@@ -1,44 +1,51 @@
-import { createClient } from '@supabase/supabase-js';
-import { NextResponse, NextRequest } from 'next/server';
+import { NextResponse } from 'next/server';
 import { requireAuth } from '@/lib/auth-guard';
+import { createServiceRoleClient } from '@/lib/branch-api';
+import { syncPizzaLiveDataFromPoster } from '@/lib/pizza-live-sync';
+import { Logger } from '@/lib/logger';
 
 export const dynamic = 'force-dynamic';
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-export async function POST(request: NextRequest) {
+export async function POST() {
     const auth = await requireAuth();
     if (auth.error) return auth.error;
 
-    console.log('Starting distribution...');
-
-    // 1. Проверяем ключ (мы знаем, что он теперь верный!)
-    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-    if (!serviceKey) {
-        return NextResponse.json({ error: 'Server Config Error: Missing Key' }, { status: 500 });
-    }
-
-    // 2. Создаем Админ-клиента
-    const supabaseAdmin = createClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        serviceKey,
-        { auth: { persistSession: false } }
-    );
+    const supabaseAdmin = createServiceRoleClient();
 
     try {
-        // 3. Запускаем SQL-функцию
-        // Используем спец. ID для логов, чтобы видеть, что это был ручной запуск
         const DEV_USER_ID = '00000000-0000-0000-0000-000000000000';
+        let syncResult:
+            | {
+                businessDate: string;
+                stockRows: number;
+                manufactureItems: number;
+                totalProductionQty: number;
+            }
+            | null = null;
+        let syncWarning: string | undefined;
 
-        console.log(`🚀 Sending RPC command...`);
+        try {
+            const live = await syncPizzaLiveDataFromPoster(supabaseAdmin);
+            syncResult = {
+                businessDate: live.businessDate,
+                stockRows: live.stockRows,
+                manufactureItems: live.manufactureItems,
+                totalProductionQty: live.totalProductionQty,
+            };
+        } catch (error) {
+            syncWarning = error instanceof Error ? error.message : String(error);
+            Logger.warn('[Pizza distribution run] live sync skipped', { error: syncWarning });
+        }
 
-        const { data: logId, error } = await supabaseAdmin.rpc('fn_full_recalculate_all', {
+        const { data: logId, error } = await supabaseAdmin
+            .schema('pizza1')
+            .rpc('fn_full_recalculate_all', {
             p_user_id: DEV_USER_ID
         });
 
         if (error) {
-            console.error('❌ RPC Error:', error);
+            Logger.error('[Pizza distribution run] RPC error', { error: error.message });
 
-            // Обработка ошибок логики
             if (error.code === '55P03' || error.message.includes('progress')) {
                 return NextResponse.json({ error: 'Calculation is already running' }, { status: 409 });
             }
@@ -48,12 +55,18 @@ export async function POST(request: NextRequest) {
             throw error;
         }
 
-        console.log(`✅ SUCCESS! Log ID: ${logId}`);
-        return NextResponse.json({ success: true, logId });
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (err: any) {
-        console.error('❌ API Error:', err);
-        return NextResponse.json({ error: err.message }, { status: 500 });
+        return NextResponse.json({
+            success: true,
+            logId,
+            businessDate: syncResult?.businessDate,
+            stockRows: syncResult?.stockRows,
+            manufactureItems: syncResult?.manufactureItems,
+            totalProductionQty: syncResult?.totalProductionQty,
+            warning: syncWarning,
+        });
+    } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : String(err);
+        Logger.error('[Pizza distribution run] API error', { error: message });
+        return NextResponse.json({ error: message }, { status: 500 });
     }
 }

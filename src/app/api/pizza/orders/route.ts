@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '@/utils/supabase/server';
 import { requireAuth } from '@/lib/auth-guard';
 import { Logger } from '@/lib/logger';
+import { createServiceRoleClient } from '@/lib/branch-api';
+import { syncPizzaLiveDataFromPoster } from '@/lib/pizza-live-sync';
 
 export const dynamic = 'force-dynamic';
 
@@ -10,10 +11,15 @@ export async function GET() {
     if (auth.error) return auth.error;
 
     try {
-        const supabase = await createClient();
+        const supabase = createServiceRoleClient();
 
-        // Максимально чистый запрос без фильтров
+        await syncPizzaLiveDataFromPoster(supabase).catch((error) => {
+            Logger.error('[pizza Orders API] live sync failed', { error: String(error) });
+            return null;
+        });
+
         const { data, error } = await supabase
+            .schema('pizza1')
             .from('v_pizza_distribution_stats')
             .select('*');
 
