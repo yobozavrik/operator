@@ -2,23 +2,14 @@ import { NextResponse } from 'next/server';
 import { parseISO, format } from 'date-fns';
 import { uk } from 'date-fns/locale';
 import { requireAuth } from '@/lib/auth-guard';
-import { getAllLeftovers } from '@/lib/poster-api';
-import { getBulvarUnit } from '@/lib/bulvar-dictionary';
 import { createClient } from '@/utils/supabase/server';
 import {
-    applyBulvarMinStockPolicyToNormalizedRows,
-    applyBulvarMinStockPolicyToRawRows,
-} from '@/lib/bulvar-min-stock-policy';
-import {
     BRANCH_CONFIGS,
-    buildBranchAnalytics,
-    buildBranchOrderPlan,
-    calculateBranchDistribution,
     coercePositiveInt,
     createServiceRoleClient,
-    fetchBranchRows,
 } from '@/lib/branch-api';
 import { syncBranchProductionFromPoster } from '@/lib/branch-production-sync';
+import { syncBulvarStocksFromEdge } from '@/lib/bulvar-stock-sync';
 
 export const dynamic = 'force-dynamic';
 
@@ -41,14 +32,34 @@ function routeNotFound(method: 'GET' | 'POST', routePath: string) {
 
 async function handleAnalytics() {
     const supabase = createServiceRoleClient();
-    const rawRows = await fetchBranchRows(
-        supabase,
-        config,
-        'product_id, product_name, spot_name, store_id, spot_id, stock_now, min_stock, avg_sales_day, need_net'
-    );
-    const rows = applyBulvarMinStockPolicyToNormalizedRows(rawRows as any[]);
+    const [
+        { data: kpiRow, error: kpiError },
+        { data: topRows, error: topError },
+    ] = await Promise.all([
+        supabase.schema(config.schema).from('v_bulvar_analytics_kpi').select('*').single(),
+        supabase.schema(config.schema).from('v_bulvar_analytics_top5').select('*'),
+    ]);
 
-    return NextResponse.json(buildBranchAnalytics(rows, 'bulvar_name'));
+    if (kpiError || topError) {
+        throw new Error(kpiError?.message || topError?.message || 'Failed to load analytics');
+    }
+
+    return NextResponse.json({
+        kpi: {
+            currentStock: Number(kpiRow?.current_stock || 0),
+            totalNeed: Number(kpiRow?.total_need || 0),
+            totalTarget: Number(kpiRow?.total_target || 0),
+            criticalPositions: Number(kpiRow?.critical_positions || 0),
+            fillLevel: String(kpiRow?.fill_level ?? '0.0'),
+        },
+        top5: (topRows || []).map((row: any) => ({
+            product_id: Number(row.product_id || 0),
+            bulvar_name: String(row.bulvar_name || ''),
+            shop_stock: Number(row.shop_stock || 0),
+            risk_index: Number(row.risk_index || 0),
+            unit: String(row.unit || 'шт'),
+        })),
+    });
 }
 
 async function handleShopStats(request: Request) {
@@ -76,8 +87,7 @@ async function handleShopStats(request: Request) {
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    const adjusted = applyBulvarMinStockPolicyToRawRows((data || []) as any[]);
-    return NextResponse.json(adjusted);
+    return NextResponse.json(data || []);
 }
 
 async function handleOrderPlan(request: Request) {
@@ -85,19 +95,15 @@ async function handleOrderPlan(request: Request) {
     const days = coercePositiveInt(searchParams.get('days'), 1, 1, 30);
 
     const supabase = createServiceRoleClient();
-    const rawRows = await fetchBranchRows(
-        supabase,
-        config,
-        'product_id, product_name, spot_name, store_id, spot_id, stock_now, min_stock, avg_sales_day, need_net'
-    );
-    const rows = applyBulvarMinStockPolicyToNormalizedRows(rawRows as any[]);
+    const { data, error } = await supabase
+        .schema(config.schema)
+        .rpc('fn_build_order_plan', { p_days: days });
 
-    const plan = buildBranchOrderPlan(rows, days).map((item) => ({
-        ...item,
-        unit: getBulvarUnit(item.p_name),
-    }));
+    if (error) {
+        throw new Error(error.message);
+    }
 
-    return NextResponse.json(plan);
+    return NextResponse.json(data || []);
 }
 
 async function handleCalculateDistribution(request: Request) {
@@ -113,15 +119,33 @@ async function handleCalculateDistribution(request: Request) {
     }
 
     const supabase = createServiceRoleClient();
-    const rawRows = await fetchBranchRows(
-        supabase,
-        config,
-        'product_id, product_name, spot_name, store_id, spot_id, stock_now, min_stock, avg_sales_day, need_net'
-    );
-    const rows = applyBulvarMinStockPolicyToNormalizedRows(rawRows as any[]);
+    const normalizedQuantity = Math.max(0, Math.trunc(productionQuantity));
+    const { data, error } = await supabase
+        .schema(config.schema)
+        .rpc('fn_preview_distribution', {
+            p_product_id: Math.trunc(productId),
+            p_production_quantity: normalizedQuantity,
+            p_surplus_multiplier_max: 4,
+        });
 
-    const result = calculateBranchDistribution(rows, Math.trunc(productId), productionQuantity);
-    return NextResponse.json(result);
+    if (error) {
+        throw new Error(error.message);
+    }
+
+    const rows = Array.isArray(data) ? data : [];
+    const distributed = Object.fromEntries(
+        rows
+            .map((row: any) => [Number(row.spot_id), Number(row.quantity || 0)] as const)
+            .filter(([storeId, quantity]) => Number.isFinite(storeId) && storeId > 0 && quantity > 0)
+    );
+    const allocated = Object.values(distributed).reduce((sum, quantity) => sum + Number(quantity || 0), 0);
+
+    return NextResponse.json({
+        productId: Math.trunc(productId),
+        originalQuantity: normalizedQuantity,
+        distributed,
+        remaining: Math.max(0, normalizedQuantity - allocated),
+    });
 }
 
 async function handleConfirmDistribution(request: Request) {
@@ -158,19 +182,24 @@ async function handleCreateOrder(request: Request) {
 
 async function handleUpdateStock() {
     const supabase = createServiceRoleClient();
-    const [allLeftovers, productionSync] = await Promise.all([
-        getAllLeftovers({ categoryKeywords: null }),
+    const [stockSync, productionSync] = await Promise.all([
+        syncBulvarStocksFromEdge(supabase).catch((error) => ({
+            syncedRows: 0,
+            syncedStorages: 0,
+            skippedStorages: [],
+            warnings: [error instanceof Error ? error.message : String(error)],
+        })),
         syncBranchProductionFromPoster(supabase, 'bulvar1', 22),
     ]);
 
     return NextResponse.json({
         success: true,
-        data: allLeftovers,
-        manufactures: productionSync.items.map((item) => ({
-            product_id: item.product_id,
-            product_name: item.product_name,
-            product_num: item.quantity,
-        })),
+        stock_sync: {
+            synced_rows: stockSync.syncedRows,
+            synced_storages: stockSync.syncedStorages,
+            skipped_storages: stockSync.skippedStorages,
+            warnings: stockSync.warnings,
+        },
         production_sync: {
             business_date: productionSync.businessDate,
             items_count: productionSync.itemsCount,

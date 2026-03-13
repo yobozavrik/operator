@@ -23,6 +23,21 @@ export default function BulvarDashboard() {
         await mutate();
     }, [mutate]);
 
+    React.useEffect(() => {
+        const syncStocks = async () => {
+            try {
+                await fetch('/api/bulvar/update-stock', {
+                    method: 'POST',
+                    credentials: 'include',
+                });
+                await mutate();
+            } catch {
+                // Silent: dashboard still renders with the latest persisted Supabase snapshot.
+            }
+        };
+        void syncStocks();
+    }, [mutate]);
+
     const productQueue = React.useMemo(() => {
         if (!allProductsData) return [];
         return transformBulvarData(allProductsData);

@@ -119,25 +119,15 @@ export default function CommandLevel1() {
   const { data: bulvarSummary } = useSWR('/api/bulvar/summary', fetcher, { refreshInterval: 60000 });
 
   const bulvarMetrics = useMemo(() => {
-    let fact = 0;
-    let norm = 0;
-    let index = 0;
+    const fact = Math.round(Number(bulvarSummary?.total_stock) || 0);
+    const norm = Math.round(Number(bulvarSummary?.total_norm) || 0);
+    const fillIndex = Number(bulvarSummary?.fill_index);
+    const index = Number.isFinite(fillIndex)
+      ? Math.round(fillIndex)
+      : (norm > 0 ? Math.round((fact / norm) * 100) : 0);
 
-    if (bulvarRawData) {
-      const products = transformPizzaData(bulvarRawData);
-      fact = products.reduce((sum, p) => sum + p.totalStockKg, 0);
-    }
-
-    if (bulvarSummary?.total_norm) {
-      norm = bulvarSummary.total_norm;
-    } else if (bulvarRawData) {
-      const products = transformPizzaData(bulvarRawData);
-      norm = products.reduce((sum, p) => sum + p.minStockThresholdKg, 0);
-    }
-
-    index = norm > 0 ? Math.round((fact / norm) * 100) : 0;
     return { fact: Math.round(fact), norm: Math.round(norm), index };
-  }, [bulvarRawData, bulvarSummary]);
+  }, [bulvarSummary]);
 
   useEffect(() => {
     setTime(new Date());

@@ -310,20 +310,38 @@ export function transformFloridaData(data: any[]): ProductionTask[] {
     });
 }
 
-import { getBulvarUnit } from '@/lib/bulvar-dictionary';
-
 // Bulvar Data Transformer
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function transformBulvarData(data: any[]): ProductionTask[] {
+    const unitByProduct = new Map<string, 'шт' | 'кг'>();
+
+    data.forEach((row) => {
+        const productName = String(row.product_name || row.pizza_name || row.назва_продукту || '').trim();
+        const numericId = Number(row.product_id);
+        const unit = String(row.unit || '').trim() === 'кг' ? 'кг' : 'шт';
+
+        if (Number.isFinite(numericId) && numericId > 0) {
+            unitByProduct.set(`id:${numericId}`, unit);
+        }
+
+        if (productName) {
+            unitByProduct.set(`name:${productName.toLowerCase()}`, unit);
+        }
+    });
+
     const defaultTransformed = transformPizzaData(data);
     return defaultTransformed.map(task => {
+        const unit =
+            unitByProduct.get(`id:${task.productCode}`) ||
+            unitByProduct.get(`name:${task.name.toLowerCase()}`) ||
+            'шт';
         return {
             ...task,
-            unit: 'кг',
+            unit,
             category: 'БУЛЬВАР-АВТОВОКЗАЛ',
             stores: task.stores.map(store => ({
                 ...store,
-                unit: 'кг'
+                unit
             }))
         };
     });

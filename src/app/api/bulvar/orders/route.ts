@@ -2,8 +2,6 @@ import { NextResponse } from 'next/server';
 import { createClient as createSupabaseClient, type SupabaseClient } from '@supabase/supabase-js';
 import { requireAuth } from '@/lib/auth-guard';
 import { Logger } from '@/lib/logger';
-import { mergeWithPosterLiveStock } from '@/lib/poster-merger';
-import { applyBulvarMinStockPolicyToRawRows } from '@/lib/bulvar-min-stock-policy';
 import { syncBranchProductionFromPoster } from '@/lib/branch-production-sync';
 
 export const dynamic = 'force-dynamic';
@@ -81,7 +79,7 @@ export async function GET() {
         const { data, error } = await supabase
             .schema('bulvar1')
             .from('v_bulvar_distribution_stats')
-            .select('product_id, product_name, spot_name, stock_now, min_stock, avg_sales_day, need_net')
+            .select('product_id, product_name, spot_id, spot_name, stock_now, min_stock, avg_sales_day, need_net, unit')
             .in('product_id', workshopProductIds);
 
         if (error) {
@@ -93,19 +91,20 @@ export async function GET() {
             }, { status: 500 });
         }
 
-        let mergedData = data || [];
-        try {
-            mergedData = await mergeWithPosterLiveStock(data as any[], {
-                categoryKeywords: null, // Bulvar needs factual leftovers for all products
-                convertKgToGrams: false,
-            });
-        } catch (posterErr) {
-            Logger.error('[bulvar Orders API] Poster merge failed', { error: String(posterErr) });
-        }
+        const rows = Array.isArray(data) ? data : [];
 
-        const policyAdjustedData = applyBulvarMinStockPolicyToRawRows(mergedData as any[]);
+        const normalizedRows = rows.map((row: Record<string, unknown>) => {
+            return {
+                ...row,
+                unit: String(row.unit || '').trim() || 'шт',
+                stock_now: Math.max(0, Number(row.stock_now) || 0),
+                min_stock: Math.max(0, Number(row.min_stock) || 0),
+                avg_sales_day: Math.max(0, Number(row.avg_sales_day) || 0),
+                need_net: Math.max(0, Number(row.need_net) || 0),
+            };
+        });
 
-        return NextResponse.json(policyAdjustedData);
+        return NextResponse.json(normalizedRows);
 
     } catch (err: any) {
         Logger.error('[bulvar Orders API] Critical Error', { error: err.message || String(err) });

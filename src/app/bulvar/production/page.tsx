@@ -26,6 +26,20 @@ export default function BulvarAnalyticsPage() {
         { refreshInterval: 60000 }
     );
 
+    React.useEffect(() => {
+        const syncStocks = async () => {
+            try {
+                await fetch('/api/bulvar/update-stock', {
+                    method: 'POST',
+                    credentials: 'include',
+                });
+            } catch {
+                // Silent: analytics still reads the last persisted Supabase snapshot.
+            }
+        };
+        void syncStocks();
+    }, []);
+
     const productQueue = React.useMemo(() => {
         if (!allProductsData) return [];
         return transformBulvarData(allProductsData);

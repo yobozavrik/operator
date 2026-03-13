@@ -10,6 +10,7 @@ interface ProductionOnlyRow {
     product_id: number;
     product_name: string;
     baked_at_factory: number;
+    unit?: string;
 }
 
 interface HistoricalRow {
@@ -28,6 +29,7 @@ interface MetricsRow {
     min_stock: number;
     avg_sales_day: number;
     need_net: number;
+    unit?: string;
 }
 
 export async function GET() {
@@ -80,7 +82,7 @@ export async function GET() {
             supabase
                 .schema('bulvar1')
                 .from('v_bulvar_distribution_stats')
-                .select('product_id, product_name, stock_now, min_stock, avg_sales_day, need_net'),
+                .select('product_id, product_name, stock_now, min_stock, avg_sales_day, need_net, unit'),
         ]);
 
         if (histError) {
@@ -122,11 +124,11 @@ export async function GET() {
             todayMap.set(Number(row.product_id), row);
         });
 
-        const metricsMap = new Map<number, { stock_now: number; min_stock: number; avg_sales_day: number; need_net: number }>();
+        const metricsMap = new Map<number, { stock_now: number; min_stock: number; avg_sales_day: number; need_net: number; unit: string }>();
         ((metricsData || []) as MetricsRow[]).forEach((row) => {
             const productId = Number(row.product_id);
             if (!Number.isFinite(productId)) return;
-            const current = metricsMap.get(productId) || { stock_now: 0, min_stock: 0, avg_sales_day: 0, need_net: 0 };
+            const current = metricsMap.get(productId) || { stock_now: 0, min_stock: 0, avg_sales_day: 0, need_net: 0, unit: 'шт' };
             const stockNow = Math.max(0, Number(row.stock_now || 0));
             const minStock = Math.max(0, Number(row.min_stock || 0));
             const avgSales = Math.max(0, Number(row.avg_sales_day || 0));
@@ -135,6 +137,7 @@ export async function GET() {
             current.min_stock += minStock;
             current.avg_sales_day += avgSales;
             current.need_net += needNet;
+            current.unit = String(row.unit || current.unit || 'шт');
             metricsMap.set(productId, current);
         });
 
@@ -168,6 +171,7 @@ export async function GET() {
                 prod_days: Number(histRow.prod_days || 0),
                 avg_qty_per_prod_day: Number(histRow.avg_qty_per_prod_day || 0),
                 last_manufacture_at: histRow.last_manufacture_at,
+                unit: String(metrics?.unit || 'шт'),
                 stock_now: Number(metrics?.stock_now || 0),
                 min_stock: Number(metrics?.min_stock || 0),
                 avg_sales_day: Number(metrics?.avg_sales_day || 0),

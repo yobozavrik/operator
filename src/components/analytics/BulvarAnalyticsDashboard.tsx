@@ -7,7 +7,6 @@ import {
 } from 'recharts';
 import { TrendingUp, AlertTriangle, CheckCircle2, TrendingDown, Target, Package, Layers } from 'lucide-react';
 import { ProductionTask } from '@/types/bi';
-import { getBulvarUnit } from '@/lib/bulvar-dictionary';
 
 // Theme Colors
 const COLORS = [
@@ -142,11 +141,9 @@ export const BulvarAnalyticsDashboard: React.FC<BulvarAnalyticsDashboardProps> =
     const trendsChartData = useMemo(() => {
         if (!trends || trends.length === 0) return [];
         return trends.slice(0, 15).map(t => {
-            const unit = getBulvarUnit(t.product_name);
-            const multiplier = unit === 'кг' ? 0.001 : 1;
-
-            const current = (t.qty_last_7 || 0) * multiplier;
-            const previous = (t.qty_prev_7 || 0) * multiplier;
+            const unit = t.unit === 'кг' ? 'кг' : 'шт';
+            const current = Number(t.qty_last_7 || 0);
+            const previous = Number(t.qty_prev_7 || 0);
 
             return {
                 name: t.product_name.substring(0, 20),

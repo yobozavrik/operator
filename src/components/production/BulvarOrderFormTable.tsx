@@ -6,7 +6,6 @@ import { cn } from '@/lib/utils';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { Loader2, Save, Activity, AlertCircle, Percent, TrendingUp } from 'lucide-react';
 import { ProductionTask } from '@/types/bi';
-import { getBulvarUnit } from '@/lib/bulvar-dictionary';
 
 interface Props {
     data: ProductionTask[]; // From v_bulvar_distribution_stats
@@ -27,9 +26,11 @@ interface AnalyticsData {
         fillLevel: string;
     };
     top5: {
+        product_id: number;
         bulvar_name: string;
         shop_stock: number;
         risk_index: number;
+        unit: 'шт' | 'кг' | string;
     }[];
 }
 
@@ -71,6 +72,7 @@ export const BulvarOrderFormTable = ({ data, onRefresh }: Props) => {
             return {
                 id: product.id,
                 name: product.name,
+                unit: product.unit || 'шт',
                 networkDeficit,
                 factoryStock,
                 currentPlan: productionPlan[product.id] || 0
@@ -203,7 +205,7 @@ export const BulvarOrderFormTable = ({ data, onRefresh }: Props) => {
                                     </div>
                                     <div className="text-right leading-none">
                                         <div className={cn("font-mono font-black", item.shop_stock <= 0 ? "text-[#E74856]" : "text-white")}>
-                                            {item.shop_stock} {getBulvarUnit(item.bulvar_name)}
+                                            {item.shop_stock} {item.unit || 'шт'}
                                         </div>
                                         <div className="text-[9px] text-[#E74856]/50 mt-0.5 uppercase tracking-widest">Risk: {item.risk_index}</div>
                                     </div>
@@ -236,7 +238,7 @@ export const BulvarOrderFormTable = ({ data, onRefresh }: Props) => {
                             {row.networkDeficit > 0 ? (
                                 <span className="drop-shadow-[0_0_10px_rgba(255,107,107,0.4)]">
                                     {row.networkDeficit}
-                                    <span className="text-[10px] ml-1 opacity-60 font-sans tracking-normal">{getBulvarUnit(row.name)}</span>
+                                    <span className="text-[10px] ml-1 opacity-60 font-sans tracking-normal">{row.unit || 'шт'}</span>
                                 </span>
                             ) : <span className="text-white/20">-</span>}
                         </div>
@@ -245,7 +247,7 @@ export const BulvarOrderFormTable = ({ data, onRefresh }: Props) => {
                             {row.factoryStock > 0 ? (
                                 <span className="drop-shadow-[0_0_10px_rgba(0,212,255,0.4)]">
                                     {row.factoryStock}
-                                    <span className="text-[10px] ml-1 opacity-60 font-sans tracking-normal">{getBulvarUnit(row.name)}</span>
+                                    <span className="text-[10px] ml-1 opacity-60 font-sans tracking-normal">{row.unit || 'шт'}</span>
                                 </span>
                             ) : <span className="text-white/20">-</span>}
                         </div>

@@ -13,12 +13,12 @@ import { BulvarDistributionControlPanel } from './BulvarDistributionControlPanel
 import BulvarProductionSimulator from './BulvarProductionSimulator';
 import { BulvarHistoricalProduction } from './BulvarHistoricalProduction';
 import { ThemeToggle } from '../theme-toggle';
-import { getBulvarUnit } from '@/lib/bulvar-dictionary';
 
 // --- SUPPORTING COMPONENTS ---
 interface ProductionItem {
     product_name: string;
     baked_at_factory: number;
+    unit?: string;
     total_qty_180d?: number;
     prod_days?: number;
     avg_qty_per_prod_day?: number;
@@ -74,7 +74,7 @@ const ProductionDetailView = () => {
                                     </td>
                                     <td className="p-4 text-center">
                                         <span className="inline-flex items-center justify-center px-4 py-1.5 rounded-lg bg-emerald-500/10 text-emerald-500 font-mono text-sm font-black min-w-[4rem] border border-emerald-500/20">
-                                            {item.baked_at_factory} <span className="text-[10px] ml-1 opacity-70 lowercase">{getBulvarUnit(item.product_name)}</span>
+                                            {item.baked_at_factory} <span className="text-[10px] ml-1 opacity-70 lowercase">{item.unit || 'шт'}</span>
                                         </span>
                                     </td>
                                     <td className="p-4 text-center text-sm font-mono text-text-secondary">
@@ -119,8 +119,6 @@ export const BulvarProductionTabs = ({ data, onRefresh, showTabs = true }: Props
     const [showProductionModal, setShowProductionModal] = useState(false);
     const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
     const [isStale, setIsStale] = useState(false);
-    const [stockData, setStockData] = useState<any>(null);
-    const [manufacturedData, setManufacturedData] = useState<any[]>([]);
     const hasAutoSyncedRef = React.useRef(false);
 
     React.useEffect(() => {
@@ -144,19 +142,13 @@ export const BulvarProductionTabs = ({ data, onRefresh, showTabs = true }: Props
             const response = await fetch('/api/bulvar/update-stock', {
                 method: 'POST'
             });
+            setLastUpdated(new Date());
 
-            const result = await response.json();
-
-            if (result.success) {
-                // ПОКАЗАТЬ данные из result.data в UI
-                // (здесь нужно setState с данными из Poster)
-                setStockData(result.data);
-                if (result.manufactures) {
-                    setManufacturedData(result.manufactures);
-                }
-                setLastUpdated(new Date());
+            if (response.ok) {
+                await onRefresh();
             } else {
-                console.warn(`[Stock Update] Backend reported an issue:`, result);
+                const result = await response.json().catch(() => null);
+                console.warn('[Bulvar update-stock] backend reported an issue', result);
             }
         } catch (error) {
             console.error('[Stock Update] Network/Fetch error:', error);
@@ -179,91 +171,23 @@ export const BulvarProductionTabs = ({ data, onRefresh, showTabs = true }: Props
         setTimeout(() => setIsRefreshing(false), 500);
     };
 
-    const displayData = useMemo(() => {
-        if (!stockData || !Array.isArray(stockData)) return data;
-
-        const cleanStr = (s: string) => s.toLowerCase().replace(/[^а-яіїєґa-z0-9]/g, '');
-
-        return data.map(product => {
-            let totalNetworkStock = 0;
-            const targetNameMap = cleanStr(product.name);
-
-            const enrichedStores = (product.stores || []).map(store => {
-                const cleanStoreName = cleanStr(store.storeName);
-
-                // Poster storage_name e.g. "Магазин "Гравітон""
-                const matchingStorage = stockData.find((s: any) => {
-                    const sName = cleanStr(s.storage_name);
-                    const coreName = sName.replace('магазин', '');
-                    return (coreName.length > 2 && cleanStoreName.includes(coreName)) || sName.includes(cleanStoreName);
-                });
-
-                let newStock = Number(store.currentStock) || 0;
-
-                if (cleanStoreName.includes('кондитерка') || cleanStoreName.includes('цех')) {
-                    newStock = 0; // Exclude factories and tseks completely from adding to retail stock array
-                } else if (matchingStorage && matchingStorage.leftovers) {
-                    const leftover = matchingStorage.leftovers.find((l: any) => cleanStr(l.ingredient_name || '') === targetNameMap);
-                    if (leftover) {
-                        const rawValue = parseFloat(leftover.storage_ingredient_left || '0');
-                        // Poster API natively returns weights in Kg ("kg") and pieces in Pieces ("p").
-                        // According to business logic, negative stocks should be considered 0.
-                        newStock = Math.max(0, rawValue);
-                    }
-                }
-
-                totalNetworkStock += newStock;
-
-                return {
-                    ...store,
-                    currentStock: newStock
-                };
-            });
-
-            const needNet = Math.max(0, product.minStockThresholdKg - totalNetworkStock);
-            const activeStores = enrichedStores.filter(s => s.currentStock <= 0);
-
-            return {
-                ...product,
-                totalStockKg: totalNetworkStock,
-                stores: enrichedStores,
-                totalDeficitKg: needNet,
-                recommendedQtyKg: needNet <= 0 ? 0 : Math.ceil(needNet / 10) * 10,
-                deficitPercent: product.minStockThresholdKg > 0 ? Number(((needNet / product.minStockThresholdKg) * 100).toFixed(1)) : 0,
-                outOfStockStores: activeStores.length,
-            } as ProductionTask;
-        });
-    }, [data, stockData]);
-
     const globalMetrics = useMemo(() => {
-        let totalStock = 0, totalMin = 0;
-        let totalProduced = 0;
-
-        // 1. Calculate stock and min from displayData
-        displayData.forEach(p => {
-            totalStock += (p.totalStockKg || 0);
-            totalMin += (Number(p.minStockThresholdKg) || 0);
-        });
-
-        // 2. Calculate produced from manufacturedData
-        const cleanStr = (s: string) => s.toLowerCase().replace(/[^а-яіїєґa-z0-9]/g, '');
-        // First, check if we have data from posterAPI. If so, use it.
-        if (manufacturedData && manufacturedData.length > 0) {
-            manufacturedData.forEach((mItem: any) => {
-                const qty = parseFloat(mItem.product_num || '0');
-                totalProduced += qty;
-            });
-        }
+        const totalStock = Number(productionSummary?.total_stock) || 0;
+        const totalMin = Number(productionSummary?.total_norm) || 0;
+        const totalProduced = Number(productionSummary?.total_baked) || 0;
+        const fillIndexFromSummary = Number(productionSummary?.fill_index);
 
         return {
             total: {
                 stock: totalStock,
                 min: totalMin,
-                index: totalMin > 0 ? (totalStock / totalMin) * 100 : 0,
+                index: Number.isFinite(fillIndexFromSummary)
+                    ? fillIndexFromSummary
+                    : (totalMin > 0 ? (totalStock / totalMin) * 100 : 0),
                 produced: totalProduced
             }
         };
-    }, [displayData, manufacturedData]);
+    }, [productionSummary]);
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const getIndexColor = (val: number) => {
@@ -516,10 +440,10 @@ export const BulvarProductionTabs = ({ data, onRefresh, showTabs = true }: Props
             {/* 2. CONTENT BLOCK */}
             <div className="flex-1 overflow-hidden relative">
                 {(!showTabs || activeTab === 'orders') && (
-                    <BulvarProductionOpsTable data={displayData} onRefresh={onRefresh} />
+                    <BulvarProductionOpsTable data={data} onRefresh={onRefresh} />
                 )}
                 {(showTabs && activeTab === 'matrix') && (
-                    <BulvarPowerMatrix data={displayData} onRefresh={onRefresh} />
+                    <BulvarPowerMatrix data={data} onRefresh={onRefresh} />
                 )}
                 {(showTabs && activeTab === 'production') && (
                     <ProductionDetailView />
@@ -539,7 +463,7 @@ export const BulvarProductionTabs = ({ data, onRefresh, showTabs = true }: Props
             <BulvarDistributionModal
                 isOpen={showDistModal}
                 onClose={() => setShowDistModal(false)}
-                products={displayData}
+                products={data}
             />
             <BulvarProductionDetailModal
                 isOpen={showProductionModal}
